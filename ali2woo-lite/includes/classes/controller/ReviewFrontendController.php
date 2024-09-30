@@ -14,7 +14,7 @@ class ReviewFrontendController {
 
     function __construct() {
         add_action('wp_enqueue_scripts', array($this, 'assets'));
-        add_filter('comment_text', array($this, 'comment_text'), 10, 2);
+        add_filter('comment_text', [$this, 'comment_text'], 10, 2);
         add_filter('get_avatar_url', array($this, 'get_avatar_url'), 1, 3);
     }
 
@@ -43,6 +43,9 @@ class ReviewFrontendController {
     }
 
     function comment_text($comment_text, $comment = null) {
+        if (is_null($comment)) {
+            return $comment_text;
+        }
 
         if (get_setting('review_show_image_list')) {
             $thumb_width = get_setting('review_thumb_width') . "px";
@@ -51,15 +54,16 @@ class ReviewFrontendController {
             if ($image_list) {
                 $comment_text .= "<div class='a2wl_review_images'>";
                 foreach ($image_list as $img) {
-                    if(is_array($img)){
+                    if (is_array($img)) {
                         $comment_text .= "<a class='fancybox' rel='group{$comment->comment_ID}' href='{$img['image']}'><img width='{$thumb_width}' src='{$img['thumb']}'/></a>";  
-                    }else{
+                    } else{
                         $comment_text .= "<a class='fancybox' rel='group{$comment->comment_ID}' href='{$img}'><img width='{$thumb_width}' src='{$img}'/></a>";    
                     }
                 }
                 $comment_text .= "</div>";
             }
         }
+
         return $comment_text;
     }
 

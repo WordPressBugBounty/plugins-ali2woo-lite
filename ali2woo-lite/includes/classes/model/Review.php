@@ -8,6 +8,8 @@
 
 namespace AliNext_Lite;;
 
+use WC_Comments;
+
 class Review {
 
     private $aliexpress_loader;
@@ -46,26 +48,30 @@ class Review {
 
     /**
      * Get reviews and save them in Woocommerce
-     * 
-     * @param mixed $post_id
      */
-    public function load($post_id, $force_clean = false, $params = array()) {
+    public function load(int $post_id, bool $force_clean = false, array $params = []): ?array
+    {
         global $wpdb;
 
-        $step = isset($params['step'])?$params['step']:false;
+        $step = $params['step'] ?? false;
 
         $external_id = get_post_meta($post_id, "_a2w_external_id", true);
         if (!$external_id) {
-            return false;
+            return null;
         }
 
-        $new_steps = array();
+        $new_steps = [];
 
-        if($step === false || $step === 'reviews'){
-            $comment_number = get_comments(array('post_id' => $post_id, 'meta_key' => 'rating', 'count' => true));
-            
+        if ($step === false || $step === 'reviews') {
+            $comment_number = get_comments(
+                [
+                    'post_id' => $post_id,
+                    'meta_key' => 'rating',
+                    'count' => true
+                ]
+            );
+
             $max_number_reviews_per_product = $this->get_max_reviews_number_by_product($post_id);
-            
             $remaining_comment_number = $max_number_reviews_per_product - $comment_number;
 
             if ($remaining_comment_number > 0) {
@@ -80,11 +86,13 @@ class Review {
                     delete_post_meta($post_id, '_wc_review_count');
                     delete_post_meta($post_id, '_wc_rating_count');
 
-                    \WC_Comments::clear_transients($post_id);
+                    WC_Comments::clear_transients($post_id);
 
-                    $nextPageNumber = ($remaining_comment_number < count($res['reviews'])) ? $pageNumber : ($pageNumber + 1);
+                    $nextPageNumber = ($remaining_comment_number < count($res['reviews'])) ?
+                        $pageNumber :
+                        ($pageNumber + 1);
 
-                    $added_review_cash = array();
+                    $added_review_cash = [];
 
                     foreach ($res['reviews'] as $item) {
                         if ($remaining_comment_number === 0) {
@@ -100,24 +108,37 @@ class Review {
                             continue;
                         }
 
-                        $review_cache = md5($post_id . $external_id . $item['buyer']['buyerTitle'] . (isset($item['review']['reviewContent'])?$item['review']['reviewContent']:"") . $item['review']['reviewDate']);
-                        $has_same_comment = $wpdb->get_var($wpdb->prepare("SELECT count(c.comment_ID) FROM {$wpdb->comments} c LEFT JOIN {$wpdb->commentmeta} cm ON (c.comment_ID = cm.comment_id and cm.meta_key='a2wl_cash') WHERE cm.meta_value=%s", $review_cache)) > 0;
+                        $review_cache = md5(
+                            $post_id . $external_id . $item['buyer']['buyerTitle'] .
+                            ( $item['review']['reviewContent'] ?? "" ) . $item['review']['reviewDate']
+                        );
+
+                        $queryTemplate = "SELECT count(c.comment_ID) FROM {$wpdb->comments} c " .
+                            "LEFT JOIN {$wpdb->commentmeta} cm " .
+                            "ON (c.comment_ID = cm.comment_id and cm.meta_key='a2wl_cash') " .
+                            "WHERE cm.meta_value=%s";
+                        $has_same_comment = $wpdb->get_var($wpdb->prepare($queryTemplate, $review_cache)) > 0;
                         if ($has_same_comment || !empty($added_review_cash[$review_cache])) {
                             continue;
                         }
-                        
-                        $tmp_text = ($this->review_translated && isset($item['review']['translation']) && isset($item['review']['translation']['reviewContent']))  ? $item['review']['translation']['reviewContent'] : (isset($item['review']['reviewContent'])?$item['review']['reviewContent']:"");
-                        
+
+
+                        $tmp_text = ($this->review_translated && isset($item['review']['translation']['reviewContent']))
+                            ? $item['review']['translation']['reviewContent'] :
+                            ($item['review']['reviewContent'] ?? "");
+
                         $tmp_text = trim(str_replace("\\u0000", '', $tmp_text));
                         if ($this->review_load_attributes && isset($item['review']['itemSpecInfo'])) {
-                            $tmp_text = $tmp_text . "<br/><br/>" . preg_replace('#([\w\-]+:)#', '<b>$1</b>', str_replace(':', ': ', PhraseFilter::apply_filter_to_text($item['review']['itemSpecInfo'])));
-                            //$tmp_text = $tmp_text . "<br/><br/>" . str_replace(':', ': ', PhraseFilter::apply_filter_to_text($item['review']['itemSpecInfo']));
+                            $tmp_text = $tmp_text . "<br/><br/>" .
+                                preg_replace('#([\w\-]+:)#', '<b>$1</b>',
+                                    str_replace(':', ': ',
+                                        PhraseFilter::apply_filter_to_text($item['review']['itemSpecInfo'])));
                         }
 
                         $maybe_skip_review = $this->maybe_skip_review($tmp_text);
 
-                        if ($maybe_skip_review){
-                            continue;     
+                        if ($maybe_skip_review) {
+                            continue;
                         }
 
                         $review_text = PhraseFilter::apply_filter_to_text($tmp_text);
@@ -127,8 +148,8 @@ class Review {
                         $date = gmdate('Y-m-d H:i:s', strtotime($item['review']['reviewDate']));
 
                         $comment_approved = get_setting('moderation_reviews') ? 0 : 1;
-                        
-                        $data = array(
+
+                        $data = [
                             'comment_post_ID' => $post_id,
                             'comment_author' => $author,
                             'comment_author_email' => '',
@@ -140,7 +161,7 @@ class Review {
                             'comment_parent' => 0,
                             'comment_type' => 'review',
                             'comment_approved' => $comment_approved,
-                        );
+                        ];
 
                         $comment_id = wp_insert_comment($data);
 
@@ -148,10 +169,10 @@ class Review {
                         add_comment_meta($comment_id, 'a2wl_cash', $review_cache, true);
                         add_comment_meta($comment_id, 'a2wl_country', $item['buyer']['buyerCountry'], true);
 
-                        if($step === false){
+                        if ($step === false) {
                             // if this is one thread import, then load images
                             if (get_setting('review_avatar_import')) {
-                                $author_photo = isset($item['buyer']['buyerImage']) ? $item['buyer']['buyerImage'] : false;
+                                $author_photo = $item['buyer']['buyerImage'] ?? false;
                                 if ($author_photo !== false) {
                                     $author_photo = $this->helper->image_http_to_https($author_photo);
                                     $photo_id = $this->attachment_model->create_attachment($comment_id, $author_photo);
@@ -161,14 +182,22 @@ class Review {
                                 }
                             }
 
-                            $photo_ids = array();
+                            $photo_ids = [];
 
                             if (get_setting('review_show_image_list')) {
-                                $photo_list = !empty($item['review']['reviewImages']) ? (is_array($item['review']['reviewImages']) ? $item['review']['reviewImages'] : array($item['review']['reviewImages'])) : array();
+
+                                $photo_list = !empty($item['review']['reviewImages']) ?
+                                    (is_array($item['review']['reviewImages']) ?
+                                        $item['review']['reviewImages'] :
+                                        [$item['review']['reviewImages']]) : [];
 
                                 foreach ($photo_list as $photo) {
                                     $photo = $this->helper->image_http_to_https($photo);
-                                    if ($photo_id = $this->attachment_model->create_attachment($post_id, $photo, array('inner_post_id' => $post_id, 'inner_attach_type' => 'comment'))) {
+                                    if ($photo_id = $this->attachment_model->create_attachment(
+                                        $post_id,
+                                        $photo,
+                                        ['inner_post_id' => $post_id, 'inner_attach_type' => 'comment'])
+                                    ) {
                                         $photo_ids[] = $photo_id;
                                     }
                                 }
@@ -176,10 +205,10 @@ class Review {
                                     add_comment_meta($comment_id, 'a2wl_photo_list', $photo_ids, true);
                                 }
                             }
-                        }else{
+                        } else {
                             // step by step flow. Prepare steps.
                             if (get_setting('review_avatar_import')) {
-                                $author_photo = isset($item['buyer']['buyerImage']) ? $item['buyer']['buyerImage'] : false;
+                                $author_photo = $item['buyer']['buyerImage'] ?? false;
                                 if ($author_photo) {
                                     $author_photo = $this->helper->image_http_to_https($author_photo);
                                     $new_steps[] = "reviews#avatar#".$comment_id."#".$author_photo;
@@ -187,7 +216,12 @@ class Review {
                             }
 
                             if (get_setting('review_show_image_list')) {
-                                $photo_list = !empty($item['review']['reviewImages']) ? (is_array($item['review']['reviewImages']) ? $item['review']['reviewImages'] : array($item['review']['reviewImages'])) : array();
+
+                                $photo_list = !empty($item['review']['reviewImages']) ?
+                                    (is_array($item['review']['reviewImages']) ?
+                                        $item['review']['reviewImages'] :
+                                        [$item['review']['reviewImages']]) : [];
+
                                 foreach ($photo_list as $photo) {
                                     $photo = $this->helper->image_http_to_https($photo);
                                     $new_steps[] = "reviews#photo#".$comment_id."#".$photo;
@@ -217,15 +251,18 @@ class Review {
             }
 
             //make sure that post comment status is 'open'
-            $post_arr = array('ID' => $post_id, 'comment_status'=>'open');
+            $post_arr = [
+                'ID' => $post_id,
+                'comment_status'=>'open'
+            ];
             wp_update_post($post_arr);
 
             if ($force_clean) {
-                \WC_Comments::clear_transients($post_id);
-            }                
+                WC_Comments::clear_transients($post_id);
+            }
         }
 
-        if(substr($step, 0, strlen('reviews#avatar')) === 'reviews#avatar'){
+        if (str_starts_with($step, 'reviews#avatar')) {
             $parts = explode('#', $step, 4);
             if(count($parts)==4){
                 $comment_id = $parts[2];
@@ -238,36 +275,43 @@ class Review {
             }
         }
 
-        if(substr($step, 0, strlen('reviews#photo')) === 'reviews#photo') {
+        if (str_starts_with($step, 'reviews#photo')) {
             $parts = explode('#', $step, 4);
-            if(count($parts)==4){
+            if (count($parts) == 4) {
                 $comment_id = $parts[2];
                 $photo = $parts[3];
 
-                $photo_id = $this->attachment_model->create_attachment($post_id, $photo, array('inner_post_id' => $post_id, 'inner_attach_type' => 'comment'));
+                $photo_id = $this->attachment_model->create_attachment($post_id, $photo,
+                    [
+                        'inner_post_id' => $post_id,
+                        'inner_attach_type' => 'comment'
+                    ]
+                );
                 if ($photo_id) {
-                    $photo_ids = get_comment_meta( $comment_id, 'a2wl_photo_list', true);
-                    if($photo_ids){
+                    $photo_ids = get_comment_meta($comment_id, 'a2wl_photo_list', true);
+                    if ($photo_ids) {
                         $photo_ids[] = $photo_id;
                         update_comment_meta($comment_id, 'a2wl_photo_list', $photo_ids);
-                    }else{
-                        $photo_ids = array($photo_id);
+                    } else {
+                        $photo_ids = [
+                            $photo_id
+                        ];
                         add_comment_meta($comment_id, 'a2wl_photo_list', $photo_ids, true);
                     }
                 }
             }
         }
 
-        return ResultBuilder::buildOk(array('new_steps'=>$new_steps));
+        return ResultBuilder::buildOk(['new_steps' => $new_steps]);
     }
 
     public function get_max_reviews_number_by_product($post_id){
         $result = get_post_meta( $post_id, Constants::product_reviews_max_number_meta(), true);
 
-        if (!$result){            
-            $result =  wp_rand( $this->max_number_reviews_per_product, $this->min_number_reviews_per_product );  
+        if (!$result){
+            $result =  wp_rand( $this->max_number_reviews_per_product, $this->min_number_reviews_per_product );
             update_post_meta( $post_id, Constants::product_reviews_max_number_meta(), $result );
-        } 
+        }
 
         return $result;
     }
@@ -355,7 +399,7 @@ class Review {
             //reset review count meta in posts
             $query_result = $wpdb->query("UPDATE {$wpdb->postmeta} SET meta_value = 0 WHERE meta_key = '_wc_review_count'");
 
-            \WC_Comments::delete_comments_count_cache();
+            WC_Comments::delete_comments_count_cache();
         }
     }
 
@@ -385,7 +429,7 @@ class Review {
     public static function clear_all_product_max_number_review_meta(){
 
         global $wpdb;
-        
+
         $wpdb->query(
             $wpdb->prepare(
                 "DELETE FROM {$wpdb->postmeta} WHERE meta_key=%s",

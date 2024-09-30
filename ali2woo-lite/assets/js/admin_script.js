@@ -170,13 +170,13 @@ function fill_modal_shipping_info(product_id, country_from_list, country_from, c
     jQuery(".modal-shipping").data(tmp_data);
 
     jQuery('#a2wl-modal-country-from-select').html('')
-    if(country_from_list.length>0){
+    if (country_from_list.length>0) {
         jQuery(".modal-shipping").addClass('with-country-from')
         jQuery.each(country_from_list, function (i, c) {
             jQuery('#a2wl-modal-country-from-select').append('<option value="'+c+'">'+c+'</option>')
         });
         jQuery('#a2wl-modal-country-from-select').val(country_from).trigger('change');
-    }else{
+    } else {
         jQuery(".modal-shipping").removeClass('with-country-from')
     }
 
@@ -190,6 +190,10 @@ function fill_modal_shipping_info(product_id, country_from_list, country_from, c
     });
     html += '</tbody></table>';
     jQuery('.modal-shipping .shipping-method').html(html);
+    if (tmp_data.shipping.length > 0) {
+        jQuery(".modal-shipping .select_method:checked").trigger('change');
+    }
+
 }
 
 function a2wl_load_shipping_info ( product_id, country_from, country_to, page = 'a2wl_dashboard', callback = null){

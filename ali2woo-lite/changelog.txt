@@ -289,3 +289,11 @@
 * Fix bug pricing rules type is not applied on choosing pricing set;
 * Add compatibility with WooCommerce 9.2.*  
 
+3.4.4
+* Add compatibility with WooCommerce 9.3.* 
+* Add server max execution time and memory limit checks on the System Info page
+* Enhance product background loader (should work faster even on cheap hosting plans)
+* Fix shipping loader (premium plugin version)
+* Fix built-in store products` search
+* Fix issue causing Wordfence notice 
+

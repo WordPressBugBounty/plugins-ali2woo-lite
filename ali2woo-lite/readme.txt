@@ -1,13 +1,13 @@
-=== AliExpress Dropshipping Plugin – AliNext ===
+=== AliExpress Dropshipping Plugin for WooCommerce – AliNext ===
 Contributors: ali2woo
-Tags: aliexpress dropshipping, dropshipping, ali2woo, dropship
+Tags: aliexpress dropshipping, woocommerce dropshipping, dropship
 Requires at least: 5.9
 Tested up to: 6.6
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Stable tag: trunk
 Requires PHP: 8.0
-WC tested up to: 9.2
+WC tested up to: 9.3
 WC requires at least: 5.0
 
 This AliExpress Dropshipping Plugin for WooCommerce: Import products with reviews from AliExpress and fulfill orders automatically! It's integrated with the AliExpress Affiliate Program, allowing you to earn more by selling affiliate products.
@@ -35,7 +35,7 @@ To activate HPOS, follow these steps: go to Woocommerce -> Settings -> Advanced 
 
 - Plugin works based on WooCommerce plugin.
 
-- You have to generate the access token (aliexpress token) to place or sync orders. You don't need the token to import products. Please [follow our instruction](https://help.ali2woo.com/codex/how-to-get-access-token-from-aliexpress/) in order to generate token.
+- You have to generate the access token (AliExpress token) to place or sync orders. You don't need the token to import products. Please [follow our instruction](https://help.ali2woo.com/codex/how-to-get-access-token-from-aliexpress/) in order to generate token.
 
 - Your permalink structure must NOT be "Plain"
 
@@ -45,7 +45,7 @@ To activate HPOS, follow these steps: go to Woocommerce -> Settings -> Advanced 
   
 &#9658; **Import Products**:
 
-This aliexpress dropshipping plugin imports products from AliExpress with several methods: via a built-in search module or through the free chrome extension. Additionally, it can pull products from selected categories or store pages on AliExpress. Also, if you want to import a specific product only, you can use AliExpress product ID or AliExpress product URL to do that.
+This AliExpress Dropshipping plugin imports products into WooCommerce using a built-in search module or a free Chrome extension. Additionally, it can pull products from selected categories or store pages on AliExpress. Also, if you want to import a specific product only, you can use AliExpress product ID or AliExpress product URL to do that.
 
 - **Import from single product page**
 
@@ -68,7 +68,7 @@ For further information, please check our [instruction.](https://help.ali2woo.co
 
 &#9658; **Split product variants into separate products**:
 
-The plugin allows splitting product variants. For example: a lot of products on AliExpress come with the "ShipFrom" attribute. Often dropshippers don't want to show this variant for customers. With this feature it's possible to split such a product by the "ShipFrom" attribute. As result you will get separate products without it.
+The plugin allows splitting product variants. For example: a lot of products on AliExpress come with the "ShipFrom" attribute. Often drop shippers don't want to show this variant for customers. With this feature it's possible to split such a product by the "ShipFrom" attribute. As result you will get separate products without it.
 
 Please look through the [this article](https://ali2woo.com/codex/how-to-split-product-variants-video/) to understand clearly how splitting feature works.
 
@@ -79,7 +79,7 @@ Check out an article from the plugin Knowledge Base to know [how to use this fea
 &#9658; **Override product supplier**:
 
 The product override feature is very helpful if you get a new order for the out-of-stock product and want to fulfill the order from another supplier or vendor on AliExpress.
-Also it helps if you have a product that was loaded through other dropshipping tool or it was added manually in Woocommerce and you want to connect the product to some AliExpress item using AliNext
+Also it helps if you have a product that was loaded through other dropshipping tool or it was added manually in WooCommerce and you want to connect the product to some AliExpress item using AliNext
 
 Check out an article from the plugin Knowledge Base to know [how to use this feature.](https://ali2woo.com/codex/how-to-change-the-product-supplier/)
 
@@ -95,7 +95,7 @@ This set of settings apply to all products imported from AliExpress. Go to AliNe
 
 - **Language**: Set language of product data such as title, description, variations, attributes, etc. Our plugin supports all languages which available on AliExpress.
 
-- **Currency**: Change the currency of products. AliNxt supports all currencies which AliExpress portal operates with. 
+- **Currency**: Change the currency of products. AliNext supports all currencies which AliExpress portal operates with. 
 
 - **Default product type**: By default the plugin imports product as "Simple/Variable product". In this case, shoppers will stay on your website when they make a purchase else choose the "External/Affiliate Product" option and your visitors will be redirected to AliExpress to finish the purchase.
 
@@ -105,9 +105,9 @@ This set of settings apply to all products imported from AliExpress. Go to AliNe
 
 - **Not import description**: Enable this feature if you don't want to import product description from AliExpress.
 
-- **Don't import images from the description**: If you want to skip images from the product description and don't import them to the wordpress media library, use this option.
+- **Don't import images from the description**: If you want to skip images from the product description and don't import them to the WordPress media library, use this option.
 
-- **Use external image urls**: By default, the plugin keeps product images on your server. If you want to save free space on your server, 
+- **Use external image URLs**: By default, the plugin keeps product images on your server. If you want to save free space on your server, 
 activate this option and the plugin will load an image using an external AliExpress URL. Please note: This feature works if the plugin is active only!
 
 - **Use random stock value**: By default the plugin imports the original stock level value. Some sellers on AliExpress set very high value and it doesn't look natural. To solve the issue just enable the feature. It forces the plugin to generate stock level value automatically and choose it from a predefined range.
@@ -116,7 +116,7 @@ activate this option and the plugin will load an image using an external AliExpr
 
 - **Allow product duplication**: Allow the import of an already imported product. This can be useful when you want to override a product with the same product.
 
-- **Convert case of attributes and their values**: Products may come with different text case of attributes and their values. Enbale this feature to covert all texts to the same case.
+- **Convert case of attributes and their values**: Products may come with different text case of attributes and their values. Enable this feature to covert all texts to the same case.
 
 - **Remove "Ship From" attribute**: Use this feature to remove the "Ship From" attribute automatically during product import.
 
@@ -308,6 +308,14 @@ In case you have any questions or need technical assistance, get in touch with u
 
 == Changelog ==
 
+= 3.4.4 - 2024.09.30 =
+* Add compatibility with WooCommerce 9.3.* 
+* Add server max execution time and memory limit checks on the System Info page
+* Enhance product background loader (should work faster even on cheap hosting plans)
+* Fix shipping loader (premium plugin version)
+* Fix built-in store products` search
+* Fix issue causing Wordfence notice 
+
 = 3.4.3 - 2024.08.26 =
 * Fix bug pricing rules type is not applied on choosing pricing set;
 * Add compatibility with WooCommerce 9.2.*  
@@ -379,11 +387,6 @@ In case you have any questions or need technical assistance, get in touch with u
 * add feature to synchronize selected orders (see bulk actions)
 * refactor plugin code to improve performance
 * fix minor bugs and errors
-
-= 3.1.4 - 2023.11.23 =
-* fix last update time on product update
-* fix tracking_id param in aliexpress affiliate links
-* fix some warnings related with old style function call
 == Upgrade Notice ==
 
 

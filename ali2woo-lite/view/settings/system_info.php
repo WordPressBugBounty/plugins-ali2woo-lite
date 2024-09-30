@@ -72,17 +72,45 @@ $pc_info = AliNext_Lite\SystemInfo::server_ping();
                         <div class="form-group input-block no-margin clearfix">
                             <?php $maxExecutionTime = intval(ini_get("max_execution_time")); ?>
                             <?php if ($maxExecutionTime < 30 ): ?>
-                            <span class="error">Error</span>
+                            <span class="error">Error (<?php echo $maxExecutionTime; ?> sec)</span>
                             <div class="info-box"
                                  data-toggle="tooltip"
                                  data-title="<?php _ex('You have to increase php max_execution_time to 30 seconds at least', 'setting description', 'ali2woo'); ?>">
                             </div>
                             <?php else: ?>
-                            <span class="ok">Ok</span>
+                            <span class="ok">Ok (<?php echo $maxExecutionTime; ?> sec)</span>
                             <?php endif;?>
                         </div>
                     </div>
                 </div>
+
+                <div class="field field_inline">
+                    <div class="field__label">
+                        <label>
+                            <strong><?php  esc_html_e('Php max memory limit', 'ali2woo'); ?></strong>
+                        </label>
+                        <div class="info-box" data-toggle="tooltip" data-title="<?php _ex('Php memory limit', 'setting description', 'ali2woo'); ?>"></div>
+                    </div>
+                    <div class="field__input-wrap">
+                        <div class="form-group input-block no-margin clearfix">
+                            <?php $memoryLimit = ini_get("memory_limit");
+                            $memoryLimitInBytes = $memoryLimit ? wp_convert_hr_to_bytes($memoryLimit) : 0;
+                            $minMemoryLimit = 128 * 1000000; //128 mb;
+                            $formatMemoryLimit = size_format($memoryLimitInBytes);
+                            ?>
+                            <?php if ($memoryLimitInBytes < $minMemoryLimit): ?>
+                                <span class="error">Error (<?php echo $formatMemoryLimit; ?>)</span>
+                                <div class="info-box"
+                                     data-toggle="tooltip"
+                                     data-title="<?php _ex('You have to increase php memory_limit to 128 MB at least', 'setting description', 'ali2woo'); ?>">
+                                </div>
+                            <?php else: ?>
+                                <span class="ok">Ok (<?php echo $formatMemoryLimit; ?>)</span>
+                            <?php endif;?>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="field field_inline">
                     <div class="field__label">
                         <label>

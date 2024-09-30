@@ -35,19 +35,15 @@ class ImportProcess extends BaseJob implements ImportJobInterface
             $ts = microtime(true);
             a2wl_info_log("START_STEP[id:".$item['product_id'].", extId: ".$item['id'].", step: ".$item['step']."]");
 
-            if(substr($item['step'], 0, strlen('reviews')) === 'reviews'){
-                if(get_setting('load_review')){
+            if (str_starts_with($item['step'], 'reviews')) {
+                if (get_setting('load_review')) {
                     $reviews_model = new Review();
 
                     $result = $reviews_model->load($item['product_id'], true, array('step'=>$item['step']));
 
-                    if(!empty($result['new_steps'])) {
+                    if (!empty($result['new_steps'])) {
                         // add new steps to new queue
                         ImportProcess::create_new_queue($item['product_id'], $item['id'], $result['new_steps'], false);
-                    }
-
-                    if($item['step']=='reviews'){
-                        add_filter($this->identifier . '_time_exceeded', array($this, 'finish_iteration'));
                     }
 
                     if ($result['state'] === 'error') {
@@ -68,18 +64,11 @@ class ImportProcess extends BaseJob implements ImportJobInterface
 
                     unset($woocommerce_model, $product);
 
-                    if(!empty($result['new_steps'])) {
+                    if (!empty($result['new_steps'])) {
                         // add new steps to new queue
                         ImportProcess::create_new_queue($item['product_id'], $item['id'], $result['new_steps']);
                     }
 
-                    if(
-                        // (!get_setting('use_external_image_urls') && substr($item['step'], 0, strlen('preload_images')) === 'preload_images') || 
-                        $item['step']=='finishing'
-                    ) {
-                        add_filter($this->identifier . '_time_exceeded', array($this, 'finish_iteration'));
-                    }
-                    
                     if ($result['state'] === 'error') {
                         throw new Exception($result['message']);
                     }
@@ -95,10 +84,6 @@ class ImportProcess extends BaseJob implements ImportJobInterface
         }
 
         return false;
-    }
-
-    public function finish_iteration($res) {
-        return true;
     }
 
     //todo: remove this function and refactor client code (use pushToQueue method instead)
