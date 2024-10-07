@@ -307,6 +307,9 @@ In case you have any questions or need technical assistance, get in touch with u
 8. Feature to quick search for all products of the same seller/store from AliExpress
 
 == Changelog ==
+= 3.4.5 - 2024.10.07 =
+* Enhance settings transfer module
+* Fix minor bugs
 
 = 3.4.4 - 2024.09.30 =
 * Add compatibility with WooCommerce 9.3.* 
@@ -382,11 +385,6 @@ In case you have any questions or need technical assistance, get in touch with u
 = 3.2.1 - 2024.01.13 =
 * fix chrome extension connection bug
 * increase daily quota for order place and sync operations to 20 per day (for the lite plugin version)
-
-= 3.2.0 - 2024.01.10 =
-* add feature to synchronize selected orders (see bulk actions)
-* refactor plugin code to improve performance
-* fix minor bugs and errors
 == Upgrade Notice ==
 
 

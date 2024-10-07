@@ -13,12 +13,18 @@ class BlankConverter extends AbstractAdminPage
 {
     public function __construct()
     {
-        if(!apply_filters('a2wl_converter_installed', false)){
-            parent::__construct(esc_html__('Migration Tool', 'ali2woo'), esc_html__('Migration Tool', 'ali2woo'), 'import', 'a2wl_converter', 1000);
+        if (!apply_filters('a2wl_converter_installed', false)) {
+            parent::__construct(
+                    esc_html__('Migration Tool', 'ali2woo'),
+                    esc_html__('Migration Tool', 'ali2woo'),
+                    'import',
+                    'a2wl_converter',
+                    1000
+            );
         }
     }
 
-    public function render($params = array())
+    public function render($params = [])
     {
         ?>
         <h1>Migration Tool</h1>
@@ -27,4 +33,3 @@ class BlankConverter extends AbstractAdminPage
         <?php
     }
 }
-

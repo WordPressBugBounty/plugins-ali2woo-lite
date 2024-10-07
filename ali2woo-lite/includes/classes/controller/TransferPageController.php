@@ -12,6 +12,8 @@ namespace AliNext_Lite;;
 
 class TransferPageController extends AbstractAdminPage
 {
+    public const FIELD_HASH = "hash";
+
     public function __construct()
     {
         parent::__construct(
@@ -27,25 +29,26 @@ class TransferPageController extends AbstractAdminPage
         }
 
         $this->saveHandler();
-        $this->model_put("hash", $this->getSettingsString());
+        $this->model_put(self::FIELD_HASH, $this->getSettingsString());
         $this->include_view("transfer.php");
     }
 
     private function getSettingsString(): string
     {
         $settings = get_option('a2wl_settings', []);
+        $settingsJson = json_encode($settings);
 
-        return base64_encode(serialize($settings));
+        return base64_encode($settingsJson);
     }
 
     private function saveHandler(): void
     {
-        if (isset($_POST['transfer_form']) && !empty($_POST['hash'])) {
+        if (isset($_POST['transfer_form']) && !empty($_POST[self::FIELD_HASH])) {
             check_admin_referer(self::PAGE_NONCE_ACTION, self::NONCE);
 
-            $hash = base64_decode($_POST['hash']);
+            $settingsJson = base64_decode($_POST[self::FIELD_HASH]);
 
-            if (!$hash) {
+            if (!$settingsJson) {
                 $this->model_put("error",
                     esc_html_x('Hash is not correct', 'error text', 'ali2woo')
                 );
@@ -53,7 +56,7 @@ class TransferPageController extends AbstractAdminPage
                 return;
             }
 
-            $settings = unserialize($hash, ['allowed_classes' => false]);
+            $settings = json_decode($settingsJson, true);
 
             if (!$settings) {
                 $this->model_put("error",

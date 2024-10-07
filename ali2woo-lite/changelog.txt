@@ -297,3 +297,7 @@
 * Fix built-in store products` search
 * Fix issue causing Wordfence notice 
 
+3.4.5
+* Enhance settings transfer module
+* Fix minor bugs
+
