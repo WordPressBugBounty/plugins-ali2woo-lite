@@ -213,7 +213,7 @@ class SettingPageController extends AbstractAdminPage
      */
     private function buildUpgradeTariffUrl(): string
     {
-        $url = 'https://ali2woo.com/packages/';
+        $url = 'https://ali2woo.com/pricing/';
         $purchaseCode = get_setting('item_purchase_code');
 
         $urlComponents = [];
@@ -222,7 +222,7 @@ class SettingPageController extends AbstractAdminPage
             $urlComponents[] = 'purchase_code=' . esc_attr($purchaseCode);
         }
 
-        $urlComponents[] = 'utm_source=lite&utm_medium=lite&utm_campaign=' . A2WL()->plugin_slug;
+        $urlComponents[] = 'utm_source=lite&utm_medium=upgrade&utm_campaign=' . A2WL()->plugin_slug;
 
         return $url . "?" . implode("&", $urlComponents);
     }

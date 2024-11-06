@@ -10,7 +10,7 @@ Requires PHP: 8.0
 WC tested up to: 9.3
 WC requires at least: 5.0
 
-This AliExpress Dropshipping Plugin for WooCommerce: Import products with reviews from AliExpress and fulfill orders automatically! It's integrated with the AliExpress Affiliate Program, allowing you to earn more by selling affiliate products.
+This AliExpress Dropshipping Plugin for WooCommerce: Import products with reviews from AliExpress and fulfill orders automatically!
 
 == Description ==
 
@@ -307,6 +307,14 @@ In case you have any questions or need technical assistance, get in touch with u
 8. Feature to quick search for all products of the same seller/store from AliExpress
 
 == Changelog ==
+= 3.4.6 - 2024.11.06 =
+* Fix the order fulfillment warning showing when phone field is empty 
+* Change built-in search page template according to new parser features
+* Add more information about imported variants on product edited page
+* Fix the manual mode of the product split feature
+* Enhance product split feature. Skip images related to skipped product variants.
+* Fix minor bugs
+
 = 3.4.5 - 2024.10.07 =
 * Enhance settings transfer module
 * Fix minor bugs

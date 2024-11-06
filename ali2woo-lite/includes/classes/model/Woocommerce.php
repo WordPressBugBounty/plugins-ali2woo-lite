@@ -79,13 +79,18 @@ class Woocommerce
         return $steps;
     }
 
-    private function need_import_variations($product, $product_type = false)
+    private function need_import_variations($product, $product_type = false): bool
     {
-        $product_type = $product_type ? $product_type : ((isset($product['product_type']) && $product['product_type']) ? $product['product_type'] : get_setting('default_product_type', 'simple'));
+        $defaultProductType = (isset($product['product_type']) && $product['product_type']) ?
+            $product['product_type'] :
+            get_setting('default_product_type', 'simple');
+
+        $product_type = $product_type ?: $defaultProductType;
+
         return !a2wl_check_defined('A2WL_DO_NOT_IMPORT_VARIATIONS') &&
-        $product_type !== "external" &&
-        !empty($product['sku_products']['variations']) &&
-        count($product['sku_products']['variations']) > 0;
+            $product_type !== "external" &&
+            !empty($product['sku_products']['variations']) &&
+            count($product['sku_products']['variations']) > 0;
     }
 
     private function is_product_exist($product_id)
@@ -483,7 +488,6 @@ class Woocommerce
             if ($step !== false) {
                 return ResultBuilder::buildOk(array('product_id' => $product_id, 'step' => $step));
             }
-
         }
 
         if ($step === false || $step === 'description') {

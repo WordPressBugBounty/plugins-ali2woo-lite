@@ -405,6 +405,7 @@ var Utils = new Utils();
 
 
         $(".country_list").select2();
+        $("#a2wl_category").select2();
 
         $("img.lazy").lazyload && $("img.lazy").lazyload({ effect: "fadeIn" });
 
@@ -771,6 +772,7 @@ var Utils = new Utils();
         $(".modal-split-product").on("change", ".split_attr_value", function () {
             const this_ = this
             const product = $('.modal-split-product').data('product');
+            product.sku_products.variations = Object.values(product.sku_products.variations); // fix possible bug of previous parser (remove this line later)
             const variations = product.sku_products.variations.filter(v => v.attributes.indexOf($(this_).val()) != -1)
             $.each(variations, function (i, v) {
                 $('.modal-split-product .split_selected_vars[value="' + v.id + '"]').prop('checked', $(this_).is(':checked')).change();;

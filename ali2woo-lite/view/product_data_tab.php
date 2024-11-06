@@ -1,6 +1,9 @@
 <?php
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
 use AliNext_Lite\AbstractController;
+use function AliNext_Lite\get_setting;
+use AliNext_Lite\ProductShippingMeta;
+use AliNext_Lite\Attachment;
 ?>
 <div class="a2wl_product_tab_menu">
     <ul class="subsubsub" style="float: initial;margin-left:12px">
@@ -8,14 +11,14 @@ use AliNext_Lite\AbstractController;
         <li><a href="#" data-tab="variations">Manage Variations</a></li>
     </ul>
     <script>
-    jQuery(".a2wl_product_tab_menu li a").click(function () {
-        jQuery(".a2wl_product_tab_menu li a").removeClass('current');
-        jQuery(this).addClass('current');
-        
-        jQuery(".a2wl_product_tab").hide();
-        jQuery(".a2wl_product_tab."+jQuery(this).data('tab')).show();
-        return false;
-    });
+        jQuery(".a2wl_product_tab_menu li a").click(function () {
+            jQuery(".a2wl_product_tab_menu li a").removeClass('current');
+            jQuery(this).addClass('current');
+
+            jQuery(".a2wl_product_tab").hide();
+            jQuery(".a2wl_product_tab."+jQuery(this).data('tab')).show();
+            return false;
+        });
     </script>
 </div>
 
@@ -23,35 +26,49 @@ use AliNext_Lite\AbstractController;
     <?php $external_id = get_post_meta($post_id, '_a2w_external_id', true); ?>
 
     <div class="options_group">
-        <?php 
-        woocommerce_wp_text_input(array(
+        <?php
+        woocommerce_wp_text_input([
             'id' => '_a2w_external_id',
             'value' => $external_id,
             'label' => esc_html__('External Id', 'ali2woo'),
             'desc_tip' => true,
             'description' => esc_html__('External Aliexpress Product Id', 'ali2woo'),
-        ));
+        ]);
 
-        woocommerce_wp_text_input(array(
+        woocommerce_wp_text_input([
             'id' => '_a2w_orders_count',
             'value' => get_post_meta($post_id, '_a2w_orders_count', true),
             'label' => esc_html__('Orders count', 'ali2woo'),
             'desc_tip' => true,
             'description' => esc_html__('Aliexpress orders count', 'ali2woo'),
-            'custom_attributes' => array('readonly'=>'readonly'),
-        ));
+            'custom_attributes' => ['readonly'=>'readonly'],
+        ]);
 
         $disable_sync = get_post_meta($post_id, '_a2w_disable_sync', true);
 
-        woocommerce_wp_checkbox(array(
+        woocommerce_wp_checkbox([
             'id' => '_a2w_disable_sync',
             'value' => $disable_sync ? 'yes' : 'no',
             'label' => esc_html__('Disable synchronization?', 'ali2woo'),
             'description' => esc_html__('Disable global synchronization for this product', 'ali2woo'),
-        ));
+        ]);
         ?>
 
-        <script>jQuery("#_a2wl_disable_sync").change(function () {if(jQuery(this).is(":checked")){jQuery("._a2wl_disable_var_price_change_field, ._a2wl_disable_var_quantity_change_field, ._a2wl_disable_add_new_variants").hide();}else{jQuery("._a2wl_disable_var_price_change_field, ._a2wl_disable_var_quantity_change_field, ._a2wl_disable_add_new_variants").show();}});</script>
+        <script>
+            let a2wFieldsSelector = "._a2wl_disable_var_price_change_field, " +
+                "._a2wl_disable_var_quantity_change_field, " +
+                "._a2wl_disable_add_new_variants";
+
+            jQuery(document).ready(function($) {
+                $("#_a2wl_disable_sync").on('change', function () {
+                    if ($(this).is(":checked")) {
+                        $(a2wFieldsSelector).hide();
+                    } else {
+                        $(a2wFieldsSelector).show();
+                    }
+                });
+            });
+        </script>
 
         <?php
         woocommerce_wp_checkbox(array(
@@ -74,33 +91,148 @@ use AliNext_Lite\AbstractController;
         ));
 
         if ($disable_sync) {
-            echo '<script>jQuery("._a2wl_disable_var_price_change_field, ._a2wl_disable_var_quantity_change_field, ._a2wl_disable_add_new_variants").hide();</script>';
+            ?>
+            <script>
+                jQuery(document).ready(function($) {
+                    $(a2wFieldsSelector).hide();
+                });
+            </script>
+            <?php
         }
         ?>
 
         <?php
         $product_url = get_post_meta($post_id, '_a2w_product_url', true);
-        if($product_url):
-        ?>
+        if ($product_url) :
+            ?>
             <p class="form-field">
-            <label><?php  esc_html_e('Product url', 'ali2woo'); ?></label>
-            <a target="_blank" href="<?php echo $product_url; ?>"><?php echo $product_url; ?></a>
-        </p>
+                <label><?php esc_html_e('Product url', 'ali2woo'); ?></label>
+                <a target="_blank" href="<?php echo $product_url; ?>"><?php echo $product_url; ?></a>
+            </p>
         <?php endif; ?>
 
         <?php
         $original_product_url = get_post_meta($post_id, '_a2w_original_product_url', true);
-        if($original_product_url):
-        ?>
+        if ($original_product_url) :
+            ?>
             <p class="form-field">
-            <label><?php  esc_html_e('Original product url', 'ali2woo'); ?></label>
-            <a target="_blank" href="<?php echo $original_product_url; ?>"><?php echo $original_product_url; ?></a>
-        </p>
+                <label><?php  esc_html_e('Original product url', 'ali2woo'); ?></label>
+                <a target="_blank" href="<?php echo $original_product_url; ?>"><?php echo $original_product_url; ?></a>
+            </p>
         <?php endif; ?>
-        
     </div>
 
-    
+
+    <?php if (get_setting('add_shipping_to_price')) : ?>
+        <div class="options_group">
+            <?php
+            // save shipping meta data
+            $shipping_meta = new ProductShippingMeta($post_id);
+            $shipping_cost = $shipping_meta->get_cost();
+            $shipping_country_from = $shipping_meta->get_country_from();
+            $shipping_country_from_list = ProductShippingMeta::get_country_from_list($post_id);
+            $shipping_country_to = $shipping_meta->get_country_to();
+            $shipping_method = $shipping_meta->get_method();
+
+            $shiping_info = "";
+            if($shipping_country_to && $shipping_method){
+                $shiping_info = $shipping_country_from.", ".$shipping_country_to.", ".$shipping_method.", ".($shipping_cost ? $shipping_cost : 'free');
+                $items = $shipping_meta->get_items(1,$shipping_country_from, $shipping_country_to);
+                if($items){
+                    foreach($items as $item){
+                        if($item['serviceName'] == $shipping_method){
+                            $shiping_info = $shipping_country_from.", ".$shipping_country_to.", ".$item['company'].", ".($shipping_cost ? (isset($item['freightAmount']['formatedAmount'])?$item['freightAmount']['formatedAmount']:$item['freightAmount']['value']) : 'free');
+                            break;
+                        }
+                    }
+                }
+            }
+            ?>
+            <p class="form-field a2wl-shiping-data"  data-country_from="<?php echo $shipping_country_from; ?>" data-country_to="<?php echo $shipping_country_to; ?>" data-shipping_method="<?php echo $shipping_method; ?>">
+                <label><?php  esc_html_e('Shipping', 'ali2woo'); ?></label>
+                <span><span class="a2wl-shiping-info"><?php echo $shiping_info; ?></span> <a href="#" class="a2wl-shipping-update">Select shipping</a> / <a href="#" class="a2wl-shipping-remove">Reset</a></span>
+                <span class="woocommerce-help-tip" data-tip="This shipping cost will be included to the product price according to pricing rules"></span>
+            </p>
+            <script>
+                (function ($) {
+                    let ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';
+                    let nonce_action = '<?php echo wp_create_nonce(AbstractController::AJAX_NONCE_ACTION); ?>';
+
+                    $(".a2wl-shipping-remove").on("click", function () {
+                        if (confirm("Are you sure you want to reset shipping info?")) {
+                            const data = {
+                                'action': 'a2wl_remove_product_shipping_info',
+                                'id': '<?php echo $post_id; ?>',
+                                "ali2woo_nonce": nonce_action,
+                            };
+                            $.post(ajaxurl, data).done(function (response) {
+                                const json = JSON.parse(response);
+                                if (json.state !== 'ok') {
+                                    console.log(json);
+                                } else {
+                                    $('.a2wl-shiping-info').html('');
+                                }
+                            }).fail(function (xhr, status, error) {
+                                console.log(error);
+                            });
+                        }
+                        return false;
+                    });
+                    $(".a2wl-shipping-update").on("click", function () {
+                        const onSelectCallback = function (product_id, items, country_from, country_to, method) {
+                            if (method && items) {
+                                $('.a2wl-shiping-data').data('country_from', country_from)
+                                $('.a2wl-shiping-data').data('country_to', country_to)
+                                $('.a2wl-shiping-data').data('shipping_method', method)
+
+                                $.each(items, function (i, item) {
+                                    if (item.serviceName == method) {
+                                        const cost = item.previewFreightAmount?item.previewFreightAmount.value:item.freightAmount.value
+                                        const data = {
+                                            'action': 'a2wl_update_product_shipping_info',
+                                            'id': '<?php echo $post_id; ?>',
+                                            country_from,
+                                            country_to,
+                                            method,
+                                            cost,
+                                            items,
+                                            "ali2woo_nonce": nonce_action,
+                                        };
+                                        $.post(ajaxurl, data).done(function (response) {
+                                            const json = JSON.parse(response);
+                                            if (json.state !== 'ok') {
+                                                console.log(json);
+                                            } else {
+                                                $('.a2wl-shiping-info').html(country_from+", "+country_to+", "+method+", "+(cost?(item.freightAmount.formatedAmount?item.freightAmount.formatedAmount:item.freightAmount.value):'free'));
+                                            }
+                                        }).fail(function (xhr, status, error) {
+                                            console.log(error);
+                                        });
+                                    }
+                                });
+                            }
+                        }
+
+                        const country_from = $('.a2wl-shiping-data').data('country_from')
+                        const country_to = $('.a2wl-shiping-data').data('country_to')
+                        const shipping_method = $('.a2wl-shiping-data').data('shipping_method')
+
+                        if (!country_to || !shipping_method) {
+                            fill_modal_shipping_info('<?php echo $external_id; ?>', <?php echo wp_json_encode($shipping_country_from_list); ?>, country_from, '', null, 'product', '', onSelectCallback);
+                        } else {
+                            $('.modal-shipping .shipping-method').html('<div class="a2wl-load-container"><div class="a2wl-load-speeding-wheel"></div></div>');
+                            a2wl_load_shipping_info('<?php echo $external_id; ?>', country_from, country_to, 'product', function (state, items, default_method, shipping_cost, variations) {
+                                fill_modal_shipping_info('<?php echo $external_id; ?>', <?php echo wp_json_encode($shipping_country_from_list); ?>, country_from, country_to, items, 'product', shipping_method, onSelectCallback);
+                            })
+                        }
+
+                        $(".modal-shipping").addClass('opened');
+                        return false;
+                    });
+                })(jQuery);
+            </script>
+        </div>
+    <?php endif; ?>
 
     <div class="options_group">
         <?php $last_update = get_post_meta($post_id, '_a2w_last_update', true); ?>
@@ -133,7 +265,7 @@ use AliNext_Lite\AbstractController;
                 });
             })(jQuery);
         </script>
-                
+
         <?php $reviews_last_update = get_post_meta($post_id, '_a2w_reviews_last_update', true); ?>
         <p class="form-field _a2wl_reviews_last_update_field ">
             <label>Reviews last update</label>
@@ -167,17 +299,17 @@ use AliNext_Lite\AbstractController;
     </div>
 
     <?php
-    // load exteranl images
-    $images_ids = AliNext_Lite\Attachment::find_external_images(1000, $post_id);
+    // load external images
+    $images_ids = Attachment::find_external_images(1000, $post_id);
     ?>
     <?php if($images_ids):?>
-    <div class="options_group">
-        <p id="a2wl_product_external_images" class="form-field">
-            <label>External images</label>
-            <button type="button" class="load-images button button-primary" data-images="<?php echo implode(',',$images_ids); ?>">Load external images</button>
-            <span class="description progress"></span>
-        </p>
-    </div>
+        <div class="options_group">
+            <p id="a2wl_product_external_images" class="form-field">
+                <label>External images</label>
+                <button type="button" class="load-images button button-primary" data-images="<?php echo implode(',',$images_ids); ?>">Load external images</button>
+                <span class="description progress"></span>
+            </p>
+        </div>
     <?php endif;?>
 </div>
 
@@ -225,7 +357,7 @@ use AliNext_Lite\AbstractController;
         </script>
     </div>
 
-                
+
     <div class="options_group">
         <p class="form-field _a2wl_deleted_variations">
             <label for="_a2w_deleted_variations">Removed variations</label>
@@ -238,7 +370,7 @@ use AliNext_Lite\AbstractController;
                     echo '<span class="var" style="display: inline-block;margin-right:10px;margin-bottom: 5px;background-color: #eee;padding: 0px 10px;" data-attr-id="' . $v . '"><i>' . $v . '</i> <a href="#" style="text-decoration: none;"><span class="dashicons dashicons-trash"></span></a></span> ';
                 }
             } else {
-                    echo '<i>' . esc_html__('No deleted variations', 'ali2woo') . '</i>';
+                echo '<i>' . esc_html__('No deleted variations', 'ali2woo') . '</i>';
             }
             ?>
             </span>
@@ -276,6 +408,5 @@ use AliNext_Lite\AbstractController;
 </div>
 
 <div class="a2wl-content">
-<?php include_once 'includes/shipping_modal.php'; ?>
+    <?php include_once 'includes/shipping_modal.php'; ?>
 </div>
-

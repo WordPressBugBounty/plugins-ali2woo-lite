@@ -2,6 +2,12 @@
 /**
  * @var string $page
  * @var string $curPage
+ * @var array $load_products_result
+ * @var array $filter
+ * @var array $categories
+ * @var bool $adv_search
+ * @var array $countries
+ * @var array $filterSortOptions
  */
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
 ?>
@@ -61,19 +67,22 @@
                     </div>
                 </div>
                 <div class="search-panel-advanced" <?php if ($adv_search): ?>style="display: block;"<?php endif;?>>
+                    <?php /*
                     <div class="search-panel-row">
+
                         <div class="search-panel-col">
                             <label><?php  esc_html_e('Price', 'ali2woo');?></label>
                             <div class="container-flex flex-wrap container-flex_fill container-flex_p20">
                                 <div class="opt">
-                                    <input type="text" class="form-control" name="a2wl_min_price" placeholder="<?php  esc_html_e('Price from', 'ali2woo');?>" value="<?php echo esc_attr(isset($filter['min_price']) ? $filter['min_price'] : ""); ?>">
+                                    <input type="text" class="form-control" name="a2wl_min_price" placeholder="<?php  esc_html_e('Price from', 'ali2woo');?>" value="<?php echo esc_attr($filter['min_price'] ?? ""); ?>">
                                 </div>
                                 <div class="opt">
-                                    <input type="text" class="form-control" name="a2wl_max_price" placeholder="<?php  esc_html_e('Price to', 'ali2woo');?>" value="<?php echo esc_attr(isset($filter['max_price']) ? $filter['max_price'] : ""); ?>">
+                                    <input type="text" class="form-control" name="a2wl_max_price" placeholder="<?php  esc_html_e('Price to', 'ali2woo');?>" value="<?php echo esc_attr($filter['max_price'] ?? ""); ?>">
                                 </div>
                             </div>
                         </div>
-                        <?php /*
+
+
                         <div class="search-panel-col size-2-3">
                             <label><?php  esc_html_e("Special filters", 'ali2woo');?></label>
                             <div class="container-flex flex-wrap">
@@ -98,9 +107,26 @@
                             </div>
 
                         </div>
-                        */ ?>
+
+                    </div>
+                             */?>
+                    <div class="search-panel__row">
+                        <span class="country-select-title">
+                        <?php esc_html_e('Filter products by shipping-to country.', 'ali2woo');?>
+                        </span>
+                        <div class="country-select">
+                            <select name="a2wl_shipTo" class="form-control country_list">
+                                <option value="">N/A</option>
+                                <?php foreach ($countries as $code => $name): ?>
+                                    <option value="<?php echo $code; ?>"<?php if (isset($filter['shipTo']) && $filter['shipTo'] == $code): ?> selected="selected"<?php endif;?>>
+                                        <?php echo $name; ?>
+                                    </option>
+                                <?php endforeach;?>
+                            </select>
+                        </div>
                     </div>
                 </div>
+
                 
             </div>
 
@@ -130,25 +156,25 @@
 
         <div>
             <div class="import-all-panel">
-                <button type="button" class="btn btn-success no-outline btn-icon-left import_all"><div class="btn-loader-wrap"><div class="e2w-loader"></div></div><span class="btn-icon-wrap add"><svg><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#icon-add"></use></svg></span><?php  esc_html_e('Add all to import list', 'ali2woo');?></button>
+                <button type="button" class="btn btn-success no-outline btn-icon-left import_all">
+                    <div class="btn-loader-wrap">
+                        <div class="e2w-loader"></div>
+                    </div>
+                    <span class="btn-icon-wrap add"><svg><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#icon-add"></use></svg></span>
+                    <?php  esc_html_e('Add all to import list', 'ali2woo');?>
+                </button>
             </div>
             <div class="sort-panel">
-                <label for="a2wl-sort-selector"><?php  esc_html_e('Sort by:', 'ali2woo');?></label>
+                <label for="a2wl-sort-selector"><?php esc_html_e('Sort by:', 'ali2woo');?></label>
                 <select class="form-control" id="a2wl-sort-selector">
-                    <option value="bestMatch" <?php if ($filter['sort'] == 'bestMatch'): ?>selected="selected"<?php endif;?>><?php _ex('Best Match', 'sort by', 'ali2woo');?></option>
-                    <option value="orignalPriceUp" <?php if ($filter['sort'] == 'orignalPriceUp'): ?>selected="selected"<?php endif;?>><?php _ex('Lowest price', 'sort by', 'ali2woo');?></option>
-                    <option value="orignalPriceDown" <?php if ($filter['sort'] == 'orignalPriceDown'): ?>selected="selected"<?php endif;?>><?php _ex('Highest price', 'sort by', 'ali2woo');?></option>
-                    <!--
-                    <option value="sellerRateDown" <?php if ($filter['sort'] == 'sellerRateDown'): ?>selected="selected"<?php endif;?>><?php _ex("Seller's feedback score", 'sort by', 'ali2woo');?></option>
-                    <option value="commissionRateUp" <?php if ($filter['sort'] == 'commissionRateUp'): ?>selected="selected"<?php endif;?>><?php _ex('Lowest commission rate', 'sort by', 'ali2woo');?></option>
-                    <option value="commissionRateDown" <?php if ($filter['sort'] == 'commissionRateDown'): ?>selected="selected"<?php endif;?>><?php _ex('Highest commission rate', 'sort by', 'ali2woo');?></option>
-                    -->
-                    <option value="salesDesc" <?php if ($filter['sort'] == 'salesDesc'): ?>selected="selected"<?php endif;?>><?php _ex('Highest sales', 'sort by', 'ali2woo');?></option>
-                    <option value="latest" <?php if ($filter['sort'] == 'latest'): ?>selected="selected"<?php endif;?>><?php _ex('Latest', 'sort by', 'ali2woo');?></option>
-                    <!--
-                    <option value="validTimeUp" <?php if ($filter['sort'] == 'validTimeUp'): ?>selected="selected"<?php endif;?>><?php _ex('Lowest valid time', 'sort by', 'ali2woo');?></option>
-                    <option value="validTimeDown" <?php if ($filter['sort'] == 'validTimeDown'): ?>selected="selected"<?php endif;?>><?php _ex('Highest valid time', 'sort by', 'ali2woo');?></option>
-                    -->
+                    <option <?php if (!isset($filter['sort'])): ?>selected="selected"<?php endif;?>>
+                        <?php _ex('Default', 'sort by', 'ali2woo'); ?>
+                    </option>
+                    <?php foreach ($filterSortOptions as $filterSortKey => $filterSortTitle): ?>
+                        <option value="<?php echo $filterSortKey; ?>" <?php if (isset($filter['sort']) && $filter['sort'] == $filterSortKey): ?>selected="selected"<?php endif;?>>
+                            <?php echo $filterSortTitle; ?>
+                        </option>
+                    <?php endforeach; ?>
                 </select>
             </div>
             <div style="clear: both;"></div>

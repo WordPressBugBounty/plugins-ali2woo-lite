@@ -134,7 +134,7 @@ class ExternalOrderFactory
 
         return (new ExternalOrderShippingAddress())
             ->setCustomerName($name ?? null)
-            ->setPhone($phone ?? null)
+            ->setPhone($phone ?: null)
             ->setPhoneCode($phoneCode ?? null)
             ->setCountry($country ?? null)
             ->setCountryCode($countryCode ?? null)
@@ -155,7 +155,7 @@ class ExternalOrderFactory
             ->setVatTaxNumber($vatTaxNumber ?? null)
             ->setTaxCompany($taxCompany ?? null)
             ->setLocationTreeAddressId($locationTreeAddressId ?? null)
-            ->setLocale($locale ?? null);;
+            ->setLocale($locale ?? null);
     }
 
     /**

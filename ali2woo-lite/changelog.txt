@@ -301,3 +301,10 @@
 * Enhance settings transfer module
 * Fix minor bugs
 
+3.4.6
+* Fix the order fulfillment warning showing when phone field is empty 
+* Change built-in search page template according to new parser features
+* Add more information about imported variants on product edited page
+* Fix the manual mode of the product split feature
+* Enhance product split feature. Skip images related to skipped product variants.
+* Fix minor bugs

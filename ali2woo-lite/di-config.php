@@ -26,6 +26,7 @@ use AliNext_Lite\PriceFormulaSettingsRepository;
 use AliNext_Lite\ProductChange;
 use AliNext_Lite\ProductImport;
 use AliNext_Lite\Review;
+use AliNext_Lite\SplitProductService;
 use AliNext_Lite\Woocommerce;
 use function DI\create;
 use function DI\get;
@@ -90,12 +91,16 @@ return [
             get(PriceFormulaSetFactory::class),
             get(BackgroundProcessFactory::class)
         ),
+    'Ali2WOo\SplitProductService' => create(SplitProductService::class)
+        ->constructor(
+            get(ProductImport::class),
+        ),
 
     /* controllers */
     'AliNext_Lite\ImportAjaxController' => create(ImportAjaxController::class)
         ->constructor(
             get(ProductImport::class), get(Woocommerce::class), get(Review::class),
-            get(Override::class), get(Aliexpress::class)
+            get(Override::class), get(Aliexpress::class), get(SplitProductService::class)
         ),
 
     'AliNext_Lite\PriceFormulaSetAjaxController' => create(PriceFormulaSetAjaxController::class)

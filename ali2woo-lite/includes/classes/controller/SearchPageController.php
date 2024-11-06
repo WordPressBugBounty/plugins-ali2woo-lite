@@ -105,10 +105,20 @@ class SearchPageController extends AbstractAdminPage
         $countryModel = new Country();
         $localizator = AliexpressLocalizator::getInstance();
 
+        $filterSortOptions = [
+            'orignalPriceUp' => _x('Lowest price', 'sort by', 'ali2woo'),
+            'orignalPriceDown' => _x('Highest price', 'sort by', 'ali2woo'),
+            'volumeDown' => _x('Highest sales', 'sort by', 'ali2woo'),
+            'volumeUp' => _x('Lowest sales', 'sort by', 'ali2woo'),
+            'reviewsDown' => _x('Max reviews', 'sort by', 'ali2woo'),
+            'reviewsUp' => _x('Min reviews', 'sort by', 'ali2woo'),
+        ];
+
         $page = esc_attr(((isset($_GET['page'])) ? $_GET['page'] : ''));
         $curPage = esc_attr(((isset($_GET['cur_page'])) ? $_GET['cur_page'] : ''));;
 
         $this->model_put('filter', $filter);
+        $this->model_put('filterSortOptions', $filterSortOptions);
         $this->model_put('adv_search', $adv_search);
         $this->model_put('categories', $this->get_categories());
         $this->model_put('countries', $countryModel->get_countries());

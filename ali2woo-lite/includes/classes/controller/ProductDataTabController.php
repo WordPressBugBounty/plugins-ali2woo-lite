@@ -3,16 +3,17 @@
  * Description of ProductDataTabController
  *
  * @author Ali2Woo Team
- * 
+ *
  * @autoload: a2wl_admin_init
- * 
+ *
  * @ajax: true
  */
 
 // phpcs:ignoreFile WordPress.Security.NonceVerification.Recommended
 namespace AliNext_Lite;;
 
-class ProductDataTabController extends AbstractController {
+class ProductDataTabController extends AbstractController
+{
 
     public $tab_class = '';
     public $tab_id = '';
@@ -27,9 +28,9 @@ class ProductDataTabController extends AbstractController {
 
         add_action('admin_head', array(&$this, 'on_admin_head'));
         add_action('woocommerce_product_write_panel_tabs', array(&$this, 'product_write_panel_tabs'), 99);
-        add_action('woocommerce_product_data_panels', array(&$this, 'product_data_panel_wrap'), 99);
-        add_action('woocommerce_process_product_meta', array(&$this, 'process_meta_box'), 1, 2);
-        add_action('woocommerce_variation_options_pricing', array(&$this, 'variation_options_pricing'), 20, 3);
+        add_action('woocommerce_product_data_panels', [$this, 'product_data_panel_wrap'], 99);
+        add_action('woocommerce_process_product_meta', [$this, 'process_product_meta'], 1, 2);
+        add_action('woocommerce_variation_options_pricing', [$this, 'variation_options_pricing'], 20, 3);
 
         add_action('wp_ajax_a2wl_data_remove_deleted_attribute', [$this, 'ajax_remove_deleted_attribute']);
         add_action('wp_ajax_a2wl_data_remove_deleted_variation', [$this, 'ajax_remove_deleted_variation']);
@@ -48,7 +49,8 @@ class ProductDataTabController extends AbstractController {
         <?php
     }
 
-    public function product_data_panel_wrap() {
+    public function product_data_panel_wrap(): void
+    {
         ?>
         <div id="<?php echo $this->tab_id; ?>" class="panel <?php echo $this->tab_class; ?> woocommerce_options_panel wc-metaboxes-wrapper" style="display:none">
             <?php $this->render_product_tab_content(); ?>
@@ -56,21 +58,22 @@ class ProductDataTabController extends AbstractController {
         <?php
     }
 
-    public function render_product_tab_content() {
+    private function render_product_tab_content(): void
+    {
         global $post;
 
-        $post_id = isset($_REQUEST['post'])?$_REQUEST['post']:"";
+        $post_id = $_REQUEST['post'] ?? "";
 
         $country_model = new Country();
 
         $this->model_put('post_id', $post_id);
         $this->model_put('countries', $country_model->get_countries());
-        
-        $this->include_view("product_data_tab.php");
 
+        $this->include_view("product_data_tab.php");
     }
 
-    public function process_meta_box($post_id, $post) {
+    public function process_product_meta($post_id, $post): void
+    {
         if (isset($_POST['_a2w_external_id'])) {
             update_post_meta($post_id, '_a2w_external_id', $_POST['_a2w_external_id']);
         } else {
@@ -108,21 +111,43 @@ class ProductDataTabController extends AbstractController {
         }
     }
 
-    public function variation_options_pricing($loop, $variation_data, $variation) {
+    public function variation_options_pricing($loop, $variation_data, $variation): void
+    {
         if (!empty($variation_data['_aliexpress_regular_price']) || !empty($variation_data['_aliexpress_price'])) {
-            echo '<p class="form-field form-row form-row-first">';
-            if (!empty($variation_data['_aliexpress_regular_price'])) {
-                $label = sprintf(esc_html__('Aliexpress Regular price (%s)', 'ali2woo'), get_woocommerce_currency_symbol());
 
-                echo '<label style="cursor: inherit;">' . $label . ':</label>&nbsp;&nbsp;<label style="cursor: inherit;">' . wc_format_localized_price(is_array($variation_data['_aliexpress_regular_price']) ? $variation_data['_aliexpress_regular_price'][0] : $variation_data['_aliexpress_regular_price']) . '</label>';
+            $helpTip = esc_html__('Source Regular price loaded from Aliexpress', 'ali2woo');
+            $label = sprintf(esc_html__('Aliexpress Regular price (%s)', 'ali2woo'), get_woocommerce_currency_symbol());
+            $value = wc_format_localized_price(is_array($variation_data['_aliexpress_regular_price']) ? $variation_data['_aliexpress_regular_price'][0] : $variation_data['_aliexpress_regular_price']);
+            $this->outputSettingRow($label, $value, "form-row-first", $helpTip);
+
+            $helpTip = esc_html__('Source Sale price loaded from Aliexpress', 'ali2woo');
+            $label = sprintf(esc_html__('Aliexpress Sale price (%s)', 'ali2woo'), get_woocommerce_currency_symbol());
+            $value = wc_format_localized_price(is_array($variation_data['_aliexpress_price']) ? $variation_data['_aliexpress_price'][0] : $variation_data['_aliexpress_price']);
+            $this->outputSettingRow($label, $value, "form-row-last", $helpTip);
+
+            $notLoadedText = esc_html__('not loaded', 'ali2woo');
+
+            $helpTip = esc_html__('Source Sku ID loaded from Aliexpress', 'ali2woo');
+            $label = esc_html__('Aliexpress Sku ID', 'ali2woo');
+            $value = !empty($variation_data['_a2w_ali_sku_id'][0]) ? $variation_data['_a2w_ali_sku_id'][0] : $notLoadedText;
+            $this->outputSettingRow($label, $value, "form-row-first", $helpTip);
+
+            $helpTip = esc_html__('Source Sku properties loaded from Aliexpress', 'ali2woo');
+            $label = esc_html__('Aliexpress Sku Props', 'ali2woo');
+            $value = !empty($variation_data['_aliexpress_sku_props'][0]) ? $variation_data['_aliexpress_sku_props'][0] : $notLoadedText;
+            $this->outputSettingRow($label, $value, "form-row-last", $helpTip);
+
+            $helpTip = esc_html__('All attributes included to this variation', 'ali2woo');
+            $label = esc_html__('Attributes', 'ali2woo');
+            $values = [];
+            foreach ($variation_data as $itemKey => $dataItem) {
+                if (str_starts_with($itemKey, 'attribute_pa_')) {
+                    $attrLabel = str_replace('attribute_pa_', '', $itemKey);
+                    $values[] = $attrLabel . ': ' .  (!empty($dataItem[0]) ? $dataItem[0] : '');
+                }
             }
-            echo '&nbsp;</p>';
-            echo '<p class="form-field form-row form-row-last">';
-            if (!empty($variation_data['_aliexpress_price'])) {
-                $label = sprintf(esc_html__('Aliexpress Sale price (%s)', 'ali2woo'), get_woocommerce_currency_symbol());
-                echo '<label style="cursor: inherit;">' . $label . ':</label>&nbsp;&nbsp;<label style="cursor: inherit;">' . wc_format_localized_price(is_array($variation_data['_aliexpress_price']) ? $variation_data['_aliexpress_price'][0] : $variation_data['_aliexpress_price']) . '</label>';
-            }
-            echo '&nbsp;</p>';
+            $value = implode('; ', $values);
+            $this->outputSettingRow($label, $value, "", $helpTip);
         }
     }
 
@@ -176,7 +201,7 @@ class ProductDataTabController extends AbstractController {
         echo wp_json_encode(ResultBuilder::buildOk());
         wp_die();
     }
-    
+
     public function ajax_last_update_clean(): void
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
@@ -221,7 +246,7 @@ class ProductDataTabController extends AbstractController {
             } else {
                 $shipping_meta->save_items(1, '', $_POST['country_to'], $_POST['items'], false);
             }
-            
+
             $shipping_meta->save();
             echo wp_json_encode(ResultBuilder::buildOk());
         } else {
@@ -253,5 +278,17 @@ class ProductDataTabController extends AbstractController {
         }
 
         wp_die();
+    }
+
+    private function outputSettingRow(string $label, string $value, string $class = "", string $helpTip = ""): void
+    {
+        echo '<p class="form-field form-row ' . $class . '">';
+        if (!empty($value)) {
+            echo '<label style="cursor: inherit;">' . $label . ':</label>&nbsp;<label style="cursor: inherit;">' . $value . '</label>';
+        }
+        if (!empty($helpTip)) {
+            echo '<span class="woocommerce-help-tip" data-tip="' . $helpTip . '"></span>';
+        }
+        echo '</p>';
     }
 }
