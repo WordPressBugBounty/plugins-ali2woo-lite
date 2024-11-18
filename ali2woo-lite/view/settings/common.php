@@ -435,7 +435,7 @@ use function AliNext_Lite\get_setting;
     <div class="panel-heading">
         <h3 class="display-inline"><?php _ex('Schedule settings', 'Setting title', 'ali2woo'); ?></h3>
     </div>
-    <div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSOIN</a></div>
+    <div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSOIN</a></div>
     <div class="panel-body _a2wfv">
         <?php $a2wl_auto_update = get_setting('auto_update');?>
         <div class="field field_inline">

@@ -54,8 +54,11 @@ class SettingPageController extends AbstractAdminPage
         /** @var PermanentAlertService $PermanentAlertService  */
         $PermanentAlertService = A2WL()->getDI()->get('AliNext_Lite\PermanentAlertService');
 
+        $TipOfDayService = A2WL()->getDI()->get('AliNext_Lite\TipOfDayService');
+
         $current_module = $_REQUEST['subpage'] ?? 'common';
         $this->model_put("PermanentAlerts", $PermanentAlertService->getAll());
+        $this->model_put("TipOfDay", $TipOfDayService->getNextTip());
         $this->model_put("modules", $this->getModules());
         $this->model_put("current_module", $current_module);
 

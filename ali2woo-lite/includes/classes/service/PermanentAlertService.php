@@ -46,6 +46,6 @@ class PermanentAlertService
             }
         }
 
-        return $PermanentAlerts;
+        return apply_filters('a2wl_get_permanent_alerts', $PermanentAlerts);
     }
 }

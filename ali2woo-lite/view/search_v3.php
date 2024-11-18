@@ -1,4 +1,9 @@
 <?php
+// phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
+
+use AliNext_Lite\AbstractAdminPage;
+use AliNext_Lite\TipOfDay;
+
 /**
  * @var string $page
  * @var string $curPage
@@ -8,15 +13,17 @@
  * @var bool $adv_search
  * @var array $countries
  * @var array $filterSortOptions
+ * @var null|TipOfDay $TipOfDay
  */
-// phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
+
 ?>
 <div class="a2wl-content">
+    <?php if ($TipOfDay): ?>
+        <?php include_once A2WL()->plugin_path() . '/view/includes/tip_of_day_modal.php'; ?>
+    <?php endif; ?>
     <div class="page-main">
-        <div class="_a2wfo a2wl-info"><div>You are using AliNext (Lite version) Lite. If you want to unlock all features and get premium support, purchase the full version of the plugin.</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSOIN</a></div>
-        <?php use AliNext_Lite\AbstractAdminPage;
-
-        include_once A2WL()->plugin_path() . '/view/chrome_notify.php';?>
+        <div class="_a2wfo a2wl-info"><div>You are using AliNext (Lite version) Lite. If you want to unlock all features and get premium support, purchase the full version of the plugin.</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSOIN</a></div>
+        <?php include_once A2WL()->plugin_path() . '/view/chrome_notify.php';?>
         
 
         <?php include_once A2WL()->plugin_path() . '/view/setup_wizard_notify.php';?>

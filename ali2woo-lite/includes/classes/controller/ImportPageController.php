@@ -182,6 +182,7 @@ class ImportPageController extends AbstractAdminPage
                 $this->getRemoveAllProductsLink($_REQUEST['page'])
         ];
 
+        $TipOfDayService = A2WL()->getDI()->get('AliNext_Lite\TipOfDayService');
 
         $this->model_put("paginator", $paginator);
         $this->model_put("serach_query", $serach_query);
@@ -194,9 +195,10 @@ class ImportPageController extends AbstractAdminPage
         $this->model_put("categories", $woocommerce_model->get_categories());
         $this->model_put('countries', $country_model->get_countries());
         $this->model_put('override_model', $override_model);
+        $this->model_put("TipOfDay", $TipOfDayService->getNextTip());
         
-        $promoModel = Promo::getInstance();
-        $this->model_put('promo_data', $promoModel->getPromoData());
+        $PromoService = A2WL()->getDI()->get('AliNext_Lite\PromoService');
+        $this->model_put('promo_data', $PromoService->getPromoData());
         
 
         $this->include_view("import.php");

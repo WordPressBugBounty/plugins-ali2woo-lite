@@ -5,12 +5,19 @@
  */
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
 use AliNext_Lite\AbstractController;
+use AliNext_Lite\TipOfDay;
 use AliNext_Lite\Utils;
 
+/**
+ * @var null|TipOfDay $TipOfDay
+ */
 ?>
 <div class="a2wl-content">
+    <?php if ($TipOfDay): ?>
+        <?php include_once A2WL()->plugin_path() . '/view/includes/tip_of_day_modal.php'; ?>
+    <?php endif; ?>
     <div class="container">
-        <div class="_a2wfo a2wl-info"><div>You are using AliNext (Lite version) Lite. If you want to unlock all features and get premium support, purchase the full version of the plugin.</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSOIN</a></div>
+        <div class="_a2wfo a2wl-info"><div>You are using AliNext (Lite version) Lite. If you want to unlock all features and get premium support, purchase the full version of the plugin.</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSOIN</a></div>
         <?php include_once A2WL()->plugin_path() . '/view/chrome_notify.php'; ?>
         
         

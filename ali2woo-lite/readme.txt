@@ -2,12 +2,12 @@
 Contributors: ali2woo
 Tags: aliexpress dropshipping, woocommerce dropshipping, dropship
 Requires at least: 5.9
-Tested up to: 6.6
+Tested up to: 6.7
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Stable tag: trunk
 Requires PHP: 8.0
-WC tested up to: 9.3
+WC tested up to: 9.4
 WC requires at least: 5.0
 
 This AliExpress Dropshipping Plugin for WooCommerce: Import products with reviews from AliExpress and fulfill orders automatically!
@@ -16,7 +16,7 @@ This AliExpress Dropshipping Plugin for WooCommerce: Import products with review
 
 This AliExpress Dropshipping Plugin for WooCommerce: Import products with reviews from AliExpress and fulfill orders automatically! It's integrated with the AliExpress Affiliate Program, allowing you to earn more by selling affiliate products.
 
-[Knowledge Base](https://ali2woo.com/codex/) | [Chrome extension](https://ali2woo.com/codex/aliexpress-dropshipping-chrome-extension/) | [AliNext official website](https://ali2woo.com/) | [Full Version](https://ali2woo.com/dropshipping-plugin/)
+[Knowledge Base](https://help.ali2woo.com/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite) | [Chrome extension](https://help.ali2woo.com/codex/aliexpress-dropshipping-chrome-extension/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite) | [AliNext official website](https://ali2woo.com/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite) | [Full Version](https://ali2woo.com/dropshipping-plugin/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite)
 
 ###How To Import Products from AliExpress using the Chrome extension?
 [youtube https://youtu.be/Lbq-_3j4vwk]
@@ -27,6 +27,9 @@ This AliExpress Dropshipping Plugin for WooCommerce: Import products with review
 ###How To Fulfill AliExpress Orders in Bulk?
 [youtube https://youtu.be/S5368Pvo_F0]
 
+### Enhance Your Dropshipping Profits with AliExpress's Official Program!
+Transform your AliExpress account into a Business Account [using our exclusive invitation link](https://inbusiness.aliexpress.com/web/newCertification?bizScene=STANDARD_SCENE&channel=STANDARD_CHANNEL&invitationCode=2qkht5). This linkage ensures AliExpress recognizes you as a dropshipping partner, opening the door to new earning potentials.
+                  
 ### Compatibility with Woocommerce HPOS
 Starting from version 3.1.3, AliNext is compatible with HPOS. 
 To activate HPOS, follow these steps: go to Woocommerce -> Settings -> Advanced -> Order data storage and select the "High-performance order storage (recommended)" option. Additionally, ensure that you have enabled the "Enable compatibility mode (synchronizes orders to the posts table)" option. Save your Woocommerce settings and confirm that all orders are synchronized by Woocommerce. If some orders are pending synchronization, you will see information about it there. Please wait until all orders are synchronized before using the AliNext plugin normally. For further information about HPOS [refer official woocommerce article](https://woocommerce.com/posts/platform-update-high-performance-order-storage-for-woocommerce/)
@@ -35,7 +38,7 @@ To activate HPOS, follow these steps: go to Woocommerce -> Settings -> Advanced 
 
 - Plugin works based on WooCommerce plugin.
 
-- You have to generate the access token (AliExpress token) to place or sync orders. You don't need the token to import products. Please [follow our instruction](https://help.ali2woo.com/codex/how-to-get-access-token-from-aliexpress/) in order to generate token.
+- You have to generate the access token (AliExpress token) to place or sync orders. You don't need the token to import products. Please [follow our instruction](https://help.ali2woo.com/codex/how-to-get-access-token-from-aliexpress/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite) in order to generate token.
 
 - Your permalink structure must NOT be "Plain"
 
@@ -57,37 +60,37 @@ This AliExpress Dropshipping plugin imports products into WooCommerce using a bu
 
 The plugin has a separate page allowing you to search for products in specific AliExpress store or seller. Often it helps if you find some store on AliExpress and want to pull all items form the store.
 
-See a detailed guide on this topic [HERE.](https://help.ali2woo.com/codex/how-to-import-all-products-from-the-store/)
+See a detailed guide on this topic [HERE.](https://help.ali2woo.com/codex/how-to-import-all-products-from-the-store/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite)
 
 &#9658; **Load product categories from AliExpress**:
 
 The plugin has a feature to import product categories from AliExpress. It saves you time from having to build the category tree yourself. When the plugin imports the categories, it automatically assigns them to the appropriate imported products.
 
-For further information, please check our [instruction.](https://help.ali2woo.com/alinext-kb/how-to-set-category-for-imported-products/)
+For further information, please check our [instruction.](https://help.ali2woo.com/alinext-kb/how-to-set-category-for-imported-products/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite)
 
 
 &#9658; **Split product variants into separate products**:
 
 The plugin allows splitting product variants. For example: a lot of products on AliExpress come with the "ShipFrom" attribute. Often drop shippers don't want to show this variant for customers. With this feature it's possible to split such a product by the "ShipFrom" attribute. As result you will get separate products without it.
 
-Please look through the [this article](https://ali2woo.com/codex/how-to-split-product-variants-video/) to understand clearly how splitting feature works.
+Please look through the [this article](https://help.ali2woo.com/codex/how-to-split-product-variants-video/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite) to understand clearly how splitting feature works.
 
 &#9658; **Remove "Ship From" attribute automatically**: save your time, you don’t need to edit the "Shipping From" attribute for each product one by one, AliNext will do that automatically for you!
 
-Check out an article from the plugin Knowledge Base to know [how to use this feature.](https://help.ali2woo.com/codex/how-to-hide-the-ship-from-attribute-from-product-page/)
+Check out an article from the plugin Knowledge Base to know [how to use this feature.](https://help.ali2woo.com/codex/how-to-hide-the-ship-from-attribute-from-product-page/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite)
 
 &#9658; **Override product supplier**:
 
 The product override feature is very helpful if you get a new order for the out-of-stock product and want to fulfill the order from another supplier or vendor on AliExpress.
 Also it helps if you have a product that was loaded through other dropshipping tool or it was added manually in WooCommerce and you want to connect the product to some AliExpress item using AliNext
 
-Check out an article from the plugin Knowledge Base to know [how to use this feature.](https://ali2woo.com/codex/how-to-change-the-product-supplier/)
+Check out an article from the plugin Knowledge Base to know [how to use this feature.](https://ali2woo.com/codex/how-to-change-the-product-supplier/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite)
 
 &#9658; **Change product images through the built-in image editor**:
 
 Have you ever noticed the most product images having seller’s logo on AliExpress? And when you import the products into your store, those watermarks are visible for your customers. We know about such a problem and added a built-in images editor to the plugin`s features. The image tool allows to adjust photos right in your WordPress Dashboard.
 
-It's recommended to check a detailed article [about the image editor tool.](https://ali2woo.com/codex/how-to-hide-watermark-on-images-from-aliexpress/)
+It's recommended to check a detailed article [about the image editor tool.](https://help.ali2woo.com/codex/how-to-hide-watermark-on-images-from-aliexpress/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite)
 
 &#9658; **Configure settings for all imported products**:
 
@@ -145,7 +148,7 @@ These settings allow changing an order status after the order is placed on AliEx
 On this setting page, you can connect your store to AliExpress Affiliate program. You can connect to the program using your AliExpress, Admitad, or EPN account.
 Go to AliNext Settings > Account Settings.
 
-We have a detailed guide on how to connect to the AliExpress Affiliate program [HERE](https://ali2woo.com/codex/account-settings/) 
+We have a detailed guide on how to connect to the AliExpress Affiliate program [HERE](https://help.ali2woo.com/codex/account-settings/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite) 
 
 &#9658; **Set up global pricing rules for all products**:
 
@@ -153,7 +156,7 @@ These options allow setting markup over AliExpress prices. You can add separate 
 
 Go to AliNext Settings > Pricing Rules.
 
-Also, read a detailed post about [global pricing rules.](https://ali2woo.com/codex/pricing-markup-formula/)
+Also, read a detailed post about [global pricing rules.](https://help.ali2woo.com/codex/pricing-markup-formula/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite)
 
 &#9658; **Filter or delete unnecessary text from AliExpress product**: 
 
@@ -161,11 +164,11 @@ Here you can filter all unwanted phrases and text from AliExpress product. It al
 
 Go to AliNext Settings > Phrase Filtering.
 
-See a detailed guide on this topic [HERE.](https://ali2woo.com/codex/phrase-filtering/)
+See a detailed guide on this topic [HERE.](https://help.ali2woo.com/codex/phrase-filtering/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite)
 
 &#9658; **Import reviews from AliExpress**: 
 
-Import product reviews quickly from AliExpress, skip unwanted reviews, import translated version of the reviews or reviews related to a paticular country.
+Import product reviews quickly from AliExpress, skip unwanted reviews, import translated version of the reviews or reviews related to a particular country.
 
 Go to AliNext Settings > Reviews settings.
 
@@ -179,13 +182,13 @@ Use this feature to increase your margin by including shipping cost to the produ
 
 Go to AliNext Settings > Pricing Rules > Add shipping cost.
 
-See a detailed guide on this topic [HERE.](https://ali2woo.com/codex/pricing-markup-formula/#shipping)
+See a detailed guide on this topic [HERE.](https://help.ali2woo.com/codex/pricing-markup-formula/#shipping?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite)
 
 &#9658; **Automatically place orders on AliExpress through the AliExpress API**:
 
-Go to AliNext Settings > Account Settings and click "Get Access Token". AliExpress portal will ask your permission to place orders via API. Accept it and then the feature will be activated! Go to your Woocomemrce orders list page and try to place your objects, you will see that now you can place it via API very fast.
+Go to AliNext Settings > Account Settings and click "Get Access Token". AliExpress portal will ask your permission to place orders via API. Accept it and then the feature will be activated! Go to your WooCommerce orders list page and try to place your objects, you will see that now you can place it via API very fast.
 
-See a detailed guide on this topic [HERE.](https://help.ali2woo.com/codex/fulfill-orders-using-aliexpress-api/)
+See a detailed guide on this topic [HERE.](https://help.ali2woo.com/codex/fulfill-orders-using-aliexpress-api/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite)
 
 Please note: In the lite plugin version you have a limit of 20 orders operations per day. So you can place or sync 20 orders max per day. You can increase limit using Pro version.
 
@@ -216,17 +219,17 @@ Please note: In the lite plugin version you have a limit of 10 orders operations
 
 &#9658; **Fast Order fulfillment using API**: 
 
-**[pro version feature]** Place more orders on AliExpress through the AliExpress API. In contrast to AliNext Lite allowing you to place ONLY 10 orders using the API.
+**[pro version feature]** Place more orders on AliExpress through the AliExpress API. In contrast to AliNext Lite allowing you to place ONLY 1 orders using the API.
 
 &#9658; **Sync Orders using API**: 
 
-**[pro version feature]** Sync more orders with AliExpress through the AliExpress API. In contrast to AliNext Lite allowing you to sync ONLY 10 orders using the API.
+**[pro version feature]** Sync more orders with AliExpress through the AliExpress API. In contrast to AliNext Lite allowing you to sync ONLY 1 orders using the API.
 
 &#9658; **Set options related to the product synchronization**:
 
 **[pro version feature]** This set of features allows synchronizing an imported product automatically with AliExpress. Also, you can set a specific action that applies to the product depending on change occurring on AliExpress.  Go to AliNext Settings > Common Settings > Schedule Settings.
 
-- **Aliexpress Sync**: Enable product sync with AliExpress in your store. It can sync product price, quantity and variants.
+- **AliExpress Sync**: Enable product sync with AliExpress in your store. It can sync product price, quantity and variants.
 
 - **When product is no longer available**: Choose an action when some imported product is no longer available on AliExpress.
 
@@ -236,7 +239,7 @@ Please note: In the lite plugin version you have a limit of 10 orders operations
 
 - **When the price changes**: Choose an action when the price of some imported product changes on AliExpress.
 
-- **When inventory changes**: Choose an action when the inventory level of some imported product changes on AliExress.
+- **When inventory changes**: Choose an action when the inventory level of some imported product changes on AliExpress.
 
 
 &#9658; **Get email alerts on product changes**:
@@ -255,13 +258,15 @@ You can set email address for notifications and override the email template if n
 
 Go to AliNext Settings > Shipping settings.
 
-See a detailed guide on this topic [HERE.](https://ali2woo.com/codex/shipping-settings/)
+See a detailed guide on this topic [HERE.](https://help.ali2woo.com/codex/shipping-settings/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite)
 
-[GET PRO VERSION](https://ali2woo.com/dropshipping-plugin/) or [https://ali2woo.com/dropshipping-plugin/](https://ali2woo.com/dropshipping-plugin/)
+**[pro version feature]** Select AliExpress Region, choose the specific AliExpress region to ensure accurate pricing, stock, and shipping details. You have to contact our support center in order to set the region for your premium plugin license.
+
+[GET PRO VERSION](https://ali2woo.com/dropshipping-plugin/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite) or [https://ali2woo.com/dropshipping-plugin/](https://ali2woo.com/dropshipping-plugin/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite)
 
 ### Documentation
 
-- [Getting Started](https://ali2woo.com/codex/)
+- [Getting Started](https://help.ali2woo.com/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite)
 
 = Minimum Requirements =
 
@@ -271,12 +276,12 @@ See a detailed guide on this topic [HERE.](https://ali2woo.com/codex/shipping-se
 
 = Support = 
 
-In case you have any questions or need technical assistance, get in touch with us through our [support center](https://support.ali2woo.com).
+In case you have any questions or need technical assistance, get in touch with us through our [support center](https://support.ali2woo.com?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite).
 
 
 = Follow Us =
 
-* The [AliNext Plugin](https://ali2woo.com/) official homepage.
+* The [AliNext Plugin](https://ali2woo.com/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite) official homepage.
 * Follow AliNext on [Facebook](https://facebook.com/ali2woo) & [Twitter](https://twitter.com/ali2woo).
 * Watch AliNext training videos on [YouTube channel](https://www.youtube.com/channel/UCmcs_NMPkHi0IE_x9UENsoA)
 * Other AliNext social pages: [Pinterest](https://www.pinterest.ru/ali2woo/), [Instagram](https://www.instagram.com/ali2woo/), [LinkedIn](https://www.linkedin.com/company/18910479)
@@ -307,6 +312,12 @@ In case you have any questions or need technical assistance, get in touch with u
 8. Feature to quick search for all products of the same seller/store from AliExpress
 
 == Changelog ==
+= 3.4.7 - 2024.11.18 
+* Add compatibility with WooCommerce 9.4.* 
+* Add Tip of the day popup to notify about new plugin feature and opportunities for earning 
+* Update Promo module information
+* Fix minor bugs and code refactor
+
 = 3.4.6 - 2024.11.06 =
 * Fix the order fulfillment warning showing when phone field is empty 
 * Change built-in search page template according to new parser features

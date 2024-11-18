@@ -8,6 +8,7 @@ use AliNext_Lite\BackgroundProcessFactory;
 use AliNext_Lite\BackgroundProcessService;
 use AliNext_Lite\ExternalOrderFactory;
 use AliNext_Lite\FulfillmentClient;
+use AliNext_Lite\GlobalSystemMessageService;
 use AliNext_Lite\Helper;
 use AliNext_Lite\ImportAjaxController;
 use AliNext_Lite\ImportListService;
@@ -25,11 +26,19 @@ use AliNext_Lite\PriceFormulaSetService;
 use AliNext_Lite\PriceFormulaSettingsRepository;
 use AliNext_Lite\ProductChange;
 use AliNext_Lite\ProductImport;
+
+use AliNext_Lite\PromoService;
+
 use AliNext_Lite\Review;
 use AliNext_Lite\SplitProductService;
+use AliNext_Lite\TipOfDayAjaxController;
+use AliNext_Lite\TipOfDayFactory;
+use AliNext_Lite\TipOfDayRepository;
+use AliNext_Lite\TipOfDayService;
 use AliNext_Lite\Woocommerce;
 use function DI\create;
 use function DI\get;
+use AliNext_Lite\Settings;
 
 return [
     /* helpers */
@@ -46,6 +55,7 @@ return [
         ->constructor(
             get(PriceFormulaFactory::class),
         ),
+    'AliNext_Lite\TipOfDayFactory' => create(TipOfDayFactory::class),
 
     /* repository */
     'AliNext_Lite\PriceFormulaRepository' => create(PriceFormulaRepository::class)
@@ -55,6 +65,10 @@ return [
     'AliNext_Lite\PriceFormulaSetRepository' => create(PriceFormulaSetRepository::class)
         ->constructor(
             get(PriceFormulaSetFactory::class)
+        ),
+    'AliNext_Lite\TipOfDayRepository' => create(TipOfDayRepository::class)
+        ->constructor(
+            get(TipOfDayFactory::class)
         ),
 
     /* models */
@@ -91,11 +105,20 @@ return [
             get(PriceFormulaSetFactory::class),
             get(BackgroundProcessFactory::class)
         ),
-    'Ali2WOo\SplitProductService' => create(SplitProductService::class)
+    'AliNext_Lite\SplitProductService' => create(SplitProductService::class)
         ->constructor(
             get(ProductImport::class),
         ),
-
+    'AliNext_Lite\GlobalSystemMessageService' => create(GlobalSystemMessageService::class),
+    'AliNext_Lite\TipOfDayService' => create(TipOfDayService::class)
+        ->constructor(
+            get(TipOfDayFactory::class),
+            get(TipOfDayRepository::class),
+            Settings::instance()
+        ),
+    
+    'AliNext_Lite\PromoService' => create(PromoService::class),
+    
     /* controllers */
     'AliNext_Lite\ImportAjaxController' => create(ImportAjaxController::class)
         ->constructor(
@@ -108,4 +131,9 @@ return [
             get(PriceFormulaSetRepository::class),
             get(PriceFormulaSetService::class)
         ),
+    'AliNext_Lite\TipOfDayAjaxController' => create(TipOfDayAjaxController::class)
+        ->constructor(
+            get(TipOfDayService::class),
+            get(TipOfDayRepository::class),
+        )
 ];

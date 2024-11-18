@@ -9,6 +9,10 @@ namespace AliNext_Lite;;
 
 class Settings
 {
+    public const SETTING_SYSTEM_MESSAGE = 'system_message';
+    public const SETTING_TIP_OF_DAY = 'tip_of_day';
+    public const SETTING_TIP_OF_DAY_LAST_DATE = 'tip_of_day_last_date';
+
     private $settings;
     private $auto_commit = true;
 
@@ -139,6 +143,9 @@ class Settings
         'json_api_controllers' => 'core,auth',
 
         'system_message_last_update' => 0,
+        self::SETTING_SYSTEM_MESSAGE => [],
+        self::SETTING_TIP_OF_DAY => [],
+        self::SETTING_TIP_OF_DAY_LAST_DATE => null,
 
         'api_keys' => [],
 
@@ -151,6 +158,9 @@ class Settings
 
     protected function __construct()
     {
+        //todo: refactor this later
+        $this->default_settings[self::SETTING_TIP_OF_DAY] = $this->getDefaultTipOfDayData();
+
         $this->load();
     }
 
@@ -200,7 +210,7 @@ class Settings
 
     public function get($setting, $default = '')
     {
-        return isset($this->settings[$setting]) ? $this->settings[$setting] : $default;
+        return $this->settings[$setting] ?? $default;
     }
 
     public function set($setting, $value)
@@ -227,6 +237,36 @@ class Settings
                 $this->commit();
             }
         }
+    }
+
+    //todo: refactor this method later
+    private function getDefaultTipOfDayData(): array
+    {
+        $htmlContent =
+            <<<HTML
+            <p>
+            Transform your AliExpress account into a Business Account using our exclusive invitation code. 
+            This linkage ensures AliExpress recognizes you as a dropshipping partner, opening the door to new earning potentials.
+            </p>
+            <p>
+            <strong>Instant Reward:</strong> Secure your Business Account status with our code and receive a special bonus $100 off over $500. 
+            This bonus is valid for 90 days, so start maximizing your benefits now.
+            </p>
+            <p><strong>Additional Earnings:</strong>  Enjoy increased dropshipper commissions based on your Partnership Account's purchase volumes. 
+            Seize this chance to boost your business and income!</p>
+            <p>
+            <strong><a target="_blank" href="https://inbusiness.aliexpress.com/web/newCertification?bizScene=STANDARD_SCENE&channel=STANDARD_CHANNEL&invitationCode=2qkht5">CLICK OUR INVITATION LINK</a></strong> and begin your journey toward enhanced dropshipping success today!
+            </p>
+HTML;
+
+        return [
+            [
+                TipOfDay::FIELD_ID => 1,
+                TipOfDay::FIELD_NAME => 'Tip of the Day: Boost Your AliExpress Earnings!',
+                TipOfDay::FIELD_HTML_CONTENT => $htmlContent,
+                TipOfDay::FIELD_IS_HIDDEN => false,
+            ]
+        ];
     }
 }
 

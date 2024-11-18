@@ -16,7 +16,8 @@ class JSON_API_Core_Controller
     public function __construct()
     {
 		//todo: perhaps it would be better to move this call to some other controller
-        Utils::clear_system_error_messages();
+        $GlobalSystemMessageService = A2WL()->getDI()->get('AliNext_Lite\GlobalSystemMessageService');
+        $GlobalSystemMessageService->clear();
 
         $this->product_import_model = new ProductImport();
         $this->woocommerce_model = A2WL()->getDI()->get('AliNext_Lite\Woocommerce');

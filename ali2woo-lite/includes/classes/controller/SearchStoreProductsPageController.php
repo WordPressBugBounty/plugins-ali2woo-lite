@@ -107,6 +107,7 @@ class SearchStoreProductsPageController extends AbstractAdminPage
 
         $countryModel = new Country();
         $localizator = AliexpressLocalizator::getInstance();
+        $TipOfDayService = A2WL()->getDI()->get('AliNext_Lite\TipOfDayService');
 
         $page = esc_attr(((isset($_GET['page'])) ? $_GET['page'] : ''));
         $curPage = esc_attr(((isset($_GET['cur_page'])) ? $_GET['cur_page'] : ''));;
@@ -121,6 +122,7 @@ class SearchStoreProductsPageController extends AbstractAdminPage
         $this->model_put('load_products_result', $load_products_result);
         $this->model_put('page', $page);
         $this->model_put('curPage', $curPage);
+        $this->model_put("TipOfDay", $TipOfDayService->getNextTip());
 
         $search_version = 'v1';
         $this->include_view('search_store_products_' . $search_version . '.php');

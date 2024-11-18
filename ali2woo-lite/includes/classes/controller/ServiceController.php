@@ -30,7 +30,8 @@ class ServiceController
                     $plugin_data['categories'] : [];
 
                 if (isset($plugin_data['messages'])) {
-                    set_setting('system_message', $plugin_data['messages']);
+                    $GlobalSystemMessageService = A2WL()->getDI()->get('AliNext_Lite\GlobalSystemMessageService');
+                    $GlobalSystemMessageService->addMessages($plugin_data['messages']);
                 }
 
                 update_option('a2wl_all_categories', $categories, 'no');

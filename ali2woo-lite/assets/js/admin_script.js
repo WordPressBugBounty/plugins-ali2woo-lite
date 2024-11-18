@@ -7,6 +7,21 @@ document.addEventListener('maAPILoaded', function () {
     a2wl_chrome_extension_loaded = true;
 });
 
+const a2wAjaxApi = (function ($) {
+    async function doAjax(params = {}, method = 'POST') {
+        return $.ajax({
+            url: ajaxurl,
+            type: method,
+            dataType: 'json',
+            data: params
+        });
+    }
+
+    return {
+        doAjax: doAjax,
+    };
+})(jQuery, ajaxurl);
+
 var waitForFinalEvent = (function () {
     var timers = {};
     return function (callback, ms, uniqueId) {
@@ -686,7 +701,10 @@ var Utils = new Utils();
             return false;
         });
 
-
+        $('.a2wl-system-message .notice-dismiss').on('click', function(event) {
+            event.preventDefault();
+            $(this).parent().hide();
+        })
 
         /* ====================================================== */
 

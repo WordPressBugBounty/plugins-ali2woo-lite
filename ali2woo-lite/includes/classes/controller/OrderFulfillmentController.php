@@ -163,7 +163,6 @@ class OrderFulfillmentController extends AbstractController
     public function assets()
     {
         wp_enqueue_style('a2wl-admin-style', A2WL()->plugin_url() . '/assets/css/admin_style.css', array(), A2WL()->version);
-        // wp_enqueue_style('a2wl-bootstrap-style', A2WL()->plugin_url() . '/assets/js/bootstrap/css/bootstrap.min.css', array(), A2WL()->version);
 
         wp_enqueue_script('a2wl-admin-script',
             A2WL()->plugin_url() . '/assets/js/admin_script.js',

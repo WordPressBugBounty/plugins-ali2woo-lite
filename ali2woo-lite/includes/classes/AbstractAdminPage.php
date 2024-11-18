@@ -22,12 +22,16 @@ abstract class AbstractAdminPage extends AbstractController
     private $script_assets = array();
     private $script_data_assets = array();
 
+    private GlobalSystemMessageService $GlobalSystemMessageService;
+
 
     // $menu_type: 0 - standart menu, 1 - menu as link, 2 - skip menu
     public function __construct($page_title, $menu_title, $capability, $menu_slug, $priority = 10, $menu_type=0) {
         parent::__construct(A2WL()->plugin_path() . '/view/');
+
+        $this->GlobalSystemMessageService = A2WL()->getDI()->get('AliNext_Lite\GlobalSystemMessageService');
         
-        if(is_admin()){
+        if (is_admin()) {
             $this->init($page_title, $menu_title, $capability, $menu_slug, $priority, $menu_type);
 
             add_action('a2wl_admin_assets', array($this, 'admin_register_assets'), 1);
@@ -40,8 +44,8 @@ abstract class AbstractAdminPage extends AbstractController
                 add_action('admin_notices', array($this, 'woocomerce_check_error'));
             }
 
-            if ($this->is_current_page() && !has_action('admin_notices', array($this, 'global_system_message'))) {
-                add_action('admin_notices', array($this, 'global_system_message'));
+            if ($this->is_current_page() && !has_action('admin_notices', [$this, 'global_system_message'])) {
+                add_action('admin_notices', [$this, 'global_system_message']);
             }    
         }
     }
@@ -50,19 +54,10 @@ abstract class AbstractAdminPage extends AbstractController
         echo '<div id="message2222" class="notice error is-dismissible"><p>'.esc_html__('AliNext (Lite version) notice! Please install the <a href="https://woocommerce.com/" target="_blank">WooCommerce</a> plugin first.', 'ali2woo').'</p><button type="button" class="notice-dismiss"><span class="screen-reader-text">Dismiss this notice.</span></button></div>';
     }
     
-    function global_system_message() {
-        $system_message = get_setting('system_message');            
-        if($system_message && !empty($system_message)){
-            foreach($system_message as $key=>$message){
-                if(!empty($message['message'])){
-                    $message_class='updated';
-                    if($message['type'] == 'error'){
-                        $message_class='error';
-                    }
-                    echo '<div id="a2wl-system-message-'.$key.'" class="a2wl-system-message notice '.$message_class.' is-dismissible"><p>'.$message['message'].'</p><button type="button" class="notice-dismiss"><span class="screen-reader-text">Dismiss this notice.</span></button></div>';
-                }
-            }
-        }
+    function global_system_message(): void
+    {
+        $messages = $this->GlobalSystemMessageService->getAllMessages();
+        echo implode('', $messages);
     }
     
 
@@ -150,14 +145,6 @@ abstract class AbstractAdminPage extends AbstractController
             if (!wp_script_is('a2wl-lazyload-js', 'registered')) {
                 wp_register_script('a2wl-lazyload-js', A2WL()->plugin_url() . '/assets/js/jquery/jquery.lazyload.js', array('jquery'),  A2WL()->version);
             }
-            
-            /* bootstrap */
-            /*if (!wp_style_is('a2wl-bootstrap-style', 'registered')) {
-                wp_register_style('a2wl-bootstrap-style', A2WL()->plugin_url() . '/assets/js/bootstrap/css/bootstrap.min.css', array(),  A2WL()->version);
-            }
-            if (!wp_script_is('a2wl-bootstrap-js', 'registered')) {
-                wp_register_script('a2wl-bootstrap-js', A2WL()->plugin_url() . '/assets/js/bootstrap/js/bootstrap.min.js', array('jquery'),  A2WL()->version);
-            }*/
 
             /* custom styles */
             if (!wp_style_is('a2wl-custom-style', 'registered')) {
@@ -225,14 +212,6 @@ abstract class AbstractAdminPage extends AbstractController
             /*jquery.lazyload*/
             if (!wp_script_is('a2wl-lazyload-js', 'enqueued')) {
                 wp_enqueue_script('a2wl-lazyload-js');
-            }
-            
-            /* bootstrap */
-            if (!wp_style_is('a2wl-bootstrap-style', 'enqueued')) {
-                wp_enqueue_style('a2wl-bootstrap-style');
-            }
-            if (!wp_script_is('a2wl-bootstrap-js', 'enqueued')) {
-                wp_enqueue_script('a2wl-bootstrap-js');
             }
 
             /* custom */

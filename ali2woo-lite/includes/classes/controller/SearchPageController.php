@@ -114,6 +114,8 @@ class SearchPageController extends AbstractAdminPage
             'reviewsUp' => _x('Min reviews', 'sort by', 'ali2woo'),
         ];
 
+        $TipOfDayService = A2WL()->getDI()->get('AliNext_Lite\TipOfDayService');
+
         $page = esc_attr(((isset($_GET['page'])) ? $_GET['page'] : ''));
         $curPage = esc_attr(((isset($_GET['cur_page'])) ? $_GET['cur_page'] : ''));;
 
@@ -129,11 +131,12 @@ class SearchPageController extends AbstractAdminPage
         $this->model_put('curPage', $curPage);
 
         
-        $promoModel = Promo::getInstance();
-        $this->model_put('promo_data', $promoModel->getPromoData());
+        $PromoService = A2WL()->getDI()->get('AliNext_Lite\PromoService');
+        $this->model_put('promo_data', $PromoService->getPromoData());
         
 
         $this->model_put('load_products_result', $load_products_result);
+        $this->model_put("TipOfDay", $TipOfDayService->getNextTip());
 
         $search_version = 'v3';
         $this->include_view('search_' . $search_version . '.php');

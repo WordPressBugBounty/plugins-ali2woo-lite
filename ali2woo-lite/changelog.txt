@@ -308,3 +308,10 @@
 * Fix the manual mode of the product split feature
 * Enhance product split feature. Skip images related to skipped product variants.
 * Fix minor bugs
+
+3.4.7
+* Add compatibility with WooCommerce 9.4.* 
+* Add Tip of the day popup to notify about new plugin feature and opportunities for earning 
+* Update Promo module information
+* Fix minor bugs and code refactor
+

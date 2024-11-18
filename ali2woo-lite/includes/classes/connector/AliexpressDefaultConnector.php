@@ -381,34 +381,6 @@ class AliexpressDefaultConnector extends AbstractConnector
         return $shipping_address;
     }
 
-    /**
-     * @throws Exception
-     */
-    private function get_access_token()
-    {
-        Utils::clear_system_error_messages();
-
-        $token = AliexpressToken::getInstance()->defaultToken();
-
-        if (!$token) {
-            $msg = sprintf(
-                esc_html__(
-                    'AliExpress access token is not found. <a target="_blank" href="%s">Please check our instruction</a>.',
-                    'ali2woo'
-                ),
-            'https://help.ali2woo.com/codex/how-to-get-access-token-from-aliexpress/'
-            );
-
-            Utils::show_system_error_message($msg);
-
-            //todo: add here a check whether token has expired 
-
-            throw new Exception($msg);
-        }
-
-        return $token['access_token'];
-    }
-
     private function handleRequestResult($request): array
     {
         if (is_wp_error($request)) {
@@ -428,5 +400,34 @@ class AliexpressDefaultConnector extends AbstractConnector
         }
 
         return $result;
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function get_access_token()
+    {
+        $GlobalSystemMessageService = A2WL()->getDI()->get('AliNext_Lite\GlobalSystemMessageService');
+        $GlobalSystemMessageService->clear();
+
+        $token = AliexpressToken::getInstance()->defaultToken();
+
+        if (!$token) {
+            $msg = sprintf(
+                esc_html__(
+                    'AliExpress access token is not found. <a target="_blank" href="%s">Please check our instruction</a>.',
+                    'ali2woo'
+                ),
+                'https://help.ali2woo.com/codex/how-to-get-access-token-from-aliexpress/'
+            );
+
+            $GlobalSystemMessageService->addErrorMessage($msg);
+
+            //todo: add here a check whether token has expired
+
+            throw new Exception($msg);
+        }
+
+        return $token['access_token'];
     }
 }

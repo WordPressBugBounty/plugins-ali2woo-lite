@@ -10,14 +10,6 @@ namespace AliNext_Lite;;
 
 class Utils
 {
-    public static function show_system_error_message($msg){
-        set_setting('system_message', array(array('type' => 'error', 'message' => $msg)));
-    }
-
-    public static function clear_system_error_messages(){
-        set_setting('system_message', array());
-    }
-
     public static function wcae_strack_active()
     {
         return is_plugin_active('woocommerce_aliexpress_shipment_tracking/index.php');

@@ -966,21 +966,6 @@ $a2w_local_currency = strtoupper(get_setting('local_currency'));
             });
         }
 
-        const a2wAjaxApi = (function ($) {
-            async function doAjax(params = {}, method = 'POST') {
-                return $.ajax({
-                    url: ajaxurl,
-                    type: method,
-                    dataType: 'json',
-                    data: params
-                });
-            }
-
-            return {
-                doAjax: doAjax,
-            };
-        })(jQuery, ajaxurl);
-
         const a2wSetsAPI = (function ($, ajaxApi) {
             async function save(setName, nonce) {
                 let data = {

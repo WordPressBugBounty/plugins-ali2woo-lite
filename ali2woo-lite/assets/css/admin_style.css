@@ -1350,6 +1350,11 @@ body .a2wl-content {
     color:red;
 }
 
+.modal-tip-of-day p
+{
+    max-width: 80%;
+}
+
 .modal-apply-pricing-rules .apply-btn{
     position: relative;
 }

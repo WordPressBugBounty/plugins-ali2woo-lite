@@ -504,7 +504,8 @@ class SettingPageAjaxController extends AbstractController
             $token = AliexpressToken::getInstance();
             $token->add($_POST['token']);
 			//todo: have to think about this method, perhaps it should be refactored
-            Utils::clear_system_error_messages();
+            $GlobalSystemMessageService = A2WL()->getDI()->get('AliNext_Lite\GlobalSystemMessageService');
+            $GlobalSystemMessageService->clear();
 
             $tokens = $token->tokens();
             $data = '';
