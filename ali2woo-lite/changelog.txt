@@ -3,7 +3,7 @@
 
 1.0.2
 * Fixed issues with the chrome extension
-* Simpliy way to connect your store to the chrome extension
+* Simplify way to connect your store to the chrome extension
 
 1.0.3
 * Fixed the issue with an empty products description and attributes (item specifics data)
@@ -313,5 +313,14 @@
 * Add compatibility with WooCommerce 9.4.* 
 * Add Tip of the day popup to notify about new plugin feature and opportunities for earning 
 * Update Promo module information
+* Fix minor bugs and code refactor
+
+3.4.8
+* Fix xss vulnerability in api keys settings page
+* Add A2W_JOB_MEMORY_LIMIT constant allowing to set max RAM size for background job
+* Improve get access token feature (fix undefined alert)
+* Add compatibility with WooCommerce 9.5.*
+* Fix build categories feature
+* Fix old variation matching bug
 * Fix minor bugs and code refactor
 

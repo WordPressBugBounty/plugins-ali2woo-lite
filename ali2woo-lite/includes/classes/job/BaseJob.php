@@ -15,6 +15,7 @@ use AliNext_Lite\Library\BackgroundProcessing\WP_Background_Process;
 abstract class BaseJob extends WP_Background_Process implements BaseJobInterface
 {
     protected string $title = 'Base Job';
+    private float $memoryLimit = 0.9;
 
     public function getTitle(): string
     {
@@ -62,5 +63,40 @@ abstract class BaseJob extends WP_Background_Process implements BaseJobInterface
     public function cancel(): void
     {
         parent::cancel();
+    }
+
+    /**
+     * Memory exceeded?
+     *
+     * Ensures the batch process never exceeds X%
+     * of the maximum WordPress memory.
+     *
+     * @return bool
+     */
+    protected function memory_exceeded(): bool
+    {
+        if (a2wl_check_defined('A2WL_JOB_MEMORY_LIMIT')) {
+            $this->memoryLimit = filter_var(
+                A2WL_JOB_MEMORY_LIMIT,
+                FILTER_VALIDATE_FLOAT,
+                [
+                    'options' => [
+                        'min_range' => 0.1,
+                        'max_range' => $this->memoryLimit,
+                        'default' => $this->memoryLimit
+                    ]
+                ]
+            );
+        }
+
+        $memory_limit   = $this->get_memory_limit() * $this->memoryLimit; // X% of max memory
+        $current_memory = memory_get_usage(true);
+        $return = false;
+
+        if ( $current_memory >= $memory_limit ) {
+            $return = true;
+        }
+
+        return apply_filters($this->identifier . '_memory_exceeded', $return);
     }
 }

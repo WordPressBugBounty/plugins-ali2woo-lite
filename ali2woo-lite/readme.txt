@@ -7,7 +7,7 @@ License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Stable tag: trunk
 Requires PHP: 8.0
-WC tested up to: 9.4
+WC tested up to: 9.5
 WC requires at least: 5.0
 
 This AliExpress Dropshipping Plugin for WooCommerce: Import products with reviews from AliExpress and fulfill orders automatically!
@@ -312,7 +312,16 @@ In case you have any questions or need technical assistance, get in touch with u
 8. Feature to quick search for all products of the same seller/store from AliExpress
 
 == Changelog ==
-= 3.4.7 - 2024.11.18 
+= 3.4.8 - 2024.12.03 = 
+* Fix xss vulnerability in api keys settings page
+* Add A2W_JOB_MEMORY_LIMIT constant allowing to set max RAM size for background job
+* Improve get access token feature (fix undefined alert)
+* Add compatibility with WooCommerce 9.5.*
+* Fix build categories feature
+* Fix old variation matching bug
+* Fix minor bugs and code refactor
+
+= 3.4.7 - 2024.11.18 = 
 * Add compatibility with WooCommerce 9.4.* 
 * Add Tip of the day popup to notify about new plugin feature and opportunities for earning 
 * Update Promo module information
@@ -396,14 +405,6 @@ In case you have any questions or need technical assistance, get in touch with u
 * fix is-not-applied price bug
 * fix minor bugs
 
-= 3.2.4 - 2024.02.16 =
-* fix few deprecated (legacy) methods in code
-* remove old Requests library from the code and use native Requests library from wordpress core
-* fix Woocommerce 8.6.* compatibility bug
-
-= 3.2.1 - 2024.01.13 =
-* fix chrome extension connection bug
-* increase daily quota for order place and sync operations to 20 per day (for the lite plugin version)
 == Upgrade Notice ==
 
 

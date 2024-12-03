@@ -525,7 +525,7 @@ class SettingPageController extends AbstractAdminPage
             check_admin_referer(self::PAGE_NONCE_ACTION, self::NONCE);
         }
 
-        $api_keys = get_setting('api_keys', array());
+        $api_keys = get_setting('api_keys', []);
 
         if (!empty($_REQUEST['delete-key'])) {
             foreach ($api_keys as $k => $key) {
@@ -537,8 +537,10 @@ class SettingPageController extends AbstractAdminPage
             }
             wp_redirect(admin_url('admin.php?page=a2wl_setting&subpage=chrome_api'));
         } else if (!empty($_POST['a2wl_api_key'])) {
-            $key_id = $_POST['a2wl_api_key'];
-            $key_name = !empty($_POST['a2wl_api_key_name']) ? $_POST['a2wl_api_key_name'] : "New key";
+            $key_id = sanitize_text_field($_POST['a2wl_api_key']);
+            $key_name = !empty($_POST['a2wl_api_key_name']) ?
+                sanitize_text_field($_POST['a2wl_api_key_name']) :
+                "New key";
 
             $is_new = true;
             foreach ($api_keys as &$key) {
@@ -550,14 +552,20 @@ class SettingPageController extends AbstractAdminPage
             }
 
             if ($is_new) {
-                $api_keys[] = array('id' => $key_id, 'name' => $key_name);
+                $api_keys[] = [
+                    'id' => $key_id,
+                    'name' => $key_name
+                ];
             }
 
             set_setting('api_keys', $api_keys);
 
             wp_redirect(admin_url('admin.php?page=a2wl_setting&subpage=chrome_api&edit-key=' . $key_id));
         } else if (isset($_REQUEST['edit-key'])) {
-            $api_key = array('id' => md5("a2wkey" . wp_rand() . microtime()), 'name' => "New key");
+            $api_key = [
+                'id' => md5("a2wkey" . wp_rand() . microtime()),
+                'name' => "New key"
+            ];
             $is_new = true;
             if (empty($_REQUEST['edit-key'])) {
                 $api_keys[] = $api_key;

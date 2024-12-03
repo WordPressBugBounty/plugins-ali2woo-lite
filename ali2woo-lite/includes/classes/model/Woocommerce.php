@@ -212,7 +212,7 @@ class Woocommerce
             $tax_input = [
                 'product_type' => $product_type
             ];
-            $categories = $this->build_categories($product);
+            $categories = $this->buildCategories($product);
             if ($categories) {
                 $tax_input['product_cat'] = $categories;
             }
@@ -673,38 +673,48 @@ class Woocommerce
         $on_new_variation_appearance = $disable_add_new_variants ? "nothing" : (isset($params['on_new_variation_appearance'])? $params['on_new_variation_appearance'] : get_setting('on_new_variation_appearance'));
 
         // collect new variations
-        $old_variations = $wpdb->get_col($wpdb->prepare("SELECT pm.meta_value FROM $wpdb->posts p INNER JOIN $wpdb->postmeta pm ON (p.ID=pm.post_id AND pm.meta_key='external_variation_id') WHERE post_parent = %d and post_type='product_variation' GROUP BY p.ID ORDER BY p.post_date desc", $product_id));
+        $oldVariationQuery =
+            "SELECT pm.meta_value FROM $wpdb->posts p " .
+            "INNER JOIN $wpdb->postmeta pm ON (p.ID=pm.post_id AND pm.meta_key='external_variation_id') " .
+            "WHERE post_parent = %d and post_type='product_variation' GROUP BY p.ID ORDER BY p.post_date DESC";
+        $old_variations = $wpdb->get_col($wpdb->prepare($oldVariationQuery, $product_id));
         if (!$old_variations) {
             $old_aliexpress_sku_props = get_post_meta($product_id, '_aliexpress_sku_props', true);
             if ($old_aliexpress_sku_props) {
-                $external_variation_id = $product['id'] . '-' . implode('-', explode(';', $old_aliexpress_sku_props));
-                $old_variations = array($external_variation_id);
+                $external_variation_id = $product['id'] . '-' .
+                    implode('-', explode(';', $old_aliexpress_sku_props));
+                $old_variations = [
+                    $external_variation_id
+                ];
             }
         }
 
-        if ($old_variations){
-            //previous version of API provided atrributes in another order
+        if ($old_variations) {
+            //previous version of API provided attributes in another order
             //therefore here we check that new variants are not the old variants actually
             $matched_variations = [];
             foreach ($product['sku_products']['variations'] as $key => $variation) {
                 if (!in_array($variation['id'], $old_variations)) {
                     $variation_parts = explode('-', $variation['id']);
                     $matched_old_variation = false;
-                    foreach ($old_variations as $old_variation){
-                        if ( Utils::string_contains_all($old_variation, $variation_parts) ){
+                    foreach ($old_variations as $old_variation) {
+                        if (Utils::checkVariationIdHasAllParts($old_variation, $variation_parts)) {
                             $matched_old_variation = $old_variation;
                             break;
                         }
                     }
 
-                    if ($matched_old_variation !== false){
-                        $matched_variations[] = array('new' => $variation['id'], 'existed' => $matched_old_variation);
+                    if ($matched_old_variation !== false) {
+                        $matched_variations[] = [
+                            'new' => $variation['id'],
+                            'existed' => $matched_old_variation
+                        ];
                         $product['sku_products']['variations'][$key]['id'] = $matched_old_variation;
                     }
                 }
             }
 
-            if (!empty($matched_variations)){
+            if (!empty($matched_variations)) {
                 a2wl_error_log('we matched the following vars during sync:');
                 a2wl_error_log(print_r($matched_variations, true));
             }
@@ -712,7 +722,7 @@ class Woocommerce
 
         $new_variations = array();
         if (!empty($product['sku_products']['variations']) && count($product['sku_products']['variations']) > 1) {
-            // if have more then one variations
+            // if we have more than one variation
             foreach ($product['sku_products']['variations'] as $variation) {
                 if (!in_array($variation['id'], $old_variations)) {
                     $new_variations[] = $variation['id'];
@@ -1207,10 +1217,18 @@ class Woocommerce
         }
     }
 
-    private function build_categories($product)
+    private function buildCategories($product): array
     {
+        $result = [];
+
         if (isset($product['categories']) && $product['categories']) {
-            return is_array($product['categories']) ? array_map('intval', $product['categories']) : array(intval($product['categories']));
+            if (is_array($product['categories'])) {
+                $result = array_map('intval', $product['categories']);
+            } else {
+                $result = [
+                    intval($product['categories'])
+                ];
+            }
         } else if (isset($product['category_name']) && $product['category_name']) {
             $category_name = sanitize_text_field($product['category_name']);
             if ($category_name) {
@@ -1221,14 +1239,22 @@ class Woocommerce
                 ]);
                 if (empty($cat)) {
                     $cat = wp_insert_term($category_name, 'product_cat');
-                    $cat_id = $cat['term_id'];
+                    if (!is_wp_error($cat)) {
+                        $result = [
+                            $cat['term_id']
+                        ];
+                    }
                 } else {
-                    $cat_id = $cat->term_id;
+                    if (!is_wp_error($cat)) {
+                        foreach ($cat as $catTerm) {
+                            $result[] = $catTerm->term_id;
+                        }
+                    }
                 }
-                return array($cat_id);
             }
         }
-        return array();
+
+        return $result;
     }
 
     private function add_variation($product_id, $product, $is_update = false, $params = array())

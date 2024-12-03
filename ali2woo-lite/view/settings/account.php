@@ -216,7 +216,7 @@ use AliNext_Lite\AbstractController;
 
         if ($.fn.tooltip) { $('[data-toggle="tooltip"]').tooltip({"placement": "top"}); }
 
-        $("#a2wl_use_custom_account").change(function () {
+        $("#a2wl_use_custom_account").on('change', function () {
             if ($(this).is(':checked')) {
                 $(this).parents('.account_options').addClass('custom_account');
             } else {
@@ -225,17 +225,16 @@ use AliNext_Lite\AbstractController;
             return true;
         });
 
-        $("#a2wl_account_type").change(function () {
+        $("#a2wl_account_type").on('change', function () {
             $(this).parents('.account_options').removeClass('account_type_aliexpress').removeClass('account_type_admitad').removeClass('account_type_epn');
             $(this).parents('.account_options').addClass('account_type_'+$(this).val());
             return true;
         });
 
-        // Auth
         $('#a2wl_get_access_token').on('click', function (e) {
             let $button = $(this);
 
-            $button.attr('disabled',true);
+            $button.attr('disabled', true);
             e.preventDefault();
 
             $.post(ajaxurl, {
@@ -249,12 +248,16 @@ use AliNext_Lite\AbstractController;
                 } else {
                     window.open(json.url, "_blank", "width=868,height=686");
 
-                    function  handleMessageEvent(event) {
+                    function handleMessageEvent(event) {
                         const data = event.data;
 
+                        if (typeof event.data.from === "undefined" || event.data.from !== 'a2w') {
+                            return;
+                        }
+
                         if (event.data.state !== 'ok') {
-                            console.log('data',data)
-                            alert(data.message);
+                            console.log('data', data)
+                            show_notification(data.message, true);
                         } else {
                             const token = event.data.data;
                             $.post(ajaxurl, {
@@ -265,11 +268,10 @@ use AliNext_Lite\AbstractController;
                                 response = JSON.parse(response);
                                 $('.a2wl-tokens tbody').html(response.data);
                             }).fail(function (xhr, status, error) {
-                                alert('Can not save access token');
+                                show_notification('Can not save access token', true);
                             });
                         }
                         $button.removeAttr('disabled')
-
                         window.removeEventListener("message", handleMessageEvent);
                     }
                     window.addEventListener('message', handleMessageEvent)
@@ -281,7 +283,8 @@ use AliNext_Lite\AbstractController;
 
         });
 
-        $('.a2wl-tokens').on('click', 'a[data-token-id]', function (e) {
+        $('.a2wl-tokens').on('click', 'a[data-token-id]', function (event) {
+            event.preventDefault();
             $(this).parents('tr').remove();
             $.post(ajaxurl, {
                 action: 'a2wl_delete_access_token',
@@ -298,11 +301,6 @@ use AliNext_Lite\AbstractController;
                 alert(error)
                 console.log(error);
             });
-            return false;
         });
-
-
-
-
     })(jQuery);
 </script>

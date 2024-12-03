@@ -53,12 +53,17 @@ class Utils
         return '';
     }
 
-    public static function string_contains_all(string $string, array $words) {
-        foreach($words as $word) {
-            if(!is_string($word) || stripos($string,$word) === false){ 
-                return false; 
+    public static function checkVariationIdHasAllParts(string $variationId, array $parts): bool
+    {
+        // Split the input variation id by the '-' delimiter
+        $segments = explode('-', $variationId);
+
+        foreach ($parts as $part) {
+            if (!is_string($part) || !in_array($part, $segments, true)) {
+                return false;
             }
         }
+
         return true;
     }
 

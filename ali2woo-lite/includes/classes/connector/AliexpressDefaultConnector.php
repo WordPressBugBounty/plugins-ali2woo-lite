@@ -22,9 +22,11 @@ class AliexpressDefaultConnector extends AbstractConnector
         if (is_wp_error($request)) {
             $result = ResultBuilder::buildError($request->get_error_message());
         } else if (intval($request['response']['code']) != 200) {
-            $result = ResultBuilder::buildError(
-                $request['response']['code'] . " " . $request['response']['message']
-            );
+            $errorMessage = $request['response']['code'];
+            if (!empty($request['response']['message'])) {
+                $errorMessage .= " " . $request['response']['message'];
+            }
+            $result = ResultBuilder::buildError($errorMessage);
         } else {
             $result = json_decode($request['body'], true);
         }
@@ -84,7 +86,11 @@ class AliexpressDefaultConnector extends AbstractConnector
         if (is_wp_error($request)) {
             $result = ResultBuilder::buildError($request->get_error_message());
         } else if (intval($request['response']['code']) != 200) {
-            $result = ResultBuilder::buildError($request['response']['code'] . " " . $request['response']['message']);
+            $errorMessage = $request['response']['code'];
+            if (!empty($request['response']['message'])) {
+                $errorMessage .= " " . $request['response']['message'];
+            }
+            $result = ResultBuilder::buildError($errorMessage);
         } else {
             $result = json_decode($request['body'], true);
         }
@@ -413,19 +419,21 @@ class AliexpressDefaultConnector extends AbstractConnector
         $token = AliexpressToken::getInstance()->defaultToken();
 
         if (!$token) {
-            $msg = sprintf(
-                esc_html__(
-                    'AliExpress access token is not found. <a target="_blank" href="%s">Please check our instruction</a>.',
-                    'ali2woo'
-                ),
-                'https://help.ali2woo.com/codex/how-to-get-access-token-from-aliexpress/'
+            $linkText = _x('Please check our instruction.','settings', 'ali2woo');
+
+            $text2 = sprintf(
+                '<a target="_blank" href="%s">%s</a>.',
+                'https://help.ali2woo.com/codex/how-to-get-access-token-from-aliexpress/',
+                $linkText
             );
 
-            $GlobalSystemMessageService->addErrorMessage($msg);
+            $text = _x('AliExpress access token is not found.','settings', 'ali2woo');
+
+            $GlobalSystemMessageService->addErrorMessage($text . $text2);
 
             //todo: add here a check whether token has expired
 
-            throw new Exception($msg);
+            throw new Exception($text);
         }
 
         return $token['access_token'];
