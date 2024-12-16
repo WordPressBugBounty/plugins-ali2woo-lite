@@ -62,10 +62,10 @@ class GlobalSystemMessageService
         foreach ($messages as $message) {
             if (!empty($message['type']) && !empty($message['message'])) {
                 if ($message['type'] === self::MESSAGE_TYPE_SUCCESS) {
-                    $this->addNewMessage(self::MESSAGE_TYPE_SUCCESS, $message);
+                    $this->addNewMessage(self::MESSAGE_TYPE_SUCCESS, $message['message']);
                 }
                 elseif ($message['type'] === self::MESSAGE_TYPE_ERROR) {
-                    $this->addNewMessage(self::MESSAGE_TYPE_ERROR, $message);
+                    $this->addNewMessage(self::MESSAGE_TYPE_ERROR, $message['message']);
                 }
             }
         }

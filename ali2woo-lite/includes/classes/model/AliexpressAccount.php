@@ -8,7 +8,9 @@
 
 namespace AliNext_Lite;;
 
+use Exception;
 use IopClient;
+use IopRequest;
 
 class AliexpressAccount extends AbstractAccount  {
     static public function getInstance(): ?AliexpressAccount
@@ -49,9 +51,9 @@ class AliexpressAccount extends AbstractAccount  {
 
                 $sourceValues = implode(',', array_keys($nHrefs));
 
-                $request = new \IopRequest('aliexpress.affiliate.link.generate');
+                $request = new IopRequest('aliexpress.affiliate.link.generate');
                 $request->addApiParam('promotion_link_type','2');
-                $request->addApiParam('source_values',$sourceValues);
+                $request->addApiParam('source_values', $sourceValues);
                 $request->addApiParam('tracking_id', $account['trackingid']);
 
                 try {
@@ -71,11 +73,11 @@ class AliexpressAccount extends AbstractAccount  {
                     $responseResult = $response->aliexpress_affiliate_link_generate_response->resp_result;
 
                     if ($responseResult->resp_code == 200){
-                        foreach($responseResult->result->promotion_links->promotion_link as $pl){
-                            if(isset($pl->promotion_link) && isset($nHrefs[$pl->source_value])){
+                        foreach ($responseResult->result->promotion_links->promotion_link as $pl) {
+                            if (isset($pl->promotion_link) && isset($nHrefs[$pl->source_value])) {
                                 $result[] = [
-                                    'url'=>$nHrefs[$pl->source_value],
-                                    'promotionUrl'=>$pl->promotion_link
+                                    'url' => $nHrefs[$pl->source_value],
+                                    'promotionUrl' => $pl->promotion_link
                                 ];
                             }
                         }
@@ -87,7 +89,7 @@ class AliexpressAccount extends AbstractAccount  {
                         }
                     }
                 }
-                catch (\Exception) {
+                catch (Exception) {
                     //such exception is logged by lib itself
                 }
             }

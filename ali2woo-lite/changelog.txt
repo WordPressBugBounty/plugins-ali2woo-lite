@@ -316,11 +316,18 @@
 * Fix minor bugs and code refactor
 
 3.4.8
-* Fix xss vulnerability in api keys settings page
+* Fix xss vulnerability in API keys settings page
 * Add A2W_JOB_MEMORY_LIMIT constant allowing to set max RAM size for background job
 * Improve get access token feature (fix undefined alert)
 * Add compatibility with WooCommerce 9.5.*
 * Fix build categories feature
 * Fix old variation matching bug
 * Fix minor bugs and code refactor
+
+3.4.9
+* Add WordPress 6.7.2 compatibility
+* Add A2W_PRODUCT_SEARCH_LIMIT and A2W_STORE_PRODUCT_SEARCH_LIMIT (max 40 items per page)
+* Fix bug in a global message service module
+* Fix minor bugs and code refactor
+
 

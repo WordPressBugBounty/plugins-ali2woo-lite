@@ -2,7 +2,7 @@
 Contributors: ali2woo
 Tags: aliexpress dropshipping, woocommerce dropshipping, dropship
 Requires at least: 5.9
-Tested up to: 6.7
+Tested up to: 6.7.2
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Stable tag: trunk
@@ -312,6 +312,12 @@ In case you have any questions or need technical assistance, get in touch with u
 8. Feature to quick search for all products of the same seller/store from AliExpress
 
 == Changelog ==
+= 3.4.9 - 2024.12.16 = 
+* Add WordPress 6.7.2 compatibility
+* Add A2W_PRODUCT_SEARCH_LIMIT and A2W_STORE_PRODUCT_SEARCH_LIMIT (max 40 items per page)
+* Fix bug in a global message service module
+* Fix minor bugs and code refactor
+
 = 3.4.8 - 2024.12.03 = 
 * Fix xss vulnerability in api keys settings page
 * Add A2W_JOB_MEMORY_LIMIT constant allowing to set max RAM size for background job
@@ -350,60 +356,6 @@ In case you have any questions or need technical assistance, get in touch with u
 = 3.4.3 - 2024.08.26 =
 * Fix bug pricing rules type is not applied on choosing pricing set;
 * Add compatibility with WooCommerce 9.2.*  
-
-= 3.4.0 - 2024.08.01 =
-* Enhanced pricing rules module: ability to add a category to pricing rule (if category field is empty, then rule will apply to any category);
-* Enhanced pricing rules module: ability to create Pricing rule sets. Set is a group of pricing rules and settings, you can create few sets and switch between then during sale. Don't forget to use Apply pricing to exiting products feature after you switch to another pricing rule set;
-* Fix image editor bug;
-* Refactor legacy code and fix minor bugs; 
-
-= 3.3.9 - 2024.07.08 =
-* Enhanced plugin security by adding WordPress nonce to all Ajax methods
-* Improved plugin security by checking user role in all plugin methods;
-* Enhanced plugin security by escaping HTML input in template views;
-* Improved plugin security by escaping SQL queries;
-* Enhanced order fulfillment module to synchronize product shipping information when refreshing in the fulfillment popup;
-* Fixed minor bugs and improve code style;
-
-= 3.3.5 - 2024.06.13 =
-* Refactor import products from CSV.
-* Enhance order fulfillment module; Now order is placed with country currency.
-* Fix minor bugs.
-
-= 3.3.3 - 2024.05.28 =
-* Fix plugin activation bug;
-
-= 3.3.2 - 2024.05.27 =
-* Update background process library, add namespaces for the library;
-* Fix bug with product last-update date;
-* Add cancel button for all background processed;
-* Add php max_execution_time check to system info page
-* Fix minor bug, old code base refactor;
-
-= 3.3.0 - 2024.05.20 =
-* Improve bulk price application script; Now you can close or refresh page when start the process;
-* Add status bar for all backroud processes in order to make it more clear;
-* Fix bug with product descriprtion images;
-* Fix minor bug, old code base refactor;
-
-= 3.2.8 - 2024.05.03 =
-* fix function saving images in image editor tool
-* fix pricing rules bug in plugin backend
-* fix product description loading
-* update some plugin dependecies
-* fix minor bugs
-
-= 3.2.7 - 2024.04.10 =
-* add image type file check to built-in image editor
-* add feature to load AliExpress category tree for imported product
-* replace || with OR in sql queries as this format is  deprectated
-* fix minor bugs
-
-= 3.2.6 - 2024.04.04 =
-* fix built-in image editor
-* fix chrome extension connection bug
-* fix is-not-applied price bug
-* fix minor bugs
 
 == Upgrade Notice ==
 

@@ -41,10 +41,12 @@ class Aliexpress
             $default_type = get_setting('default_product_type');
             $default_status = get_setting('default_product_status');
 
-            $tmp_urls = [];
-
             foreach ($result['products'] as &$product) {
-                $product['post_id'] = $wpdb->get_var($wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_a2w_external_id' AND meta_value=%s LIMIT 1", $product['id']));
+                $query = $wpdb->prepare(
+                    "SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_a2w_external_id' AND meta_value=%s LIMIT 1",
+                    $product['id']
+                );
+                $product['post_id'] = $wpdb->get_var($query);
                 $product['import_id'] = in_array($product['id'], $products_in_import) ? $product['id'] : 0;
                 $product['product_type'] = $default_type;
                 $product['product_status'] = $default_status;
@@ -52,29 +54,6 @@ class Aliexpress
 
                 if (isset($filter['country']) && $filter['country']) {
                     $product['shipping_to_country'] = $filter['country'];
-                }
-
-                $tmp_urls[] = $product['url'];
-            }
-
-            if ($this->account->custom_account) {
-                try {
-                    $promotionUrls = $this->get_affiliate_urls($tmp_urls);
-                    if (!empty($promotionUrls) && is_array($promotionUrls)) {
-                        foreach ($result["products"] as $i => $product) {
-                            foreach ($promotionUrls as $pu) {
-                                if ($pu['url'] == $product['url']) {
-                                    $result["products"][$i]['affiliate_url'] = $pu['promotionUrl'];
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                } catch (Throwable $e) {
-                    a2wl_print_throwable($e);
-                    foreach ($result['products'] as &$product) {
-                        $product['affiliate_url'] = $product['url'];
-                    }
                 }
             }
         }
@@ -95,10 +74,12 @@ class Aliexpress
             $default_type = get_setting('default_product_type');
             $default_status = get_setting('default_product_status');
 
-            $tmp_urls = [];
-
             foreach ($result['products'] as &$product) {
-                $product['post_id'] = $wpdb->get_var($wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_a2w_external_id' AND meta_value=%s LIMIT 1", $product['id']));
+                $query = $wpdb->prepare(
+                    "SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_a2w_external_id' AND meta_value=%s LIMIT 1",
+                    $product['id']
+                );
+                $product['post_id'] = $wpdb->get_var($query);
                 $product['import_id'] = in_array($product['id'], $products_in_import) ? $product['id'] : 0;
                 $product['product_type'] = $default_type;
                 $product['product_status'] = $default_status;
@@ -106,34 +87,6 @@ class Aliexpress
 
                 if (isset($filter['country']) && $filter['country']) {
                     $product['shipping_to_country'] = $filter['country'];
-                }
-
-                $tmp_urls[] = $product['url'];
-            }
-
-            if ($this->account->custom_account) {
-                try {
-                    $promotionUrls = $this->get_affiliate_urls($tmp_urls);
-                    if (!empty($promotionUrls) && is_array($promotionUrls)) {
-                        foreach ($result["products"] as $i => $product) {
-                            foreach ($promotionUrls as $pu) {
-                                if ($pu['url'] == $product['url']) {
-                                    $result["products"][$i]['affiliate_url'] = $pu['promotionUrl'];
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                } catch (Throwable $e) {
-                    a2wl_print_throwable($e);
-                    foreach ($result['products'] as &$product) {
-                        $product['affiliate_url'] = $product['url'];
-                    }
-                } catch (\Exception $e) {
-                    a2wl_print_throwable($e);
-                    foreach ($result['products'] as &$product) {
-                        $product['affiliate_url'] = $product['url'];
-                    }
                 }
             }
         }

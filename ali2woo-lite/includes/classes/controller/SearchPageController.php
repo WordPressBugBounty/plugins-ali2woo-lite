@@ -66,6 +66,9 @@ class SearchPageController extends AbstractAdminPage
 
         $page = isset($_GET['cur_page']) && intval($_GET['cur_page']) ? intval($_GET['cur_page']) : 1;
         $per_page = 20;
+        if (a2wl_check_defined('A2WL_PRODUCT_SEARCH_LIMIT')) {
+            $per_page = intval(A2WL_PRODUCT_SEARCH_LIMIT);
+        }
 
         if (!empty($_REQUEST['a2wl_search'])) {
             check_admin_referer(self::PAGE_NONCE_ACTION, self::NONCE);
