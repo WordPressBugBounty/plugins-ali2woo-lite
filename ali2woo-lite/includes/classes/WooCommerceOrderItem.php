@@ -110,17 +110,19 @@ class WooCommerceOrderItem
         return false;
     }
 
-    public function get_external_product_id()
+    public function get_external_product_id(): ?string
     {
-        /**
-         * todo: here can be a case when product is already deleted in Woocommerce
-         * in this case the order item can be retrieved.
-         */
-
         $product_id = $this->get_product_id();
         $WC_Product = wc_get_product($product_id);
+        $result = null;
+        if ($WC_Product) {
+            /**
+             * here can be a case when product is already deleted in Woocommerce
+             */
+            $result = $WC_Product->get_meta(Constants::product_external_meta());
+        }
 
-        return $WC_Product->get_meta(Constants::product_external_meta());
+        return $result;
     }
 
     public function get_external_order_id()

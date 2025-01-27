@@ -35,7 +35,6 @@ class TipOfDayRepository
         $tipOfDayData = $this->getAllsAsArray();
 
         foreach ($tipOfDayData as $tipOfDayItemData) {
-
             $TipOfDay = $this->TipOfDayFactory->createFromData($tipOfDayItemData);
             if (!$TipOfDay->isHidden()) {
                 return $TipOfDay;
@@ -47,15 +46,35 @@ class TipOfDayRepository
 
     public function save(TipOfDay $TipOfDay): void
     {
-        $tipOfDayData = $this->getAllsAsArray();
+        $tipOfDayDataList = $this->getAllsAsArray();
+        $newTipOfDayData = $TipOfDay->toArray();
+        $tipOfDayId = $TipOfDay->getId();
 
-        foreach ($tipOfDayData as &$TipOfDayItemData)
-        {
-            if ($TipOfDayItemData[TipOfDay::FIELD_ID] === $TipOfDay->getId()) {
-                $TipOfDayItemData = $TipOfDay->toArray();
-                set_setting(Settings::SETTING_TIP_OF_DAY, array_values($tipOfDayData));
-                settings()->commit();
-                return;
+        $index = array_search(
+            $tipOfDayId,
+            array_column($tipOfDayDataList, TipOfDay::FIELD_ID)
+        );
+
+        if ($index !== false) {
+            $tipOfDayDataList[$index] = $newTipOfDayData;
+        } else {
+            $tipOfDayDataList[] = $newTipOfDayData;
+        }
+
+
+        $this->commitChanges($tipOfDayDataList);
+    }
+
+    public function saveManyOnlyNew(array $data): void
+    {
+        $tipOfDayDataList = $this->getAllsAsArray();
+        $existedTipIdList = array_column($tipOfDayDataList, TipOfDay::FIELD_ID);
+
+        foreach ($data as $dataItem) {
+            $TipOfDay = $this->TipOfDayFactory->createFromData($dataItem);
+
+            if (!in_array($TipOfDay->getId(), $existedTipIdList)) {
+                $this->save($TipOfDay);
             }
         }
     }
@@ -65,6 +84,12 @@ class TipOfDayRepository
         $tipOfDayData = get_setting(Settings::SETTING_TIP_OF_DAY, []);
 
         return $tipOfDayData && is_array($tipOfDayData) ? $tipOfDayData : [];
+    }
+
+    private function commitChanges(array $tipOfDayDataList): void
+    {
+        set_setting(Settings::SETTING_TIP_OF_DAY, array_values($tipOfDayDataList));
+        settings()->commit();
     }
 
 }

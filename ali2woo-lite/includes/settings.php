@@ -12,6 +12,11 @@ class Settings
     public const SETTING_SYSTEM_MESSAGE = 'system_message';
     public const SETTING_TIP_OF_DAY = 'tip_of_day';
     public const SETTING_TIP_OF_DAY_LAST_DATE = 'tip_of_day_last_date';
+    public const SETTING_IMPORT_VIDEO = 'import_video';
+    public const SETTING_SHOW_PRODUCT_VIDEO_TAB = 'show_product_video_tab';
+    public const SETTING_VIDEO_TAB_PRIORITY = 'video_tab_priority';
+    public const SETTING_MAKE_VIDEO_FULL_TAB_WIDTH = 'make_video_full_tab_width';
+    public const SETTING_ADD_VIDEO_TO_DESCRIPTION = 'add_video_to_description';
 
     private $settings;
     private $auto_commit = true;
@@ -73,6 +78,12 @@ class Settings
         'allow_product_duplication' => true,
         'remove_ship_from' => false,
         'default_ship_from' => 'CN',
+
+        self::SETTING_IMPORT_VIDEO => true,
+        self::SETTING_SHOW_PRODUCT_VIDEO_TAB => false,
+        self::SETTING_VIDEO_TAB_PRIORITY => 50,
+        self::SETTING_MAKE_VIDEO_FULL_TAB_WIDTH => false,
+        self::SETTING_ADD_VIDEO_TO_DESCRIPTION => 'none', //none, before, after
 
         'auto_update' => false,
         'on_not_available_product' => 'trash', // nothing, trash, zero
@@ -265,7 +276,7 @@ HTML;
                 TipOfDay::FIELD_NAME => 'Tip of the Day: Boost Your AliExpress Earnings!',
                 TipOfDay::FIELD_HTML_CONTENT => $htmlContent,
                 TipOfDay::FIELD_IS_HIDDEN => false,
-            ]
+            ],
         ];
     }
 }

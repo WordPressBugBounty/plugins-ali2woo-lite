@@ -48,7 +48,7 @@ class OrderFulfillmentController extends AbstractController
 
     public function admin_init(): void
     {
-        if (OrderUtil::custom_orders_table_usage_is_enabled()) {
+        if (function_exists('WC') && OrderUtil::custom_orders_table_usage_is_enabled()) {
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             $currentPage = $_REQUEST['page'] ?? '';
             if ($currentPage === 'wc-orders') {
@@ -68,7 +68,13 @@ class OrderFulfillmentController extends AbstractController
         }
     }
 
-    public function init() {
+    public function init(): void
+    {
+        $woocommerceCountries = [];
+        if (function_exists('WC')) {
+            $woocommerceCountries = WC()->countries->get_shipping_countries();
+        }
+
         self::$shipping_fields = apply_filters(
             'woocommerce_admin_shipping_fields',
             [
@@ -105,7 +111,7 @@ class OrderFulfillmentController extends AbstractController
                     'show'    => false,
                     'type'    => 'select',
                     'class'   => 'js_field-country select short',
-                    'options' => array( '' => esc_html__( 'Select a country / region&hellip;', 'woocommerce' ) ) + WC()->countries->get_shipping_countries(),
+                    'options' => array( '' => esc_html__( 'Select a country / region&hellip;', 'woocommerce' ) ) + $woocommerceCountries,
                 ),
                 'state'      => array(
                     'label' => esc_html__( 'State / County', 'woocommerce' ),

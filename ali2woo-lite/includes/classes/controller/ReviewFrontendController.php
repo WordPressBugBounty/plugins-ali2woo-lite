@@ -10,35 +10,41 @@
 
 namespace AliNext_Lite;;
 
-class ReviewFrontendController {
+class ReviewFrontendController
+{
 
     function __construct() {
-        add_action('wp_enqueue_scripts', array($this, 'assets'));
+        add_action('wp_enqueue_scripts', [$this, 'assets']);
         add_filter('comment_text', [$this, 'comment_text'], 10, 2);
         add_filter('get_avatar_url', array($this, 'get_avatar_url'), 1, 3);
     }
 
-    function assets() {
-        if(function_exists('is_product') && is_product()) {
-            wp_enqueue_style('a2wl-review--frontend-style', A2WL()->plugin_url() . '/assets/css/review/frontend_style.css', array(), A2WL()->version);
+    function assets(): void
+    {
+        if (function_exists('is_product') && is_product()) {
+            wp_enqueue_style(
+                'a2wl-review--frontend-style',
+                A2WL()->plugin_url() . '/assets/css/review/frontend_style.css',
+                [], A2WL()->version
+            );
 
-            wp_enqueue_script('a2wl-review-mousewheel', A2WL()->plugin_url() . '/assets/js/review/fancybox/lib/jquery.mousewheel-3.0.6.pack.js', array(), A2WL()->version, true);
+            wp_enqueue_script(
+                'a2wl-fancybox',
+                A2WL()->plugin_url() . '/assets/js/fancybox/fancybox.umd.js',
+                [], A2WL()->version, true
+            );
 
-            wp_enqueue_style('a2wl-review-frontend-fancybox', A2WL()->plugin_url() . '/assets/css/review/fancybox/jquery.fancybox.css', array(), A2WL()->version);
+            wp_enqueue_style(
+                'a2wl-fancybox-style',
+                A2WL()->plugin_url() . '/assets/css/fancybox/fancybox.css',
+                [], A2WL()->version
+            );
 
-            wp_enqueue_style('a2wl-review-fancybox-buttons', A2WL()->plugin_url() . '/assets/css/review/fancybox/source/helpers/jquery.fancybox-buttons.css?v=1.0.5', array(), A2WL()->version);
-
-            wp_enqueue_style('a2wl-review-fancybox-thumbs', A2WL()->plugin_url() . '/assets/css/review/fancybox/source/helpers/jquery.fancybox-thumbs.css?v=1.0.7', array(), A2WL()->version);
-
-            wp_enqueue_script('a2wl-review-frontend-fancybox-pack', A2WL()->plugin_url() . '/assets/js/review/fancybox/jquery.fancybox.pack.js', array(), A2WL()->version, true);
-
-            wp_enqueue_script('a2wl-review-fancybox-buttons-script', A2WL()->plugin_url() . '/assets/js/review/fancybox/source/helpers/jquery.fancybox-buttons.js?v=1.0.5', array(), A2WL()->version, true);
-
-            wp_enqueue_script('a2wl-review-fancybox-media-script', A2WL()->plugin_url() . '/assets/js/review/fancybox/source/helpers/jquery.fancybox-media.js?v=1.0.6', array(), A2WL()->version, true);
-
-            wp_enqueue_script('a2wl-review-fancybox-thumbs-script', A2WL()->plugin_url() . '/assets/js/review/fancybox/source/helpers/jquery.fancybox-thumbs.js?v=1.0.7', array(), A2WL()->version, true);
-
-            wp_enqueue_script('a2wl-review-frontend-script', A2WL()->plugin_url() . '/assets/js/review/frontend_script.js', array(), A2WL()->version, true);
+            wp_enqueue_script(
+                'a2wl-review-frontend-script',
+                A2WL()->plugin_url() . '/assets/js/review/frontend_script.js',
+                [], A2WL()->version, true
+            );
         }
     }
 
@@ -55,9 +61,9 @@ class ReviewFrontendController {
                 $comment_text .= "<div class='a2wl_review_images'>";
                 foreach ($image_list as $img) {
                     if (is_array($img)) {
-                        $comment_text .= "<a class='fancybox' rel='group{$comment->comment_ID}' href='{$img['image']}'><img width='{$thumb_width}' src='{$img['thumb']}'/></a>";  
+                        $comment_text .= "<a class='fancybox' data-fancybox-group='group{$comment->comment_ID}' href='{$img['image']}'><img width='{$thumb_width}' src='{$img['thumb']}'/></a>";
                     } else{
-                        $comment_text .= "<a class='fancybox' rel='group{$comment->comment_ID}' href='{$img}'><img width='{$thumb_width}' src='{$img}'/></a>";    
+                        $comment_text .= "<a class='fancybox' data-fancybox-group='group{$comment->comment_ID}' href='{$img}'><img width='{$thumb_width}' src='{$img}'/></a>";
                     }
                 }
                 $comment_text .= "</div>";

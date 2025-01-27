@@ -195,9 +195,14 @@ class AliexpressDefaultConnector extends AbstractConnector
             $result = $this->handleRequestResult($request);
 
             if ($result['state'] !== 'error') {
-                $result = ResultBuilder::buildOk([
-                    'orders' => $result['orders'],
-                ]);
+                if (isset($apiResult['orders']['list'])) {
+                    $result = ResultBuilder::buildOk([
+                        'orders' => $result['orders'],
+                    ]);
+                } else {
+                    $errorText = _x('Bad API format. Contact support.','api error', 'ali2woo');
+                    $result = ResultBuilder::buildError($errorText);
+                }
             }
 
         } catch (Exception $Exception) {
@@ -395,7 +400,7 @@ class AliexpressDefaultConnector extends AbstractConnector
 
         if (intval($request['response']['code']) !== 200) {
             return ResultBuilder::buildError(
-                $request['response']['code'] . ' - ' . $request['response']['message']
+                $request['response']['code'] . ' - ' . ($request['response']['message'] ?? '')
             );
         }
 

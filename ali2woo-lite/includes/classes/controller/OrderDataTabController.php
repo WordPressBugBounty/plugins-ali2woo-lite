@@ -35,7 +35,7 @@ class OrderDataTabController extends AbstractController
 
     public function assets(): void
     {
-        if (OrderUtil::custom_orders_table_usage_is_enabled()) {
+        if (function_exists('WC') && OrderUtil::custom_orders_table_usage_is_enabled()) {
             $currentPage = $_REQUEST['page'] ?? false;
             $orderId = $_REQUEST['id'] ?? false;
             if ($currentPage === 'wc-orders' && $orderId !== false) {

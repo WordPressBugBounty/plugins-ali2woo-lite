@@ -330,4 +330,11 @@
 * Fix bug in a global message service module
 * Fix minor bugs and code refactor
 
+3.5.0
+* Update review image gallery script (flexbox) to 5 version
+* Add compatibility with WooCommerce 9.6.*
+* Add WooCommerce require tag
+* Add video settings to manage imported product video
+* Fix duplicate image bug in product description
+* Fix minor bugs and code refactor
 

@@ -41,7 +41,7 @@ class WooCommerceOrderListController extends AbstractController
 
     public function admin_init(): void
     {
-        if (OrderUtil::custom_orders_table_usage_is_enabled()) {
+        if (function_exists('WC') && OrderUtil::custom_orders_table_usage_is_enabled()) {
             add_action('woocommerce_order_list_table_extra_tablenav', [$this, 'woocommerce_order_list_table_extra_tablenav']);
             add_action('manage_woocommerce_page_wc-orders_custom_column', [$this, 'manage_columns_data'], 10, 2);
             add_filter('woocommerce_shop_order_list_table_columns', [$this, 'manage_columns_headers']);

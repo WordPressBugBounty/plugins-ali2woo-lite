@@ -13,6 +13,7 @@ namespace AliNext_Lite;;
 class SettingPageController extends AbstractAdminPage
 {
     public const FIELD_FIELD_NO_AVATAR_PHOTO = 'a2wl_review_noavatar_photo';
+    public const SETTING_VIDEO = 'video';
 
     public function __construct()
     {
@@ -69,18 +70,19 @@ class SettingPageController extends AbstractAdminPage
         ]);
     }
 
-    public function getModules()
+    public function getModules(): array
     {
-        return apply_filters('a2wl_setting_modules', array(
-            array('id' => 'common', 'name' => esc_html__('Common settings', 'ali2woo')),
-            array('id' => 'account', 'name' => esc_html__('Account settings', 'ali2woo')),
-            array('id' => 'price_formula', 'name' => esc_html__('Pricing Rules', 'ali2woo')),
-            array('id' => 'reviews', 'name' => esc_html__('Reviews settings', 'ali2woo')),
-            array('id' => 'shipping', 'name' => esc_html__('Shipping settings', 'ali2woo')),
-            array('id' => 'phrase_filter', 'name' => esc_html__('Phrase Filtering', 'ali2woo')),
-            array('id' => 'chrome_api', 'name' => esc_html__('API Keys', 'ali2woo')),
-            array('id' => 'system_info', 'name' => esc_html__('System Info', 'ali2woo')),
-        ));
+        return apply_filters('a2wl_setting_modules', [
+            ['id' => 'common', 'name' => esc_html__('Common settings', 'ali2woo')],
+            ['id' => self::SETTING_VIDEO, 'name' => esc_html__('Video settings', 'ali2woo')],
+            ['id' => 'account', 'name' => esc_html__('Account settings', 'ali2woo')],
+            ['id' => 'price_formula', 'name' => esc_html__('Pricing Rules', 'ali2woo')],
+            ['id' => 'reviews', 'name' => esc_html__('Reviews settings', 'ali2woo')],
+            ['id' => 'shipping', 'name' => esc_html__('Shipping settings', 'ali2woo')],
+            ['id' => 'phrase_filter', 'name' => esc_html__('Phrase Filtering', 'ali2woo')],
+            ['id' => 'chrome_api', 'name' => esc_html__('API Keys', 'ali2woo')],
+            ['id' => 'system_info', 'name' => esc_html__('System Info', 'ali2woo')],
+        ]);
     }
 
     public function setting_view($current_module): string
@@ -89,6 +91,9 @@ class SettingPageController extends AbstractAdminPage
         switch ($current_module) {
             case 'common':
                 $view = $this->common_handle();
+                break;
+            case self::SETTING_VIDEO:
+                $view = $this->videoSettingsHandle();
                 break;
             case 'account':
                 $view = $this->account_handle();
@@ -209,6 +214,55 @@ class SettingPageController extends AbstractAdminPage
         $this->model_put("languages", $language_model->get_languages());
 
         return "settings/common.php";
+    }
+
+    private function videoSettingsHandle(): string
+    {
+        if (!empty($_POST)) {
+            check_admin_referer(self::PAGE_NONCE_ACTION, self::NONCE);
+        }
+
+        if (isset($_POST['setting_form'])) {
+            settings()->auto_commit(false);
+            set_setting(
+                Settings::SETTING_IMPORT_VIDEO,
+                isset($_POST['a2wl_' . Settings::SETTING_IMPORT_VIDEO])
+            );
+            set_setting(
+                Settings::SETTING_SHOW_PRODUCT_VIDEO_TAB,
+                isset($_POST['a2wl_' . Settings::SETTING_SHOW_PRODUCT_VIDEO_TAB])
+            );
+
+            if (isset($_POST['a2wl_' . Settings::SETTING_VIDEO_TAB_PRIORITY])) {
+                $videoTabPriority = intval($_POST['a2wl_' . Settings::SETTING_VIDEO_TAB_PRIORITY]);
+                set_setting(
+                    Settings::SETTING_VIDEO_TAB_PRIORITY,
+                    $videoTabPriority
+                );
+            }
+
+            set_setting(
+                Settings::SETTING_MAKE_VIDEO_FULL_TAB_WIDTH,
+                isset($_POST['a2wl_' . Settings::SETTING_MAKE_VIDEO_FULL_TAB_WIDTH])
+            );
+
+            if (isset($_POST['a2wl_' . Settings::SETTING_ADD_VIDEO_TO_DESCRIPTION])) {
+                $addVideoToDescription = $_POST['a2wl_' . Settings::SETTING_ADD_VIDEO_TO_DESCRIPTION];
+                if (in_array($addVideoToDescription, ['none', 'after', 'before'], true)) {
+                    set_setting(
+                        Settings::SETTING_ADD_VIDEO_TO_DESCRIPTION,
+                        $addVideoToDescription
+                    );
+                }
+            }
+
+            settings()->commit();
+            settings()->auto_commit(true);
+        }
+
+        $this->model_put("addVideoToDescriptionTypes", ['none', 'before', 'after']);
+
+        return "settings/video.php";
     }
 
     /**

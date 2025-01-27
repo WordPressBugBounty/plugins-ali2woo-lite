@@ -42,6 +42,11 @@ class OrderFulfillmentService
             $aliexpressOrders = $apiResult['orders']['list'];
 
             foreach ($aliexpressOrders as $aliexpressOrder) {
+                if (!isset($aliexpressOrder['child_order_list']['ae_child_order_info'])) {
+                    $errorText = _x('Bad API format in OrderFulfillmentService. Contact support.','api error', 'ali2woo');
+                    error_log($errorText);
+                    continue;
+                }
                 foreach ($aliexpressOrder['child_order_list']['ae_child_order_info'] as $ae_product_info) {
                     foreach ($OrderItems as $order_item) {
                         $a2wl_order_item = new WooCommerceOrderItem($order_item);

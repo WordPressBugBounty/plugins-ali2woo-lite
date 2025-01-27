@@ -163,10 +163,18 @@ abstract class AbstractAdminPage extends AbstractController
                 }    
             }
 
-            $lang_data = array();
-            wp_localize_script('a2wl-admin-script', 'a2wl_common_data', array('baseurl' => A2WL()->plugin_url().'/','lang' => apply_filters('a2wl_configure_lang_data', $lang_data), 'lang_cookies'=>AliexpressLocalizator::getInstance()->getLocaleCookies(false)));
+            $lang_data = [];
+            wp_localize_script(
+                'a2wl-admin-script',
+                'a2wl_common_data',
+                [
+                    'baseurl' => A2WL()->plugin_url().'/',
+                    'lang' => apply_filters('a2wl_configure_lang_data', $lang_data),
+                    'lang_cookies' => AliexpressLocalizator::getInstance()->getLocaleCookies(false)
+                ]
+            );
 
-            foreach($this->script_data_assets as $d){
+            foreach ($this->script_data_assets as $d) {
                 wp_localize_script($d['handle'], $d['name'], $d['data']);
             }
         }

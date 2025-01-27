@@ -7,7 +7,7 @@ License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Stable tag: trunk
 Requires PHP: 8.0
-WC tested up to: 9.5
+WC tested up to: 9.6
 WC requires at least: 5.0
 
 This AliExpress Dropshipping Plugin for WooCommerce: Import products with reviews from AliExpress and fulfill orders automatically!
@@ -166,6 +166,14 @@ Go to AliNext Settings > Phrase Filtering.
 
 See a detailed guide on this topic [HERE.](https://help.ali2woo.com/codex/phrase-filtering/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite)
 
+&#9658; **Import product video from AliExpress**:
+
+Import product videos from AliExpress and display them either in the product description or in a separate section on the product page. You can also use a video shortcode to place your video anywhere on the site. Additionally, you can manage whether the video is displayed for a specific product only or globally across all products.
+
+Go to AliNext Settings > Video settings.
+
+Check out a detailed guide about [video settings.](https://help.ali2woo.com/codex/how-to-import-product-video/)
+
 &#9658; **Import reviews from AliExpress**: 
 
 Import product reviews quickly from AliExpress, skip unwanted reviews, import translated version of the reviews or reviews related to a particular country.
@@ -207,60 +215,47 @@ Please note: In the lite plugin version you have a limit of 10 orders operations
 
 &#9658; **Find best products using built-in search tool**: 
 
-**[pro version feature]** Get more search requests to find the best products for your store. In contrast to AliNext Lite allowing you to make only 100 operations per day.
+**[pro feature]** Get more search requests to find the best products for your store. In contrast to AliNext Lite allowing you to make only 100 operations per day.
 
 &#9658; **Find all products of the specific store or seller on AliExpress**: 
 
-**[pro version feature]** Get more search requests to find the best products of specific AliExpress store or seller. In contrast to AliNext Lite allowing you to make only 100 operations per day.
+**[pro feature]** Get more search requests to find the best products of specific AliExpress store or seller. In contrast to AliNext Lite allowing you to make only 100 operations per day.
 
 &#9658; **Load whole category tree from AliExpress**: 
 
-**[pro version feature]** Get more category requests to load whole category tree from AliExpress. In contrast to AliNext Lite allowing you to make only 5 such requests per day.
+**[pro feature]** Get more category requests to load whole category tree from AliExpress. In contrast to AliNext Lite allowing you to make only 5 such requests per day.
 
 &#9658; **Fast Order fulfillment using API**: 
 
-**[pro version feature]** Place more orders on AliExpress through the AliExpress API. In contrast to AliNext Lite allowing you to place ONLY 1 orders using the API.
+**[pro feature]** Place more orders on AliExpress through the AliExpress API. In contrast to AliNext Lite allowing you to place ONLY 1 orders using the API.
 
 &#9658; **Sync Orders using API**: 
 
-**[pro version feature]** Sync more orders with AliExpress through the AliExpress API. In contrast to AliNext Lite allowing you to sync ONLY 1 orders using the API.
+**[pro feature]** Sync more orders with AliExpress through the AliExpress API. In contrast to AliNext Lite allowing you to sync ONLY 1 orders using the API.
 
 &#9658; **Set options related to the product synchronization**:
 
-**[pro version feature]** This set of features allows synchronizing an imported product automatically with AliExpress. Also, you can set a specific action that applies to the product depending on change occurring on AliExpress.  Go to AliNext Settings > Common Settings > Schedule Settings.
-
-- **AliExpress Sync**: Enable product sync with AliExpress in your store. It can sync product price, quantity and variants.
-
-- **When product is no longer available**: Choose an action when some imported product is no longer available on AliExpress.
-
-- **When variant is no longer available**: Choose an action when some product variant becomes not available on AliExpress.
-
-- **When a new variant has appeared**: Choose an action when a new product variant appears on AliExpress.
-
-- **When the price changes**: Choose an action when the price of some imported product changes on AliExpress.
-
-- **When inventory changes**: Choose an action when the inventory level of some imported product changes on AliExpress.
-
+**[pro feature]** This set of features allows synchronizing an imported product automatically with AliExpress. Also, you can set a specific action that applies to the product depending on change occurring on AliExpress.  Go to AliNext Settings > Common Settings > Schedule Settings.
 
 &#9658; **Get email alerts on product changes**:
 
-**[pro version feature]** Get email notification if product price, stock or availability change, also be alerted if new product variations appear on AliExpress.
+**[pro feature]** Get email notification if product price, stock or availability change, also be alerted if new product variations appear on AliExpress.
 
 You can set email address for notifications and override the email template if needed. The plugin sends notification once per half-hour.
 
 &#9658; **Sync reviews from AliExpress**: 
 
-**[pro version feature]** Check for an appearance of new reviews in all imported products. Unlock "Import more reviews automatically" option in the review settings.
+**[pro feature]** Check for an appearance of new reviews in all imported products. Unlock "Import more reviews automatically" option in the review settings.
 
 &#9658; **Import shipping methods from AliExpress and/or show shipping selection on your website frontend**: 
 
-**[pro version feature]** Easily import delivery methods from AliExpress, set pricing rules to add your own margin over the original shipping cost, show shipping methods selection on the product page, cart page, checkout page.
+**[pro feature]** Easily import delivery methods from AliExpress, set pricing rules to add your own margin over the original shipping cost, show shipping methods selection on the product page, cart page, checkout page.
 
 Go to AliNext Settings > Shipping settings.
 
 See a detailed guide on this topic [HERE.](https://help.ali2woo.com/codex/shipping-settings/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite)
 
-**[pro version feature]** Select AliExpress Region, choose the specific AliExpress region to ensure accurate pricing, stock, and shipping details. You have to contact our support center in order to set the region for your premium plugin license.
+**[pro feature]** Select AliExpress Region, choose the specific AliExpress region to ensure accurate pricing, stock, and shipping details. You have to contact our support center in order to set the region for your premium plugin license.
 
 [GET PRO VERSION](https://ali2woo.com/dropshipping-plugin/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite) or [https://ali2woo.com/dropshipping-plugin/](https://ali2woo.com/dropshipping-plugin/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite)
 
@@ -310,14 +305,31 @@ In case you have any questions or need technical assistance, get in touch with u
 5. Set up your pricing markups.
 6. Remove or replace unwanted text from the content imported from AliExpress
 8. Feature to quick search for all products of the same seller/store from AliExpress
+9. Import product video from AliExpress
 
 == Changelog ==
+= 3.5.0 - 2025.01.27 = 
+* Update review image gallery script (flexbox) to 5 version
+* Add compatibility with WooCommerce 9.6.*
+* Add WooCommerce require tag
+* Add video settings to manage imported product video
+* Fix duplicate image bug in product description
+* Fix minor bugs and code refactor
+
 = 3.4.9 - 2024.12.16 = 
 * Add WordPress 6.7.2 compatibility
 * Add A2W_PRODUCT_SEARCH_LIMIT and A2W_STORE_PRODUCT_SEARCH_LIMIT (max 40 items per page)
 * Fix bug in a global message service module
 * Fix minor bugs and code refactor
 
+= 3.4.8 - 2024.12.03 = 
+* Fix xss vulnerability in api keys settings page
+* Add A2W_JOB_MEMORY_LIMIT constant allowing to set max RAM size for background job
+* Improve get access token feature (fix undefined alert)
+* Add compatibility with WooCommerce 9.5.*
+* Fix build categories feature
+* Fix old variation matching bug
+* Fix minor bugs and code refactor
 = 3.4.8 - 2024.12.03 = 
 * Fix xss vulnerability in api keys settings page
 * Add A2W_JOB_MEMORY_LIMIT constant allowing to set max RAM size for background job
@@ -357,7 +369,62 @@ In case you have any questions or need technical assistance, get in touch with u
 * Fix bug pricing rules type is not applied on choosing pricing set;
 * Add compatibility with WooCommerce 9.2.*  
 
+= 3.4.0 - 2024.08.01 =
+* Enhanced pricing rules module: ability to add a category to pricing rule (if category field is empty, then rule will apply to any category);
+* Enhanced pricing rules module: ability to create Pricing rule sets. Set is a group of pricing rules and settings, you can create few sets and switch between then during sale. Don't forget to use Apply pricing to exiting products feature after you switch to another pricing rule set;
+* Fix image editor bug;
+* Refactor legacy code and fix minor bugs; 
+
+= 3.3.9 - 2024.07.08 =
+* Enhanced plugin security by adding WordPress nonce to all Ajax methods
+* Improved plugin security by checking user role in all plugin methods;
+* Enhanced plugin security by escaping HTML input in template views;
+* Improved plugin security by escaping SQL queries;
+* Enhanced order fulfillment module to synchronize product shipping information when refreshing in the fulfillment popup;
+* Fixed minor bugs and improve code style;
+
+= 3.3.5 - 2024.06.13 =
+* Refactor import products from CSV.
+* Enhance order fulfillment module; Now order is placed with country currency.
+* Fix minor bugs.
+
+= 3.3.3 - 2024.05.28 =
+* Fix plugin activation bug;
+
+= 3.3.2 - 2024.05.27 =
+* Update background process library, add namespaces for the library;
+* Fix bug with product last-update date;
+* Add cancel button for all background processed;
+* Add php max_execution_time check to system info page
+* Fix minor bug, old code base refactor;
+
+= 3.3.0 - 2024.05.20 =
+* Improve bulk price application script; Now you can close or refresh page when start the process;
+* Add status bar for all backroud processes in order to make it more clear;
+* Fix bug with product descriprtion images;
+* Fix minor bug, old code base refactor;
+
+= 3.2.8 - 2024.05.03 =
+* fix function saving images in image editor tool
+* fix pricing rules bug in plugin backend
+* fix product description loading
+* update some plugin dependecies
+* fix minor bugs
+
+= 3.2.7 - 2024.04.10 =
+* add image type file check to built-in image editor
+* add feature to load AliExpress category tree for imported product
+* replace || with OR in sql queries as this format is  deprectated
+* fix minor bugs
+
+= 3.2.6 - 2024.04.04 =
+* fix built-in image editor
+* fix chrome extension connection bug
+* fix is-not-applied price bug
+* fix minor bugs
+
 == Upgrade Notice ==
+
 
 
  

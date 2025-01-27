@@ -525,7 +525,14 @@ class Aliexpress
             @$dom->loadHTML($html);
             $dom->formatOutput = true;
 
-            $tags = apply_filters('a2wl_clean_description_tags', array('script', 'head', 'meta', 'style', 'map', 'noscript', 'object', 'iframe'));
+            $ignoreDescriptionTags = [
+                'script', 'head', 'meta', 'style', 'map', 'noscript', 'object', 'iframe'
+            ];
+
+            //ignore images because we get them from product['description_images'] property
+            $ignoreDescriptionTags[] = 'img';
+
+            $tags = apply_filters('a2wl_clean_description_tags', $ignoreDescriptionTags);
 
             foreach ($tags as $tag) {
                 $elements = $dom->getElementsByTagName($tag);
@@ -599,7 +606,7 @@ class Aliexpress
 
     public function placeOrder(ExternalOrder $ExternalOrder, string $currencyCode): array
     {
-        return  $this->connector->placeOrder($ExternalOrder, $currencyCode);
+        return $this->connector->placeOrder($ExternalOrder, $currencyCode);
     }
 
     public function load_order(string $externalOrderId): array

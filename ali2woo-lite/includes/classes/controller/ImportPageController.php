@@ -12,18 +12,36 @@ namespace AliNext_Lite;;
 
 class ImportPageController extends AbstractAdminPage
 {
-    public function __construct()
-    {
-        $products_cnt = 0;
-        if (is_admin()) {
-            $product_import_model = new ProductImport();
-            $products_cnt = $product_import_model->get_products_count();
-        }
-
-        parent::__construct(esc_html__('Import List', 'ali2woo'), esc_html__('Import List', 'ali2woo') . ' ' . ($products_cnt ? ' <span class="update-plugins count-' . $products_cnt . '"><span class="plugin-count">' . $products_cnt . '</span></span>' : ''), 'import', 'a2wl_import', 20);
+    public function __construct() {
+        $menuTitle = esc_html__('Import List', 'ali2woo') . ' ' . $this->getImportListItemCountHtml();
+        parent::__construct(
+            esc_html__('Import List', 'ali2woo'),
+            $menuTitle,
+            'import',
+            'a2wl_import',
+            20
+        );
 
         add_filter('tiny_mce_before_init', array($this, 'tiny_mce_before_init'), 30);
         add_filter('a2wl_configure_lang_data', array($this, 'configure_lang_data'), 30);
+        add_action('admin_enqueue_scripts', [$this, 'assets']);
+    }
+
+    public function assets(): void
+    {
+        if ($this->is_current_page()) {
+            wp_enqueue_script(
+                'a2wl-fancybox',
+                A2WL()->plugin_url() . '/assets/js/fancybox/fancybox.umd.js',
+                [], A2WL()->version, true
+            );
+
+            wp_enqueue_style(
+                'a2wl-fancybox-style',
+                A2WL()->plugin_url() . '/assets/css/fancybox/fancybox.css',
+                [], A2WL()->version
+            );
+        }
     }
 
     public function configure_lang_data($data){
@@ -238,5 +256,21 @@ class ImportPageController extends AbstractAdminPage
         return wp_nonce_url($url, self::PAGE_NONCE_ACTION, self::NONCE);
     }
 
-}
+    private function getImportListItemCountHtml(): string
+    {
+        $products_cnt = 0;
+        if (is_admin()) {
+            $product_import_model = new ProductImport();
+            $products_cnt = $product_import_model->get_products_count();
+        }
 
+        $itemCountText = '';
+        if ($products_cnt) {
+            $itemCountText = ' <span class="update-plugins count-' .
+                $products_cnt . '"><span class="plugin-count">' . $products_cnt . '</span></span>';
+        }
+
+        return $itemCountText;
+    }
+
+}

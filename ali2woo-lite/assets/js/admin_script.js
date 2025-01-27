@@ -417,6 +417,18 @@ var Utils = new Utils();
         });
         /* ######################################################################################## */
 
+        $('.a2wl-content .a2wl-product-import-list .product .video-play').on('click', function() {
+            console.log($(this).data('video-src'));
+            new Fancybox(
+                [
+                    {
+                        src: $(this).data('video-src'),
+                        type: "iframe",
+                    },
+                ]
+            );
+        });
+
 
 
         $(".country_list").select2();
@@ -2655,6 +2667,25 @@ var Utils = new Utils();
             //clear file input
             $file.val(null);
         });
+
+        $('.a2wl-video-shortcode').on('click', function () {
+            $(this).select();
+            document.execCommand('copy');
+            alert(a2wl_product_info_data.lang.video_shortcode_copied);
+        });
+
+        $('.ф2ц-show-product-video-tab').on('change', function () {
+            let $video_full_tab = $('.vi-wad-product-video-full-tab').closest('tr');
+            let $video_tab_priority = $('.vi-wad-product-video-tab-priority').closest('tr');
+            if ($(this).prop('checked')) {
+                $video_full_tab.fadeIn(200);
+                $video_tab_priority.fadeIn(200);
+            } else {
+                $video_full_tab.fadeOut(200);
+                $video_tab_priority.fadeOut(200);
+            }
+        }).trigger('change');
+
     });
 
 })(jQuery, window, document);

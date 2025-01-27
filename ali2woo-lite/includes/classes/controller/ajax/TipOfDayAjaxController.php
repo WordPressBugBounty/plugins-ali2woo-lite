@@ -56,7 +56,7 @@ class TipOfDayAjaxController extends AbstractController
 
             if (!$TipOfDay) {
                 throw new RepositoryException(
-                    _x( "Tip of the day with give ID does`t exist", 'error text', 'ali2woo')
+                    _x( "Tip of the day with given ID does`t exist", 'error text', 'ali2woo')
                 );
             }
             $this->TipOfDayService->hideTip($TipOfDay);

@@ -196,7 +196,12 @@ use AliNext_Lite\Utils;
                                         <div class="grid__col grid__col_image">
                                             <div class="product-img">
                                                 <img class="border-img lazy" src="<?php echo A2WL()->plugin_url() . '/assets/img/blank_image.png'; ?>" data-id="<?php echo Utils::buildImageIdFromPath($product['thumb']);?>" data-original="<?php echo $product['tmp_edit_images'][Utils::buildImageIdFromPath($product['thumb'])]['attachment_url'] ?? a2wl_image_url($product['thumb']); ?>" alt="<?php echo $product['title']; ?>">
-                                                <?php if (isset($product['is_affiliate']) && $product['is_affiliate']): ?><div class="affiliate-icon"></div><?php endif; ?>
+                                                <?php if (isset($product['is_affiliate']) && $product['is_affiliate']): ?>
+                                                    <div class="affiliate-icon"></div>
+                                                <?php endif; ?>
+                                                <?php if (!empty($product['video'])): ?>
+                                                <div class="video-play" data-video-src="<?php echo Utils::getProductVideoUrl($product); ?>"></div>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
                                         <div class="grid__col">
@@ -300,7 +305,15 @@ use AliNext_Lite\Utils;
                                 </div>
                                 <div class="tabs-content" rel="description">
                                     <?php
-                                    wp_editor($product['description'], $product['import_id'], array('editor_class' => 'a2wl_description_editor', 'media_buttons' => false, 'editor_height' => 360/* , 'default_editor'=>'html' */));
+                                    wp_editor(
+                                            $product['description'],
+                                            $product['import_id'],
+                                            [
+                                                'editor_class' => 'a2wl_description_editor',
+                                                'media_buttons' => false,
+                                                'editor_height' => 360/* , 'default_editor'=>'html' */
+                                            ]
+                                    );
                                     ?>
                                 </div>
                                 <div class="tabs-content" rel="specs">

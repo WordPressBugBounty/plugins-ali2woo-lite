@@ -71,9 +71,9 @@ class Utils
      * Get size information for all currently-registered image sizes.
      * List available image sizes with width and height following
      *
-     * @global $_wp_additional_image_sizes
-     * @uses   get_intermediate_image_sizes()
      * @return array $sizes Data for all currently-registered image sizes.
+     * @uses   get_intermediate_image_sizes()
+     * @global $_wp_additional_image_sizes
      */
     public function get_image_sizes()
     {
@@ -85,7 +85,7 @@ class Utils
             if (in_array($_size, array('thumbnail', 'medium', 'medium_large', 'large'))) {
                 $sizes[$_size]['width'] = get_option("{$_size}_size_w");
                 $sizes[$_size]['height'] = get_option("{$_size}_size_h");
-                $sizes[$_size]['crop'] = (bool) get_option("{$_size}_crop");
+                $sizes[$_size]['crop'] = (bool)get_option("{$_size}_crop");
             } elseif (isset($_wp_additional_image_sizes[$_size])) {
                 $sizes[$_size] = array(
                     'width' => $_wp_additional_image_sizes[$_size]['width'],
@@ -101,9 +101,9 @@ class Utils
     /**
      * Get size information for a specific image size.
      *
-     * @uses   get_image_sizes()
-     * @param  string $size The image size for which to retrieve data.
+     * @param string $size The image size for which to retrieve data.
      * @return bool|array $size Size data about an image size or false if the size doesn't exist.
+     * @uses   get_image_sizes()
      */
     public function get_image_size($size)
     {
@@ -119,9 +119,9 @@ class Utils
     /**
      * Get the width of a specific image size.
      *
-     * @uses   get_image_size()
-     * @param  string $size The image size for which to retrieve data.
+     * @param string $size The image size for which to retrieve data.
      * @return bool|string $size Width of an image size or false if the size doesn't exist.
+     * @uses   get_image_size()
      */
     public function get_image_width($size)
     {
@@ -139,9 +139,9 @@ class Utils
     /**
      * Get the height of a specific image size.
      *
-     * @uses   get_image_size()
-     * @param  string $size The image size for which to retrieve data.
+     * @param string $size The image size for which to retrieve data.
      * @return bool|string $size Height of an image size or false if the size doesn't exist.
+     * @uses   get_image_size()
      */
     public function get_image_height($size)
     {
@@ -215,9 +215,9 @@ class Utils
         /**
          * Fires before an attachment is deleted, at the start of wp_delete_attachment().
          *
+         * @param int $post_id Attachment ID.
          * @since 2.0.0
          *
-         * @param int $post_id Attachment ID.
          */
         do_action('delete_attachment', $post_id);
 
@@ -296,7 +296,8 @@ class Utils
 
     public static function get_all_images_from_product(
         $product, $skip = false, $product_images = true, $description_images = true
-    ) {
+    )
+    {
         $tmp_all_images = [];
 
         if ($product_images) {
@@ -402,6 +403,40 @@ class Utils
         }
 
         return $tmp_all_images;
+    }
+
+    public static function getProductVideoUrl(array $product): string
+    {
+        if (empty($product['video'])) {
+            return '';
+        }
+
+        if (!empty($product['video']['web_url'])) {
+            return $product['video']['web_url'];
+        }
+
+        if (!empty($product['video']['android_url'])) {
+            return $product['video']['android_url'];
+        }
+
+        if (!empty($product['video']['iphone_url'])) {
+            return $product['video']['iphone_url'];
+        }
+
+        return '';
+    }
+
+    public static function getProductVideoPoster(array $product): ?string
+    {
+        if (empty($product['video'])) {
+            return null;
+        }
+
+        if (!empty($product['video']['video_thumb'])) {
+            return $product['video']['video_thumb'];
+        }
+
+        return null;
     }
 
     public static function get_date_diff($first_timestamp, $params = array())

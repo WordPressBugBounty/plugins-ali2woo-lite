@@ -11,6 +11,8 @@ use AliNext_Lite\FulfillmentClient;
 use AliNext_Lite\GlobalSystemMessageService;
 use AliNext_Lite\Helper;
 use AliNext_Lite\ImportAjaxController;
+use AliNext_Lite\ImportedProductService;
+use AliNext_Lite\ImportedProductServiceFactory;
 use AliNext_Lite\ImportListService;
 use AliNext_Lite\ImportProcess;
 use AliNext_Lite\OrderFulfillmentService;
@@ -26,15 +28,20 @@ use AliNext_Lite\PriceFormulaSetService;
 use AliNext_Lite\PriceFormulaSettingsRepository;
 use AliNext_Lite\ProductChange;
 use AliNext_Lite\ProductImport;
+use AliNext_Lite\ProductInfoWidgetController;
+use AliNext_Lite\ProductVideoController;
 
 use AliNext_Lite\PromoService;
 
 use AliNext_Lite\Review;
 use AliNext_Lite\SplitProductService;
+use AliNext_Lite\Synchronize;
+use AliNext_Lite\SynchronizePluginDataController;
 use AliNext_Lite\TipOfDayAjaxController;
 use AliNext_Lite\TipOfDayFactory;
 use AliNext_Lite\TipOfDayRepository;
 use AliNext_Lite\TipOfDayService;
+use AliNext_Lite\VideoShortcodeService;
 use AliNext_Lite\Woocommerce;
 use function DI\create;
 use function DI\get;
@@ -48,6 +55,7 @@ return [
     'AliNext_Lite\FulfillmentClient' => create(FulfillmentClient::class),
 
     /* factories */
+    'AliNext_Lite\ImportedProductServiceFactory' => create(ImportedProductServiceFactory::class),
     'AliNext_Lite\BackgroundProcessFactory' => create(BackgroundProcessFactory::class),
     'AliNext_Lite\ExternalOrderFactory' => create(ExternalOrderFactory::class),
     'AliNext_Lite\PriceFormulaFactory' => create(PriceFormulaFactory::class),
@@ -78,13 +86,17 @@ return [
     'AliNext_Lite\ProductImport' => create(ProductImport::class),
     'AliNext_Lite\Woocommerce' => create(Woocommerce::class)
         ->constructor(
-            get(Attachment::class), get(Helper::class), get(ProductChange::class)
+            get(Attachment::class),
+            get(Helper::class),
+            get(ProductChange::class),
+            get(VideoShortcodeService::class),
         ),
     'AliNext_Lite\Review' => create(Review::class),
     'AliNext_Lite\Override' => create(Override::class),
     'AliNext_Lite\Aliexpress' => create(Aliexpress::class),
 
     /* services */
+    'AliNext_Lite\ImportedProductService' => create(ImportedProductService::class),
     'AliNext_Lite\BackgroundProcessService' => create(BackgroundProcessService::class)
         ->constructor(get(ApplyPricingRulesProcess::class), get(ImportProcess::class)),
     'AliNext_Lite\PermanentAlertService' => create(PermanentAlertService::class)
@@ -109,6 +121,7 @@ return [
         ->constructor(
             get(ProductImport::class),
         ),
+    'AliNext_Lite\VideoShortcodeService' => create(VideoShortcodeService::class),
     'AliNext_Lite\GlobalSystemMessageService' => create(GlobalSystemMessageService::class),
     'AliNext_Lite\TipOfDayService' => create(TipOfDayService::class)
         ->constructor(
@@ -135,5 +148,20 @@ return [
         ->constructor(
             get(TipOfDayService::class),
             get(TipOfDayRepository::class),
-        )
+        ),
+    'AliNext_Lite\SynchronizePluginDataController' => create(SynchronizePluginDataController::class)
+        ->constructor(
+            get(TipOfDayRepository::class),
+            get(Synchronize::class),
+            get(GlobalSystemMessageService::class),
+        ),
+    'AliNext_Lite\ProductInfoWidgetController' => create(ProductInfoWidgetController::class)
+        ->constructor(
+            get(VideoShortcodeService::class),
+            get(ImportedProductServiceFactory::class)
+        ),
+    'AliNext_Lite\ProductVideoController' => create(ProductVideoController::class)
+        ->constructor(
+            get(ImportedProductServiceFactory::class),
+        ),
 ];

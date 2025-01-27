@@ -21,13 +21,18 @@ class Woocommerce
     private Attachment $attachment_model;
     private Helper $helper;
     private ProductChange $product_change_model;
+    private VideoShortcodeService $VideoShortcodeService;
 
     public function __construct(
-        Attachment $AttachmentModel, Helper $HelperModel, ProductChange $ProductChangeModel
+        Attachment $AttachmentModel,
+        Helper $HelperModel,
+        ProductChange $ProductChangeModel,
+        VideoShortcodeService $VideoShortcodeService
     ) {
         $this->attachment_model = $AttachmentModel;
         $this->helper = $HelperModel;
         $this->product_change_model = $ProductChangeModel;
+        $this->VideoShortcodeService = $VideoShortcodeService;
     }
 
     public static function is_woocommerce_installed(): bool
@@ -246,7 +251,7 @@ class Woocommerce
                     '_a2w_disable_var_quantity_change' => isset($product['disable_var_quantity_change']) && $product['disable_var_quantity_change'] ? 1 : 0,
                     '_a2w_disable_add_new_variants' => isset($product['disable_add_new_variants']) && $product['disable_add_new_variants'] ? 1 : 0,
                     '_a2w_orders_count' => (!empty($product['ordersCount']) ? intval($product['ordersCount']) : 0),
-                    '_a2w_video' => !empty($product['video']) ? $product['video'] : '',
+                    ImportedProductService::KEY_VIDEO_DATA => !empty($product['video']) ? $product['video'] : '',
                     '_a2w_import_lang' => !empty($product['import_lang']) ? $product['import_lang'] : AliexpressLocalizator::getInstance()->language,
                 ],
             ];
@@ -496,6 +501,19 @@ class Woocommerce
                 'post_status' => $product_status,
             );
             if (!$override_product || $override_title_description) {
+                //add video short code if needed
+                $videoToDescription = get_setting(settings::SETTING_ADD_VIDEO_TO_DESCRIPTION);
+                $videoData = !empty($product['video']) ? $product['video'] : '';
+                if ($videoToDescription && $videoData) {
+                    $videoShortcodeContent = $this->VideoShortcodeService->buildFromVideoData($videoData);
+
+                    if ($videoToDescription == 'before') {
+                        $product['description'] = $videoShortcodeContent . $product['description'];
+                    } elseif ($videoToDescription == 'after') {
+                        $product['description'] .= $videoShortcodeContent;
+                    }
+                }
+
                 // if this is usual import or override with override_title_description flag, then update description
                 $post_arr['post_content'] = (isset($product['description']) ? $this->build_description($product_id, $product) : '');
             }
@@ -632,7 +650,7 @@ class Woocommerce
         }
 
         if (!empty($product['video'])) {
-            $wc_product->update_meta_data('_a2w_video', $product['video']);
+            $wc_product->update_meta_data(ImportedProductService::KEY_VIDEO_DATA, $product['video']);
         }
 
         //save seller_id and store_id
