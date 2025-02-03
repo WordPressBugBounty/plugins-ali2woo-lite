@@ -997,7 +997,6 @@ class ImportAjaxController extends AbstractController
             $product_import_model = $this->ProductImportModel;
             $PriceFormulaService = A2WL()->getDI()->get('AliNext_Lite\PriceFormulaService');
 
-            $product = false;
             $products = [];
             if ($page  === 'a2wl_dashboard'){
                 $products = a2wl_get_transient('a2wl_search_result');
@@ -1016,8 +1015,14 @@ class ImportAjaxController extends AbstractController
                 }
                 foreach ($products as &$product) {
                     if ($product['id'] == $id || $product['import_id'] == $id) {
-                        $product_country_from = !empty($product['shipping_from_country']) ? $product['shipping_from_country'] : 'CN';
-                        $product_country_to = !empty($product['shipping_to_country']) ? $product['shipping_to_country'] : '';
+                        $product_country_from = !empty($product['shipping_from_country']) ?
+                            $product['shipping_from_country'] :
+                            'CN';
+
+                        $product_country_to = !empty($product['shipping_to_country'])
+                            ? $product['shipping_to_country']
+                            : '';
+
                         $country_to = $_POST['country_to'] ?? $product_country_to;
                         $country_from = !empty($_POST['country_from']) ? $_POST['country_from'] : $product_country_from;
 
@@ -1027,7 +1032,10 @@ class ImportAjaxController extends AbstractController
                             $product['shipping_info'][$country] = [];
                         }
 
-                        $product = Utils::update_product_shipping($product, $country_from, $country_to, $page, true);
+                        $product = Utils::update_product_shipping(
+                            $product, $country_from,
+                            $country_to, $page, true
+                        );
 
                         if ($page == 'fulfillment') {
                             $_product = wc_get_product($product['post_id']);
@@ -1097,13 +1105,19 @@ class ImportAjaxController extends AbstractController
             $product = $product_import_model->get_product($_POST['id']);
 
             if ($product) {
-                $product_country_to = isset($product['shipping_to_country']) && $product['shipping_to_country'] ? $product['shipping_to_country'] : '';
-                $product_country_from = isset($product['shipping_from_country']) && $product['shipping_from_country'] ? $product['shipping_from_country'] : '';
-                $country_to = isset($_POST['country_to']) ? $_POST['country_to'] : $product_country_to;
-                $country_from = isset($_POST['country_from']) ? $_POST['country_from'] : $product_country_from;
+                $product_country_to = isset($product['shipping_to_country']) &&
+                    $product['shipping_to_country'] ?
+                    $product['shipping_to_country'] : '';
+
+                $product_country_from = isset($product['shipping_from_country']) &&
+                    $product['shipping_from_country'] ?
+                    $product['shipping_from_country'] : '';
+
+                $country_to = $_POST['country_to'] ?? $product_country_to;
+                $country_from = $_POST['country_from'] ?? $product_country_from;
 
                 $country = ProductShippingMeta::meta_key($country_from, $country_to);
-                $method = isset($_POST['method']) ? $_POST['method'] : '';
+                $method = $_POST['method'] ?? '';
 
                 if ($country && $method) {
                     $product['shipping_default_method'] = $method;
@@ -1111,22 +1125,25 @@ class ImportAjaxController extends AbstractController
                     $product['shipping_from_country'] = ProductShippingMeta::normalize_country($country_from);
 
                     $product['shipping_cost'] = 0;
-                    $items = isset($product['shipping_info'][$country]) ? $product['shipping_info'][$country] : array();
+                    $items = $product['shipping_info'][$country] ?? [];
                     foreach ($items as $s) {
                         if ($s['serviceName'] == $product['shipping_default_method']) {
-                            $product['shipping_cost'] = isset($s['previewFreightAmount']['value']) ? $s['previewFreightAmount']['value'] : $s['freightAmount']['value'];
+                            $product['shipping_cost'] = $s['previewFreightAmount']['value'] ?? $s['freightAmount']['value'];
                             break;
                         }
                     }
 
                     $product = $PriceFormulaService->applyFormula($product);
-
                     $product_import_model->upd_product($product);
                 }
 
-                $variations = array();
+                $variations = [];
                 foreach ($product['sku_products']['variations'] as $v) {
-                    $variations[] = array('id' => $v['id'], 'calc_price' => $v['calc_price'], 'calc_regular_price' => $v['calc_regular_price']);
+                    $variations[] = [
+                        'id' => $v['id'],
+                        'calc_price' => $v['calc_price'],
+                        'calc_regular_price' => $v['calc_regular_price']
+                    ];
                 }
 
                 $shipping_cost = 0;
@@ -1134,7 +1151,12 @@ class ImportAjaxController extends AbstractController
                     $shipping_cost = $product['shipping_cost'];
                 }
 
-                echo wp_json_encode(ResultBuilder::buildOk(array('default_method' => $product['shipping_default_method'], 'shipping_cost' => $shipping_cost, 'variations' => $variations)));
+                $result = [
+                    'default_method' => $product['shipping_default_method'],
+                    'shipping_cost' => $shipping_cost,
+                    'variations' => $variations
+                ];
+                echo wp_json_encode(ResultBuilder::buildOk($result));
             } else {
                 echo wp_json_encode(ResultBuilder::buildError("Product not found."));
             }

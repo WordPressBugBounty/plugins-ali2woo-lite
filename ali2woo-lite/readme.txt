@@ -308,6 +308,10 @@ In case you have any questions or need technical assistance, get in touch with u
 9. Import product video from AliExpress
 
 == Changelog ==
+= 3.5.1 - 2025.02.03 = 
+* Fix "Bad API format." error while placing orders through API
+* Fix minor bugs and code refactor
+
 = 3.5.0 - 2025.01.27 = 
 * Update review image gallery script (flexbox) to 5 version
 * Add compatibility with WooCommerce 9.6.*
@@ -409,18 +413,6 @@ In case you have any questions or need technical assistance, get in touch with u
 * fix pricing rules bug in plugin backend
 * fix product description loading
 * update some plugin dependecies
-* fix minor bugs
-
-= 3.2.7 - 2024.04.10 =
-* add image type file check to built-in image editor
-* add feature to load AliExpress category tree for imported product
-* replace || with OR in sql queries as this format is  deprectated
-* fix minor bugs
-
-= 3.2.6 - 2024.04.04 =
-* fix built-in image editor
-* fix chrome extension connection bug
-* fix is-not-applied price bug
 * fix minor bugs
 
 == Upgrade Notice ==

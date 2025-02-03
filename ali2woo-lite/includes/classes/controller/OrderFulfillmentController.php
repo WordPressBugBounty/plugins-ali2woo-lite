@@ -477,7 +477,7 @@ class OrderFulfillmentController extends AbstractController
                     <a id="pay-for-orders" target="_blank" class="btn btn-success" href="https://www.aliexpress.com/p/order/index.html" title="<?php  esc_html_e('You will be redirected to the AlIExpress portal. You must be authorized in your account to make the payment', 'ali2woo');?>"><?php  esc_html_e('Pay for order(s)', 'ali2woo');?></a>
                     <button id="fulfillment-auto" class="btn btn-success" type="button">
                         <div class="btn-icon-wrap cssload-container"><div class="cssload-speeding-wheel"></div></div>
-                        <?php  esc_html_e('Fulfil orders automatically', 'ali2woo');?>
+                        <?php  esc_html_e('Fulfill orders automatically', 'ali2woo');?>
                     </button>
                     </div>
 
@@ -487,7 +487,7 @@ class OrderFulfillmentController extends AbstractController
                     <?php if($purchase_code):?>
                     <button id="fulfillment-chrome" class="btn btn-success" type="button">
                         <div class="btn-icon-wrap cssload-container"><div class="cssload-speeding-wheel"></div></div>
-                        <?php  esc_html_e('Fulfil orders via Chrome extension', 'ali2woo');?>
+                        <?php  esc_html_e('Fulfill orders via Chrome extension', 'ali2woo');?>
                     </button>
                     <?php endif; ?>
                     */ ?>

@@ -195,7 +195,7 @@ class AliexpressDefaultConnector extends AbstractConnector
             $result = $this->handleRequestResult($request);
 
             if ($result['state'] !== 'error') {
-                if (isset($apiResult['orders']['list'])) {
+                if (isset($result['orders']['list'])) {
                     $result = ResultBuilder::buildOk([
                         'orders' => $result['orders'],
                     ]);

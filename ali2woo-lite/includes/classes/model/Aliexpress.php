@@ -270,6 +270,15 @@ class Aliexpress
                     $result['product']['skip_images'][] = $img_id;
                 }
             }
+
+         /*   $hasShippingInfo = isset($result['product']['shipping_info']['items']) &&
+                is_array($result['product']['shipping_info']['items']);
+            if ($hasShippingInfo) {
+                $items = $result['product']['shipping_info']['items'];
+                $shippingFromCode = $result['product']['shipping_info']['shippingFromCode'];
+                $shippingToCode = $result['product']['shipping_info']['shippingToCode'];
+                $shipping_meta->save_items(1, $shippingFromCode, $shippingToCode, $items, true);
+            }*/
         }
 
         return $result;
