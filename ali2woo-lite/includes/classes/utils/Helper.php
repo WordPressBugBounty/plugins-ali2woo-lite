@@ -145,7 +145,9 @@ class Helper {
         $attribute_type = 'select';
 
         // check for duplicates
-        $attribute_taxonomies = $wpdb->get_var("SELECT * FROM {$wpdb->prefix}woocommerce_attribute_taxonomies WHERE attribute_name = '" . esc_sql($attribute_name) . "'");
+        $attribute_taxonomies = $wpdb->get_var(
+            "SELECT * FROM {$wpdb->prefix}woocommerce_attribute_taxonomies WHERE attribute_name = '" . esc_sql($attribute_name) . "'"
+        );
 
         if ($attribute_taxonomies) {
             // update existing attribute
@@ -169,7 +171,7 @@ class Helper {
         // add attribute values if not exist
         $taxonomy = $this->cleanTaxonomyName($attribute_name);
 
-        $values = is_array($value)?$value:array($value);
+        $values = is_array($value) ? $value : [$value];
 
         // check taxonomy
         if (!taxonomy_exists($taxonomy)) {
@@ -553,12 +555,12 @@ class Helper {
         return $ret;
     }
 
-    public function cleanValue($value) {
+    public function cleanValue(string $value): string
+    {
         // Format Camel Case
         //$value = trim( preg_replace('/([A-Z])/', ' $1', $value) );
         // Clean / from value
-        $value = trim(preg_replace('/(\/)/', '-', $value));
-        return $value;
+        return trim(preg_replace('/(\/)/', '-', $value));
     }
 
     public function multi_implode($array, $glue) {

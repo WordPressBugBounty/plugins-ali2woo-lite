@@ -17,13 +17,25 @@ class OrderFulfillmentService
 
     protected Aliexpress $AliexpressModel;
     protected ExternalOrderFactory $ExternalOrderFactory;
+    protected AliexpressHelper $AliexpressHelper;
+    protected WoocommerceService $WoocommerceService;
+    protected Woocommerce $WoocommerceModel;
+    protected ProductService $ProductService;
 
     public function __construct(
         Aliexpress $AliexpressModel,
         ExternalOrderFactory $ExternalOrderFactory,
+        AliexpressHelper $AliexpressHelper,
+        WoocommerceService $WoocommerceService,
+        Woocommerce $WoocommerceModel,
+        ProductService $ProductService
     ) {
         $this->AliexpressModel = $AliexpressModel;
         $this->ExternalOrderFactory = $ExternalOrderFactory;
+        $this->AliexpressHelper = $AliexpressHelper;
+        $this->WoocommerceService = $WoocommerceService;
+        $this->WoocommerceModel = $WoocommerceModel;
+        $this->ProductService = $ProductService;
     }
 
     public function placeOrder(WC_Order $WC_Order, array $OrderItems): array
@@ -159,14 +171,6 @@ class OrderFulfillmentService
 
                 $attributes = $this->getFormattedOrderItemAttributes($ExternalOrderItem);
 
-
-              /*  $shipping_info = Utils::get_product_shipping_info(
-                    $WC_Product,
-                    $ExternalOrderItem->getProductCount(),
-                    $ExternalOrder->getShippingAddress()->getCountryCode(),
-                    false
-                );*/
-
                 $shipping_info = [
                     'items' => []
                 ];
@@ -199,12 +203,15 @@ class OrderFulfillmentService
     }
 
     /**
-     * @param array|WC_Order[] $orders
+     * @param array $orders
+     * @param bool $is_wpml
      * @return array
+     * @throws RepositoryException
      */
     public function getFulfillmentOrdersData(array $orders, bool $is_wpml = false): array
     {
         global $sitepress;
+
         $orders_data = [];
 
         foreach ($orders as $order) {
@@ -238,7 +245,8 @@ class OrderFulfillmentService
                 $shipping_address = $order->get_address();
             }
             $formatted_address = WC()->countries->get_formatted_address($shipping_address, ', ');
-            $shiping_to_country = ProductShippingMeta::normalize_country($shipping_address['country']);
+            $shipping_to_country = $this->AliexpressHelper
+                ->convertToAliexpressCountryCode($shipping_address['country']);
 
             $order_data = [
                 'order_id' => $order->get_id(),
@@ -246,7 +254,7 @@ class OrderFulfillmentService
                 'order' => $order,
                 'buyer' => $buyer,
                 'currency' => $order->get_currency(),
-                'shiping_to_country' => $shiping_to_country,
+                'shiping_to_country' => $shipping_to_country,
                 'shipping_address' => $shipping_address,
                 'formatted_address' => $formatted_address,
                 'total_cost' => 0,
@@ -260,21 +268,34 @@ class OrderFulfillmentService
                  */
                 $a2wl_order_item = new WooCommerceOrderItem($item);
 
-                if(!$a2wl_order_item->get_external_product_id()){
+                if (!$a2wl_order_item->get_external_product_id()) {
                     continue;
                 }
 
-                $product = $item->get_product();
+                $WC_Product = $item->get_product();
 
-                $image = $product->get_image();
+                $image = $WC_Product->get_image();
 
                 $product_id = $item->get_product_id();
                 $variation_id = $item->get_variation_id();
+                $quantity = $item->get_quantity();
 
-                $shipping_meta = new ProductShippingMeta($product_id);
+                $countryFromCode = 'CN';
+                try {
+                    $importedProduct = $this->WoocommerceService
+                        ->updateProductShippingInfo($WC_Product, $shipping_to_country, $countryFromCode, $quantity);
 
-                $shipping_info = Utils::get_product_shipping_info(
-                    $product, $item->get_quantity(), $shiping_to_country, false
+                    $shippingItems = $this->ProductService->getShippingItems(
+                        $importedProduct, $shipping_to_country, $countryFromCode
+                    );
+                } catch (RepositoryException $Exception) {
+                    a2wl_error_log($Exception->getMessage());
+
+                   return [];
+                }
+
+                $ShippingItemDto = $this->ProductService->findDefaultFromShippingItems(
+                    $shippingItems, $importedProduct
                 );
 
                 $current_shipping_company = '';
@@ -288,11 +309,13 @@ class OrderFulfillmentService
                     $current_delivery_time = $shipping_meta_data['delivery_time'];
                     $current_shipping_cost = $shipping_meta_data['shipping_cost'];
                 }
-                $current_shipping_company = $current_shipping_company ?: $shipping_info['default_method'];
+                $current_shipping_company = $current_shipping_company ?: $ShippingItemDto->getMethodName();
 
                 $wpml_product_id = $wpml_variation_id = '';
                 if ($is_wpml) {
-                    $wpml_object_id = apply_filters('wpml_object_id', $product_id, 'product', false, $sitepress->get_default_language());
+                    $wpml_object_id = apply_filters(
+                        'wpml_object_id', $product_id, 'product', false, $sitepress->get_default_language()
+                    );
                     if ($wpml_object_id != $product_id) {
                         $wpml_product = wc_get_product($wpml_object_id);
                         if ($wpml_product) {
@@ -300,7 +323,9 @@ class OrderFulfillmentService
                         }
                     }
                     if ($product_id) {
-                        $wpml_object_id = apply_filters('wpml_object_id', $product_id, 'product', false, $sitepress->get_default_language());
+                        $wpml_object_id = apply_filters(
+                            'wpml_object_id', $product_id, 'product', false, $sitepress->get_default_language()
+                        );
                         if ($wpml_object_id != $product_id) {
                             $wpml_variation = wc_get_product($wpml_object_id);
                             if ($wpml_variation) {
@@ -331,7 +356,7 @@ class OrderFulfillmentService
                     }
                 }
 
-                $total_cost = $aliexpress_price * $item->get_quantity() + ($current_shipping_cost ? $current_shipping_cost : 0);
+                $total_cost = $aliexpress_price * $item->get_quantity() + ($current_shipping_cost ?: 0);
 
                 $order_data['items'][] = [
                     'order_item_id' => $item->get_id(),
@@ -339,11 +364,11 @@ class OrderFulfillmentService
                     'image' => $image,
                     'name' => $item->get_name(),
                     'url' => $item_original_url,
-                    'sku' => $product->get_sku(),
+                    'sku' => $WC_Product->get_sku(),
                     'attributes' => implode(' / ', $attributes),
                     'cost' => $aliexpress_price,
                     'quantity' => $item->get_quantity(),
-                    'shipping_items' => $shipping_info['items'],
+                    'shipping_items' => $shippingItems,
                     'current_shipping' => $current_shipping_company,
                     'current_delivery_time' => $current_delivery_time,
                     'current_shipping_cost' => $current_shipping_cost,
@@ -370,12 +395,12 @@ class OrderFulfillmentService
     /**
      * @param WC_Order $order
      * @param array|OrderItemShippingDto[] $order_items
-     * @param string $shiping_to_country
+     * @param string $shipping_to_country
      * @param bool $is_wpml
      * @return UpdateFulfillmentShippingResult
      */
     public function updateFulfillmentShipping(
-        WC_Order $order, array $order_items, string $shiping_to_country, bool $is_wpml = false
+        WC_Order $order, array $order_items, string $shipping_to_country, bool $is_wpml = false
     ): UpdateFulfillmentShippingResult {
         $result_items = [];
         $total_order_price = 0;
@@ -385,13 +410,22 @@ class OrderFulfillmentService
             if ($OrderItemShippingDto) {
                 $aliexpress_price = $this->get_aliexpress_price($item, $is_wpml);
 
-                $product = $item->get_product();
+                $WC_Product = $item->get_product();
                 $product_id = $item->get_product_id();
+                $quantity = $item->get_quantity();
 
-                $shipping_meta = new ProductShippingMeta($product_id);
-                $shipping_info = Utils::get_product_shipping_info(
-                    $product, $item->get_quantity(), $shiping_to_country, false
-                );
+                $countryFromCode = 'CN';
+                try {
+                    $importedProduct = $this->WoocommerceService
+                        ->updateProductShippingInfo($WC_Product, $shipping_to_country, $countryFromCode, $quantity);
+
+                    $shippingItems = $this->ProductService->getShippingItems(
+                        $importedProduct, $shipping_to_country, $countryFromCode
+                    );
+                } catch (RepositoryException $Exception) {
+                    a2wl_error_log($Exception->getMessage());
+                    $shippingItems = [];
+                }
 
                 $shipping_meta_data = $item->get_meta(Shipping::get_order_item_shipping_meta_key());
                 $shipping_meta_data = $shipping_meta_data ?
@@ -402,23 +436,23 @@ class OrderFulfillmentService
                     ];
                 $current_shipping_cost = 0;
 
-                foreach ($shipping_info['items'] as $si) {
-                    if ($si['serviceName'] == $OrderItemShippingDto->getShippingCode()) {
-                        $current_shipping_cost = $si['freightAmount']['value'];
+                foreach ($shippingItems as $shippingItem) {
+                    if ($shippingItem['serviceName'] == $OrderItemShippingDto->getShippingCode()) {
+                        $current_shipping_cost = $shippingItem['freightAmount']['value'];
 
-                        $shipping_meta_data['company'] = $si['company'];
-                        $shipping_meta_data['service_name'] = $si['serviceName'];
-                        $shipping_meta_data['shipping_cost'] = $si['freightAmount']['value'];
-                        $shipping_meta_data['delivery_time'] = $si['time'];
+                        $shipping_meta_data['company'] = $shippingItem['company'];
+                        $shipping_meta_data['service_name'] = $shippingItem['serviceName'];
+                        $shipping_meta_data['shipping_cost'] = $shippingItem['freightAmount']['value'];
+                        $shipping_meta_data['delivery_time'] = $shippingItem['time'];
 
                         $result_items[] = [
                             'order_item_id' => $item->get_id(),
-                            'shiping_time' => $si['time'] . ' days',
+                            'shiping_time' => $shippingItem['time'] . ' days',
                             'shiping_price' => wc_price(
-                                $si['freightAmount']['value'], ['currency' => $order->get_currency()]
+                                $shippingItem['freightAmount']['value'], ['currency' => $order->get_currency()]
                             ),
                             'total_item_price' => wc_price(
-                                $aliexpress_price * $item->get_quantity() + $si['freightAmount']['value'],
+                                $aliexpress_price * $item->get_quantity() + $shippingItem['freightAmount']['value'],
                                 ['currency' => $order->get_currency()]
                             ),
                         ];

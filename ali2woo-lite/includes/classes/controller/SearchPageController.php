@@ -12,12 +12,24 @@ namespace AliNext_Lite;;
 
 class SearchPageController extends AbstractAdminPage
 {
+    protected Aliexpress $AliexpressModel;
+    protected Country $CountryModel;
 
-    public function __construct()
-    {
-        parent::__construct(esc_html__('Search Products', 'ali2woo'), esc_html__('Search Products', 'ali2woo'), 'import', 'a2wl_dashboard', 10);
+    public function __construct(
+        Aliexpress $AliexpressModel,
+        Country $CountryModel
+    ) {
+        parent::__construct(
+            esc_html__('Search Products', 'ali2woo'),
+            esc_html__('Search Products', 'ali2woo'),
+            'import',
+            'a2wl_dashboard',
+            10
+        );
 
-        add_filter('a2wl_configure_lang_data', array($this, 'configure_lang_data'));
+        $this->AliexpressModel = $AliexpressModel;
+        $this->CountryModel = $CountryModel;
+        add_filter('a2wl_configure_lang_data', [$this, 'configure_lang_data']);
     }
 
     public function configure_lang_data($lang_data)
@@ -72,8 +84,7 @@ class SearchPageController extends AbstractAdminPage
 
         if (!empty($_REQUEST['a2wl_search'])) {
             check_admin_referer(self::PAGE_NONCE_ACTION, self::NONCE);
-            $loader = new Aliexpress();
-            $load_products_result = $loader->load_products($filter, $page, $per_page);
+            $load_products_result = $this->AliexpressModel->load_products($filter, $page, $per_page);
         } else {
             $load_products_result = ResultBuilder::buildError(esc_html__('Please enter some search keywords or select item from category list!', 'ali2woo'));
         }
@@ -105,7 +116,6 @@ class SearchPageController extends AbstractAdminPage
             a2wl_set_transient('a2wl_search_result', $load_products_result['products']);
         }
 
-        $countryModel = new Country();
         $localizator = AliexpressLocalizator::getInstance();
 
         $filterSortOptions = [
@@ -126,7 +136,7 @@ class SearchPageController extends AbstractAdminPage
         $this->model_put('filterSortOptions', $filterSortOptions);
         $this->model_put('adv_search', $adv_search);
         $this->model_put('categories', $this->get_categories());
-        $this->model_put('countries', $countryModel->get_countries());
+        $this->model_put('countries', $this->CountryModel->get_countries());
         $this->model_put('locale', $localizator->getLangCode());
         $this->model_put('currency', $localizator->currency);
         $this->model_put('chrome_ext_import', a2wl_check_defined('A2WL_CHROME_EXT_IMPORT'));

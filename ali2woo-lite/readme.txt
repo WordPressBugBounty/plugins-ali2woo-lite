@@ -2,12 +2,12 @@
 Contributors: ali2woo
 Tags: aliexpress dropshipping, woocommerce dropshipping, dropship
 Requires at least: 5.9
-Tested up to: 6.7.2
+Tested up to: 6.8
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Stable tag: trunk
 Requires PHP: 8.0
-WC tested up to: 9.6
+WC tested up to: 9.7
 WC requires at least: 5.0
 
 This AliExpress Dropshipping Plugin for WooCommerce: Import products with reviews from AliExpress and fulfill orders automatically!

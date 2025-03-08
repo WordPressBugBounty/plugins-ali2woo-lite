@@ -14,6 +14,13 @@ use WC_Product_Variation;
 
 class ExternalOrderFactory
 {
+    private AliexpressHelper $AliexpressHelper;
+
+    public function __construct(AliexpressHelper $AliexpressHelper)
+    {
+        $this->AliexpressHelper = $AliexpressHelper;;
+    }
+
     /**
      * @throws FactoryException
      */
@@ -81,7 +88,7 @@ class ExternalOrderFactory
         $address2 = $shippingDestination['address2'];
         $postCode = $shippingDestination['postcode'];
 
-        $countryCode = ProductShippingMeta::normalize_country($wooShippingCountryCode);
+        $countryCode = $this->AliexpressHelper->convertToAliexpressCountryCode($wooShippingCountryCode);
         $country = Country::get_country($countryCode);
         $phoneInformation = $this->getPhoneInformation($WC_Order, $wooShippingCountryCode);
         $phone = Utils::sanitize_phone_number($phoneInformation['phone']);
@@ -296,7 +303,7 @@ class ExternalOrderFactory
 
     private function getPhoneInformation(WC_Order $WC_Order, string $wooShippingCountryCode): array
     {
-        $country = ProductShippingMeta::normalize_country($wooShippingCountryCode);
+        $country = $this->AliexpressHelper->convertToAliexpressCountryCode($wooShippingCountryCode);
         $phone_country = Utils::get_phone_country_code($country);
 
         $phone = $WC_Order->get_billing_phone();

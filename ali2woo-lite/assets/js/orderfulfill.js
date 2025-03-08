@@ -123,7 +123,9 @@ jQuery(function($) {
         }
     });
 
-    $(document.body).on("click", ".modal-fulfillment #save-order-address", function () {
+    $(document.body).on("click", ".modal-fulfillment #save-order-address", function (event) {
+        event.preventDefault();
+
         const $form = $(this).parents('.single-order-wrap').find('.order-edit-address-form')
         $form.removeClass('open');
         const order_id = $(this).parents('.single-order-wrap').attr('data-order_id');
@@ -166,8 +168,6 @@ jQuery(function($) {
         }).fail(function(xhr, status, error) {
             console.log(error);                        
         });
-
-        return false;             
     });
 
     const a2wl_order_meta_data = {

@@ -12,10 +12,11 @@ use WC_Comments;
 
 class Review {
 
-    private $aliexpress_loader;
-    private $helper;
+    protected $aliexpress_loader;
+    protected $attachment_model;
+    protected $helper;
+
     private $allowed_countries;
-    private $attachment_model;
     private $review_translated;
     private $review_load_attributes;
     private $raiting_from;
@@ -23,10 +24,10 @@ class Review {
     private $max_number_reviews_per_product;
     private $min_number_reviews_per_product;
 
-    public function __construct() {
-        $this->aliexpress_loader = new Aliexpress();
-        $this->attachment_model = new Attachment();
-        $this->helper = new Helper();
+    public function __construct(Aliexpress $AliexpressModel, Attachment $AttachmentModel, Helper $Helper) {
+        $this->aliexpress_loader = $AliexpressModel;
+        $this->attachment_model = $AttachmentModel;
+        $this->helper = $Helper;
 
         //todo: in the very old plugin version we used "review_allow_country" option
         //need to do the code to remove it completely because now we use another option "review_country"

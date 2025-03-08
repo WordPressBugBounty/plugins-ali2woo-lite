@@ -2,8 +2,12 @@
 /**
  * @var array $order_data
  */
+/** @var ProductShippingDataRepository $ProductShippingDataRepository */
+/** @var ProductShippingDataService $ProductShippingDataService */
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
-use AliNext_Lite\ProductShippingMeta;
+use AliNext_Lite\ProductShippingDataRepository;
+use AliNext_Lite\ProductShippingDataService;
+use AliNext_Lite\RepositoryException;
 use AliNext_Lite\Utils;
 
 ?>
@@ -22,11 +26,18 @@ use AliNext_Lite\Utils;
     foreach ($order_data['items'] as $item) :
         $product_id = $item['product_id'];
         $external_id = get_post_meta($item['product_id'], '_a2w_external_id', true);
-        $shipping_meta = new ProductShippingMeta($item['product_id']);
-        $shipping_cost = $shipping_meta->get_cost();
-        $shipping_country_from = $shipping_meta->get_country_from();
-        $shipping_country_from_list = ProductShippingMeta::get_country_from_list($item['product_id']);
-        $shipping_method = $shipping_meta->get_method();
+        try {
+            $ProductShippingData = $ProductShippingDataRepository->get($item['product_id']);
+        } catch (RepositoryException $RepositoryException) {
+            error_log($RepositoryException->getMessage());
+            continue;
+        }
+
+        $shipping_cost = $ProductShippingData->getCost();
+        $shipping_country_from = $ProductShippingData->getCountryFrom();
+        $shipping_country_from_list = $ProductShippingDataService->getCountryFromList($item['product_id']);
+        $shipping_method = $ProductShippingData->getMethod();
+        $variationKey = $ProductShippingData->getVariationKey();
         $attributes = $item['attributes'];
         ?>
         <tr data-order_item_id="<?php echo esc_attr($item['order_item_id']); ?>">
@@ -61,7 +72,8 @@ use AliNext_Lite\Utils;
                    data-product_id="<?php echo esc_attr($product_id); ?>"
                    data-country_from="<?php echo esc_attr($shipping_country_from); ?>"
                    data-country_to="<?php echo esc_attr($order_data['shiping_to_country']); ?>"
-                   data-shipping_method="<?php echo esc_attr($shipping_method); ?>">
+                   data-shipping_method="<?php echo esc_attr($shipping_method); ?>"
+                   data-variation_key="<?php echo esc_attr($variationKey); ?>">
                 </a>
             </td>
             <td class="delivery_time">

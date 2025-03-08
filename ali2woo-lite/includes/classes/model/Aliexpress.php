@@ -13,19 +13,24 @@ use Throwable;
 class Aliexpress
 {
 
-    private ProductImport $product_import_model;
-    private AbstractConnector $connector;
-    private FulfillmentClientInterface $FulfillmentClient;
-    private Account $account;
-    private AliexpressHelper $AliexpressHelper;
+    protected ProductImport $ProductImportModel;
+    protected AbstractConnector $connector;
+    protected FulfillmentClientInterface $FulfillmentClient;
+    protected Account $account;
+    protected AliexpressHelper $AliexpressHelper;
 
-    public function __construct()
-    {
-        $this->product_import_model = new ProductImport();
+    public function __construct(
+        ProductImport $ProductImportModel,
+        FulfillmentClient $FulfillmentClient,
+        AliexpressHelper $AliexpressHelper
+    ) {
+        //todo: refactor this to DI
         $this->connector = AliexpressDefaultConnector::getInstance();
-        $this->FulfillmentClient = A2WL()->getDI()->get('AliNext_Lite\FulfillmentClient');
         $this->account = Account::getInstance();
-        $this->AliexpressHelper = A2WL()->getDI()->get('AliNext_Lite\AliexpressHelper');
+
+        $this->ProductImportModel = $ProductImportModel;
+        $this->FulfillmentClient = $FulfillmentClient;
+        $this->AliexpressHelper = $AliexpressHelper;
     }
 
     public function load_products($filter, $page = 1, $per_page = 20, $params = [])
@@ -33,7 +38,7 @@ class Aliexpress
         /** @var wpdb $wpdb */
         global $wpdb;
 
-        $products_in_import = $this->product_import_model->get_product_id_list();
+        $products_in_import = $this->ProductImportModel->get_product_id_list();
 
         $result = $this->connector->load_products($filter, $page, $per_page, $params);
 
@@ -44,16 +49,16 @@ class Aliexpress
             foreach ($result['products'] as &$product) {
                 $query = $wpdb->prepare(
                     "SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_a2w_external_id' AND meta_value=%s LIMIT 1",
-                    $product['id']
+                    $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]
                 );
                 $product['post_id'] = $wpdb->get_var($query);
-                $product['import_id'] = in_array($product['id'], $products_in_import) ? $product['id'] : 0;
+                $product['import_id'] = in_array($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID], $products_in_import) ? $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID] : 0;
                 $product['product_type'] = $default_type;
                 $product['product_status'] = $default_status;
                 $product['is_affiliate'] = true;
 
                 if (isset($filter['country']) && $filter['country']) {
-                    $product['shipping_to_country'] = $filter['country'];
+                    $product[ImportedProductService::FIELD_COUNTRY_TO] = $filter['country'];
                 }
             }
         }
@@ -66,7 +71,7 @@ class Aliexpress
         /** @var wpdb $wpdb */
         global $wpdb;
 
-        $products_in_import = $this->product_import_model->get_product_id_list();
+        $products_in_import = $this->ProductImportModel->get_product_id_list();
 
         $result = $this->connector->load_store_products($filter, $page, $per_page, $params);
 
@@ -77,16 +82,16 @@ class Aliexpress
             foreach ($result['products'] as &$product) {
                 $query = $wpdb->prepare(
                     "SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_a2w_external_id' AND meta_value=%s LIMIT 1",
-                    $product['id']
+                    $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]
                 );
                 $product['post_id'] = $wpdb->get_var($query);
-                $product['import_id'] = in_array($product['id'], $products_in_import) ? $product['id'] : 0;
+                $product['import_id'] = in_array($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID], $products_in_import) ? $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID] : 0;
                 $product['product_type'] = $default_type;
                 $product['product_status'] = $default_status;
                 $product['is_affiliate'] = true;
 
                 if (isset($filter['country']) && $filter['country']) {
-                    $product['shipping_to_country'] = $filter['country'];
+                    $product[ImportedProductService::FIELD_COUNTRY_TO] = $filter['country'];
                 }
             }
         }
@@ -109,11 +114,12 @@ class Aliexpress
         return $result;
     }
 
-    public function load_product($product_id, $params = [])
+    public function load_product(string $product_id, array $params = [])
     {
         /** @var wpdb $wpdb */
         global $wpdb;
-        $products_in_import = $this->product_import_model->get_product_id_list();
+
+        $products_in_import = $this->ProductImportModel->get_product_id_list();
 
         try {
             $params['skip_desc'] = get_setting('not_import_description');
@@ -149,16 +155,6 @@ class Aliexpress
                 $default_ship_from = get_setting('default_ship_from');
                 $result['product'] = Utils::remove_ship_from($result['product'], $default_ship_from);
             }
-
-            $country_from = get_setting('aliship_shipfrom', 'CN');
-            $country_to = get_setting('aliship_shipto');
-            $result['product'] = Utils::update_product_shipping(
-                $result['product'],
-                $country_from,
-                $country_to,
-                'import',
-                get_setting('add_shipping_to_price')
-            );
 
             if (($convert_attr_casea = get_setting('convert_attr_case')) != 'original') {
                 $convert_func = false;
@@ -271,14 +267,7 @@ class Aliexpress
                 }
             }
 
-         /*   $hasShippingInfo = isset($result['product']['shipping_info']['items']) &&
-                is_array($result['product']['shipping_info']['items']);
-            if ($hasShippingInfo) {
-                $items = $result['product']['shipping_info']['items'];
-                $shippingFromCode = $result['product']['shipping_info']['shippingFromCode'];
-                $shippingToCode = $result['product']['shipping_info']['shippingToCode'];
-                $shipping_meta->save_items(1, $shippingFromCode, $shippingToCode, $items, true);
-            }*/
+            $result['product'] = $this->normalizeLoadedShippingInfo($result['product']);
         }
 
         return $result;
@@ -310,7 +299,7 @@ class Aliexpress
         }*/
     }
 
-    private function calculateProductPricesFromVariants($product){
+    public function calculateProductPricesFromVariants($product){
 
         $product['regular_price_min'] =  
         $product['regular_price_max'] =  
@@ -350,19 +339,11 @@ class Aliexpress
             ]];
     }
 
-    public function sync_products($product_ids, $params = array())
+    public function sync_products($product_ids, $params = [])
     {
         //todo: check what to do with pc param
         //also check what to do when one of the product is not updated
-        $product_ids = is_array($product_ids) ? $product_ids : array($product_ids);
-
-        $request_params = array('product_id' => implode(',', $product_ids));
-        if (!empty($params['manual_update'])) {
-            $request_params['manual_update'] = 1;
-        }
-        if (!empty($params['pc'])) {
-            $request_params['pc'] = $params['pc'];
-        }
+        $product_ids = is_array($product_ids) ? $product_ids : [$product_ids];
 
         $products = [];
         $notAvailableProducts = [];
@@ -380,6 +361,7 @@ class Aliexpress
             }
 
             if ($result['state'] !== 'error') {
+                $result['product'] = $this->normalizeLoadedShippingInfo($result['product']);
                 $products[] = $result['product'];
             } else {
                 if (isset($result['error_code']) && in_array($result['error_code'], [1004,1005])){
@@ -406,31 +388,11 @@ class Aliexpress
             }
         }
 
-        $sync_default_shipping_cost = isset($params['manual_update']) && $params['manual_update'] 
-                                        && a2wl_check_defined('A2WL_SYNC_PRODUCT_SHIPPING')
-                                        &&  get_setting('add_shipping_to_price');
-
-        if ($sync_default_shipping_cost) {
-            /*
-                This feature enables the synchronization of the shipping cost assigned to a product. 
-                It attempts to apply the cost of the default shipping method if it is available for the default shipping country. 
-                If the default shipping method is not available, it selects the cheapest shipping option.
-            */
-
-            $country_from = get_setting('aliship_shipfrom', 'CN');
-            $country_to = get_setting('aliship_shipto');
-
-            foreach ($result['products'] as $key => $product) {
-                $product = $this->calculateProductPricesFromVariants($product);
-                $result['products'][$key] = Utils::update_product_shipping($product, $country_from, $country_to, 'import', true);
-            }
-        }
-
         if ($this->account->custom_account && isset($result['products'])) {
             $tmp_urls = array();
 
             foreach ($result['products'] as $product) {
-                if (isset($product['url']) && !empty($product['url'])) {
+                if (!empty($product['url'])) {
                     $tmp_urls[] = $product['url'];
                 }
             }
@@ -452,13 +414,7 @@ class Aliexpress
                 foreach ($result['products'] as &$product) {
                     $product['affiliate_url'] = ''; //set empty to disable update!
                 }
-            } catch (\Exception $e) {
-                a2wl_print_throwable($e);
-                foreach ($result['products'] as &$product) {
-                    $product['affiliate_url'] = ''; //set empty to disable update!
-                }
             }
-
         }
 
         //we don't want to update description by default
@@ -481,38 +437,40 @@ class Aliexpress
             }
         }
 
-        /*
-        $request_url = RequestHelper::build_request('sync_products', $request_params);
-
-        if (empty($params['data'])) {
-            $request = a2wl_remote_get($request_url);
-        } else {
-            $request = a2wl_remote_post($request_url, $params['data']);
-        }*/
-
         //add not available products to result
         array_push($result['products'], ...$notAvailableProducts);
 
         return $result;
     }
 
-    public function load_shipping_info(
-        $product_id, $quantity, $country_code, $country_code_from = 'CN', $min_price = '',
-        $max_price = '', $province = '', $city = '', $extra_data = '', $sku_id = ''
-    ) {
+    /**
+     * @throws ServiceException
+     */
+    public function loadShippingItems(
+        string $externalProductId, int $quantity, string $countryCodeTo, string $countryCodeFrom = 'CN',
+        ?string $externalSkuId = null, ?string $extraData = null
+    ): array {
 
-        return $this->connector->load_shipping_info(
-            $product_id,
-            $quantity,
-            $country_code,
-            $country_code_from,
-            $min_price,
-            $max_price,
-            $province,
-            $city,
-            $extra_data,
-            $sku_id
+        $countryCodeTo = $this->AliexpressHelper->convertToAliexpressCountryCode($countryCodeTo);
+        if (!empty($countryCodeFrom)) {
+            $countryCodeFrom = $this->AliexpressHelper->convertToAliexpressCountryCode($countryCodeFrom);
+        }
+
+        $result = $this->connector->load_shipping_info($externalProductId, $quantity, $countryCodeTo,
+            $countryCodeFrom, '', '', '', '', $extraData ?? '', $externalSkuId ?? ''
         );
+
+        if ($result['state'] !== 'error') {
+            return $result['items'];
+        }
+
+        if (empty($result['message']) || !str_starts_with($result['message'], '[1004]')) {
+            a2wl_error_log(print_r($result, true));
+            $exceptionMessage =  _x("Aliexpress service exception", 'error text', 'ali2woo');
+            throw new ServiceException($exceptionMessage);
+        }
+
+        return [];
     }
 
     private function clean_description($description)
@@ -845,6 +803,23 @@ class Aliexpress
         }
 
         return $shipping_address;
+    }
+
+    private function normalizeLoadedShippingInfo(array $product): array
+    {
+        $hasShippingInfo = isset($product['shipping_info']['items']) &&
+            is_array($product['shipping_info']['items']);
+
+        if ($hasShippingInfo) {
+            $items = $product['shipping_info']['items'];
+            $shippingFromCode = $product['shipping_info']['shippingFromCode'];
+            $shippingToCode = $product['shipping_info']['shippingToCode'];
+            $product['shipping_info'] = [];
+            $countryCode = ProductShippingData::meta_key($shippingFromCode, $shippingToCode);
+            $product['shipping_info'][$countryCode] = $items;
+        }
+
+        return $product;
     }
 
 }

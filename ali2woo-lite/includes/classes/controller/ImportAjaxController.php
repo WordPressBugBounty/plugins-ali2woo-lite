@@ -12,21 +12,31 @@
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
 namespace AliNext_Lite;;
 
-use Exception;
 use Throwable;
 
 class ImportAjaxController extends AbstractController
 {
-    private ProductImport $ProductImportModel;
-    private Woocommerce $WoocommerceModel;
-    private Review $ReviewModel;
-    private Override $OverrideModel;
-    private Aliexpress $AliexpressModel;
-    private SplitProductService $SplitProductService;
+    protected ProductImport $ProductImportModel;
+    protected Woocommerce $WoocommerceModel;
+    protected Review $ReviewModel;
+    protected Override $OverrideModel;
+    protected Aliexpress $AliexpressModel;
+    protected SplitProductService $SplitProductService;
+
+    protected ProductShippingDataService $ProductShippingDataService;
+    protected ImportListService $ImportListService;
+    protected ProductService $ProductService;
+
+    protected PriceFormulaService $PriceFormulaService;
+    protected ImportedProductServiceFactory $ImportedProductServiceFactory;
+    protected WoocommerceService $WoocommerceService;
 
     public function __construct(
         ProductImport $ProductImportModel, Woocommerce $WoocommerceModel, Review $ReviewModel,
         Override $OverrideModel, Aliexpress $AliexpressModel, SplitProductService $SplitProductService,
+        ProductShippingDataService $ProductShippingDataService, ImportListService $ImportListService,
+        ProductService $ProductService, PriceFormulaService $PriceFormulaService,
+        ImportedProductServiceFactory $ImportedProductServiceFactory, WoocommerceService $WoocommerceService
     ) {
         parent::__construct();
 
@@ -36,6 +46,12 @@ class ImportAjaxController extends AbstractController
         $this->OverrideModel = $OverrideModel;
         $this->AliexpressModel = $AliexpressModel;
         $this->SplitProductService = $SplitProductService;
+        $this->ProductShippingDataService = $ProductShippingDataService;
+        $this->ImportListService = $ImportListService;
+        $this->ProductService = $ProductService;
+        $this->PriceFormulaService = $PriceFormulaService;
+        $this->ImportedProductServiceFactory = $ImportedProductServiceFactory;
+        $this->WoocommerceService = $WoocommerceService;
 
         add_filter('a2wl_woocommerce_after_add_product', array($this, 'woocommerce_after_add_product'), 30, 4);
         add_action('wp_ajax_a2wl_push_product', [$this, 'ajax_push_product']);
@@ -892,8 +908,7 @@ class ImportAjaxController extends AbstractController
             }
 
             $product_import_model = $this->ProductImportModel;
-            $loader = $this->AliexpressModel;
-            $PriceFormulaService = A2WL()->getDI()->get('AliNext_Lite\PriceFormulaService');
+            $PriceFormulaService = $this->PriceFormulaService;
 
             if ($products && is_array($products)) {
                 foreach ($products as $p) {
@@ -913,7 +928,7 @@ class ImportAjaxController extends AbstractController
             );
             if (get_setting('allow_product_duplication') || !$post_id) {
                 $params = empty($_POST['apd']) ? array() : array('data' => array('apd' => json_decode(stripslashes($_POST['apd']))));
-                $res = $loader->load_product($_POST['id'], $params);
+                $res = $this->ProductService->loadProductWithShippingInfo($_POST['id'], $params);
                 if ($res['state'] !== 'error') {
                     $product = array_replace_recursive($product, $res['product']);
 
@@ -967,7 +982,7 @@ class ImportAjaxController extends AbstractController
                 }
             }
             if ($product) {
-                $product_import_model->del_product($product['id']);
+                $product_import_model->del_product($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]);
                 echo wp_json_encode(ResultBuilder::buildOk());
             } else {
                 echo wp_json_encode(ResultBuilder::buildError("Product not found in search result"));
@@ -981,6 +996,7 @@ class ImportAjaxController extends AbstractController
 
     public function ajax_load_shipping_info(): void
     {
+        //todo: perhaps Product page is a rudiment here
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
         if (!current_user_can('manage_options')) {
@@ -993,9 +1009,13 @@ class ImportAjaxController extends AbstractController
             $ids = is_array($_POST['id']) ? $_POST['id'] : [$_POST['id']];
             $page = $_POST['page'] ?? 'a2wl_dashboard';
 
+            if ($page === 'product') {
+                $this->ajax_load_shipping_info_for_product();
+            }
+
             $woocommerce_model = $this->WoocommerceModel;
             $product_import_model = $this->ProductImportModel;
-            $PriceFormulaService = A2WL()->getDI()->get('AliNext_Lite\PriceFormulaService');
+            $PriceFormulaService = $this->PriceFormulaService;
 
             $products = [];
             if ($page  === 'a2wl_dashboard'){
@@ -1007,64 +1027,73 @@ class ImportAjaxController extends AbstractController
             foreach ($ids as $id) {
                 if ($page == 'product' || $page == 'fulfillment') {
                     $product_id = $woocommerce_model->get_product_id_by_external_id($id);
-                    if ($tmp_product = $woocommerce_model->get_product_by_post_id($product_id)) {
+                    if ($tmp_product = $this->WoocommerceService->getProductWithVariations($product_id)) {
                         $products = [$tmp_product];
                     }
                 } else if ($page == 'import' && $tmp_product = $product_import_model->get_product($id)) {
                     $products = [$tmp_product];
                 }
                 foreach ($products as &$product) {
-                    if ($product['id'] == $id || $product['import_id'] == $id) {
-                        $product_country_from = !empty($product['shipping_from_country']) ?
-                            $product['shipping_from_country'] :
+                    if ($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID] == $id || $product['import_id'] == $id) {
+                        $product_country_from = !empty($product[ImportedProductService::FIELD_COUNTRY_FROM]) ?
+                            $product[ImportedProductService::FIELD_COUNTRY_FROM] :
                             'CN';
 
-                        $product_country_to = !empty($product['shipping_to_country'])
-                            ? $product['shipping_to_country']
+                        $product_country_to = !empty($product[ImportedProductService::FIELD_COUNTRY_TO])
+                            ? $product[ImportedProductService::FIELD_COUNTRY_TO]
                             : '';
 
                         $country_to = $_POST['country_to'] ?? $product_country_to;
-                        $country_from = !empty($_POST['country_from']) ? $_POST['country_from'] : $product_country_from;
+                        $country_from = !empty($_POST['country_from']) ? $_POST['country_from']
+                            : $product_country_from;
 
-                        $country = ProductShippingMeta::meta_key($country_from, $country_to);
+                        $country = ProductShippingData::meta_key($country_from, $country_to);
 
-                        if ($page == 'fulfillment') {
-                            $product['shipping_info'][$country] = [];
-                        }
+                        $selectedVariationKey = $_POST['variation_key'] ?? '';
 
-                        $product = Utils::update_product_shipping(
+                        $product = $this->ProductService->updateProductShippingInfo(
                             $product, $country_from,
-                            $country_to, $page, true
+                            $country_to, $selectedVariationKey, null
                         );
 
-                        if ($page == 'fulfillment') {
+                        if ($page === 'fulfillment' || $page === 'product') {
                             $_product = wc_get_product($product['post_id']);
                             $product_id = $_product->get_type() == 'variation' ? $_product->get_parent_id() : $_product->get_id();
-                            //todo: refactor ProductShippingMeta constructor, don't use product_id as param there
-                            $shipping_meta = new ProductShippingMeta($product_id);
-                            $shipping_meta->save_items(1, $country_from, $country_to, $product['shipping_info'][$country], true);
+                            $this->ProductShippingDataService->saveItems(
+                                $product_id, $country_from, $country_to,
+                                $product[ImportedProductService::FIELD_SHIPPING_INFO][$country]
+                            );
                         }
 
                         $product = $PriceFormulaService->applyFormula($product);
 
+
+                        $externalVariationId = null;
                         $variations = [];
                         if (isset($product['sku_products']['variations'])) {
                             foreach ($product['sku_products']['variations'] as $v) {
+                                if ($selectedVariationKey === $v['id']) {
+                                    $externalVariationId = $v['id'];
+                                }
+
+                                $variationTitle = $v['title'] ?? implode(" ", $v['attributes_names']);
                                 $variations[] = [
                                     'id' => $v['id'],
                                     'calc_price' => $v['calc_price'],
-                                    'calc_regular_price' => $v['calc_regular_price']
+                                    'calc_regular_price' => $v['calc_regular_price'],
+                                    'title' => $variationTitle,
                                 ];
                             }
                         }
 
-                        $items = $product['shipping_info'][$country] ?? [];
+                        $items = $product[ImportedProductService::FIELD_SHIPPING_INFO][$country] ?? [];
                         $result[] = [
                             'product_id' => $id,
-                            'default_method' => $product['shipping_default_method'] ?? '',
+                            'default_method' => $product[ImportedProductService::FIELD_METHOD] ?? '',
                             'items' => $items,
-                            'shipping_cost' => $product['shipping_cost'] ?? '',
-                            'variations' => $variations
+                            'shipping_cost' => $product[ImportedProductService::FIELD_COST] ?? '',
+                            'variations' => $variations,
+                            'variation_key' => $externalVariationId ?? '',
                         ];
 
                         if ($page !== 'a2wl_dashboard' && $page !== 'a2wl_store') {
@@ -1081,11 +1110,119 @@ class ImportAjaxController extends AbstractController
                 a2wl_set_transient('a2wl_search_store_result', $products);
             }
 
-            echo wp_json_encode(ResultBuilder::buildOk(array('products' => $result)));
+            echo wp_json_encode(ResultBuilder::buildOk(['products' => $result]));
         } else {
             echo wp_json_encode(ResultBuilder::buildError("load_shipping_info: waiting for ID..."));
         }
 
+        wp_die();
+    }
+
+    /**
+     * Load shipping info for ProductDataTab
+     * @return void
+     * @throws FactoryException
+     * @throws RepositoryException
+     */
+    private function ajax_load_shipping_info_for_product(): void
+    {
+        $externalProductId = $_POST['id'];
+        $externalVariationId = $_POST['variation_key'] ?? null;
+
+        $wc_product_id = $this->WoocommerceModel->get_product_id_by_external_id($externalProductId);
+        $wc_product_variation_id = null;
+
+        if ($externalVariationId) {
+            $wc_product_variation_id = $this->WoocommerceModel
+                ->getProductIdByExternalVariationID($externalVariationId);
+        }
+
+        if (!$wc_product_id) {
+            $errorText = esc_html__('No such a product', 'ali2woo');
+            $result = ResultBuilder::buildError($errorText);
+
+            echo wp_json_encode($result);
+            wp_die();
+        }
+
+        if ($externalVariationId && !$wc_product_variation_id) {
+            $errorText = esc_html__('No such a product with this variation key', 'ali2woo');
+            $result = ResultBuilder::buildError($errorText);
+
+            echo wp_json_encode($result);
+            wp_die();
+        }
+
+        $product = $this->WoocommerceService->getProductWithVariations($wc_product_id);
+
+        $ImportedProductService = $this->ImportedProductServiceFactory->createFromWcProductId(
+            $wc_product_variation_id ?? $wc_product_id
+        );
+
+        $product_country_from = !empty($product[ImportedProductService::FIELD_COUNTRY_FROM]) ?
+            $product[ImportedProductService::FIELD_COUNTRY_FROM] :
+            'CN';
+
+        $product_country_to = !empty($product[ImportedProductService::FIELD_COUNTRY_TO])
+            ? $product[ImportedProductService::FIELD_COUNTRY_TO]
+            : '';
+
+        $country_to = $_POST['country_to'] ?? $product_country_to;
+        $country_from = !empty($_POST['country_from']) ? $_POST['country_from'] : $product_country_from;
+
+        $country = ProductShippingData::meta_key($country_from, $country_to);
+        $product = $this->ProductService->updateProductShippingInfo(
+            $product, $country_from, $country_to, $externalVariationId,
+            $ImportedProductService->getExtraData()
+        );
+
+        $this->ProductShippingDataService->saveItems(
+            $wc_product_id, $country_from, $country_to,
+            $product[ImportedProductService::FIELD_SHIPPING_INFO][$country]
+        );
+
+        $product = $this->PriceFormulaService->applyFormula($product);
+
+        $variations = [];
+        if (isset($product['sku_products']['variations'])) {
+            foreach ($product['sku_products']['variations'] as $v) {
+                $variations[] = [
+                    'id' => $v['id'],
+                    'calc_price' => $v['calc_price'],
+                    'calc_regular_price' => $v['calc_regular_price'],
+                    'title' =>  $v['title'],
+                ];
+            }
+        }
+
+       /* $product = $this->ShippingInfoService->updateProductShippingInfo(
+            $product, $country_from, $country_to, true, $externalVariationId,
+            $ImportedProductService->getExtraData()
+        );*/
+
+       /* $product = $this->PriceFormulaService->applyFormula($product);
+
+        $variations = [];
+        if (isset($product['sku_products']['variations'])) {
+            foreach ($product['sku_products']['variations'] as $v) {
+                $variations[] = [
+                    'id' => $v['id'],
+                    'calc_price' => $v['calc_price'],
+                    'calc_regular_price' => $v['calc_regular_price']
+                ];
+            }
+        }*/
+
+        $items = $product[ImportedProductService::FIELD_SHIPPING_INFO][$country] ?? [];
+        $result[] = [
+            'product_id' => $externalProductId,
+            'default_method' => $product[ImportedProductService::FIELD_METHOD] ?? '',
+            'items' => $items,
+            'shipping_cost' => $product[ImportedProductService::FIELD_COST] ?? '',
+            'variations' => $variations
+        ];
+
+        echo wp_json_encode(ResultBuilder::buildOk(['products' => $result]));
         wp_die();
     }
 
@@ -1100,60 +1237,31 @@ class ImportAjaxController extends AbstractController
         }
 
         if (isset($_POST['id'])) {
-            $product_import_model = $this->ProductImportModel;
-            $PriceFormulaService = A2WL()->getDI()->get('AliNext_Lite\PriceFormulaService');
-            $product = $product_import_model->get_product($_POST['id']);
+            $product = $this->ProductImportModel->get_product($_POST['id']);
 
             if ($product) {
-                $product_country_to = isset($product['shipping_to_country']) &&
-                    $product['shipping_to_country'] ?
-                    $product['shipping_to_country'] : '';
+                $product = $this->ProductService->setShippingInfo(
+                    $product,
+                    $_POST['method'] ?? '',
+                    $_POST['variation_key'] ?? null,
+                    $_POST['country_to'] ?? null,
+                    $_POST['country_from'] ?? null
+                );
 
-                $product_country_from = isset($product['shipping_from_country']) &&
-                    $product['shipping_from_country'] ?
-                    $product['shipping_from_country'] : '';
-
-                $country_to = $_POST['country_to'] ?? $product_country_to;
-                $country_from = $_POST['country_from'] ?? $product_country_from;
-
-                $country = ProductShippingMeta::meta_key($country_from, $country_to);
-                $method = $_POST['method'] ?? '';
-
-                if ($country && $method) {
-                    $product['shipping_default_method'] = $method;
-                    $product['shipping_to_country'] = ProductShippingMeta::normalize_country($country_to);
-                    $product['shipping_from_country'] = ProductShippingMeta::normalize_country($country_from);
-
-                    $product['shipping_cost'] = 0;
-                    $items = $product['shipping_info'][$country] ?? [];
-                    foreach ($items as $s) {
-                        if ($s['serviceName'] == $product['shipping_default_method']) {
-                            $product['shipping_cost'] = $s['previewFreightAmount']['value'] ?? $s['freightAmount']['value'];
-                            break;
-                        }
-                    }
-
-                    $product = $PriceFormulaService->applyFormula($product);
-                    $product_import_model->upd_product($product);
-                }
+                $this->ProductImportModel->upd_product($product);
 
                 $variations = [];
-                foreach ($product['sku_products']['variations'] as $v) {
+                foreach ($product['sku_products']['variations'] as $variation) {
                     $variations[] = [
-                        'id' => $v['id'],
-                        'calc_price' => $v['calc_price'],
-                        'calc_regular_price' => $v['calc_regular_price']
+                        'id' => $variation['id'],
+                        'calc_price' => $variation['calc_price'],
+                        'calc_regular_price' => $variation['calc_regular_price']
                     ];
                 }
 
-                $shipping_cost = 0;
-                if (isset($product['shipping_cost'])) {
-                    $shipping_cost = $product['shipping_cost'];
-                }
-
                 $result = [
-                    'default_method' => $product['shipping_default_method'],
-                    'shipping_cost' => $shipping_cost,
+                    'default_method' => $product[ImportedProductService::FIELD_METHOD],
+                    'shipping_cost' => $product[ImportedProductService::FIELD_COST],
                     'variations' => $variations
                 ];
                 echo wp_json_encode(ResultBuilder::buildOk($result));

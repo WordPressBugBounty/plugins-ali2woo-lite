@@ -1630,7 +1630,7 @@ body .a2wl-content {
     display: flex;
     align-items: center;
 
-    width: 200px;
+    /*width: 200px;*/
     margin-right: 10px;
 
     cursor: pointer;
@@ -1642,11 +1642,11 @@ body .a2wl-content {
 }
 
 .modal-shipping.with-country-from .modal-content{
-    width: 650px;
+    width: 700px;
 }
-.a2wl-content .country-select.country-select-from{
+/*.a2wl-content .country-select.country-select-from{
     width:120px;
-}
+}*/
 .modal-shipping .country-select-from{
     display: none;
 }

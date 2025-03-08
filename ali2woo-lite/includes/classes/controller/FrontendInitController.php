@@ -14,11 +14,27 @@
 
 namespace AliNext_Lite;;
 
+use WC_Customer;
+use WC_Shipping_Rate;
+use WC_Tax;
+
 class FrontendInitController extends AbstractController
 {
-    public function __construct()
-    {
+    protected WoocommerceService $WoocommerceService;
+    protected ImportedProductServiceFactory $ImportedProductServiceFactory;
+    protected ProductService $ProductService;
+
+
+    public function __construct(
+        WoocommerceService $WoocommerceService,
+        ImportedProductServiceFactory $ImportedProductServiceFactory,
+        ProductService $ProductService
+    ) {
         parent::__construct();
+
+        $this->WoocommerceService = $WoocommerceService;
+        $this->ImportedProductServiceFactory = $ImportedProductServiceFactory;
+        $this->ProductService = $ProductService;
 
         add_action('wp_ajax_a2wl_frontend_load_shipping_info', [$this, 'ajax_frontend_load_shipping_info']);
         add_action('wp_ajax_nopriv_a2wl_frontend_load_shipping_info', [$this, 'ajax_frontend_load_shipping_info']);
@@ -29,8 +45,14 @@ class FrontendInitController extends AbstractController
         add_action('wp_ajax_nopriv_a2wl_frontend_update_shipping_list', [$this, 'ajax_frontend_update_shipping_list']);
 
         if (get_setting('aliship_frontend')) {
-            add_action('wp_ajax_a2wl_update_shipping_method_in_cart_item', [$this, 'ajax_frontend_update_shipping_method_in_cart_item']);
-            add_action('wp_ajax_nopriv_a2wl_update_shipping_method_in_cart_item', [$this, 'ajax_frontend_update_shipping_method_in_cart_item']);
+            add_action(
+                'wp_ajax_a2wl_update_shipping_method_in_cart_item',
+                [$this, 'ajax_frontend_update_shipping_method_in_cart_item']
+            );
+            add_action(
+                'wp_ajax_nopriv_a2wl_update_shipping_method_in_cart_item',
+                [$this, 'ajax_frontend_update_shipping_method_in_cart_item']
+            );
 
             if (get_setting('aliship_product_enable')) {
                 add_action('woocommerce_add_to_cart_validation', array($this, 'product_shipping_fields_validation'), 10, 3);
@@ -44,7 +66,7 @@ class FrontendInitController extends AbstractController
         if (get_setting('aliship_frontend')) {
 
             //calculate shipping total in the cart and checkout page
-            add_filter('woocommerce_package_rates', array($this, 'woocommerce_package_rates'), 10, 2);
+            add_filter('woocommerce_package_rates', [$this, 'woocommerce_package_rates'], 10, 2);
         }
 
         //this hook is fired on frontend and backend.
@@ -61,84 +83,120 @@ class FrontendInitController extends AbstractController
         return $ajax_actions;
     }
 
+    /**
+     * Get shipping info for shipping popup or drop-down selection on the detailed product page
+     * @return void
+     */
     public function ajax_frontend_load_shipping_info(): void
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (isset($_POST['id']) && intval($_POST['id']) > 0) {
-
-            $shipping_to_country = isset($_POST['country']) ? wc_clean(wp_unslash($_POST['country'])) : "";
-
-            if (!$shipping_to_country) {
-                echo wp_json_encode(ResultBuilder::buildError("load_product_shipping_info: country is required."));
-                wp_die();
-            }
-
-            $_product = wc_get_product(intval($_POST['id']));
-
-            if (!$_product) {
-                echo wp_json_encode(ResultBuilder::buildError("load_product_shipping_info: bad product ID."));
-                wp_die();
-
-            }
-
-            $quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 1;
-
-            $result = Utils::get_product_shipping_info($_product, $quantity, $shipping_to_country, false);
-
-            $countries = Shipping::get_countries();
-
-            $country_label = $countries[$shipping_to_country];
-
-            $page = "cart";
-
-            if (isset($_POST['page'])) {
-                if ($_POST['page'] == "product") {
-                    $page = "product";
-                }
-            }
-
-            if ($page == "product" && get_setting('aliship_not_available_remove')) {
-
-                //if this product page and option is enabled we use a separate not available message
-                $shipping_info = str_replace('{country}', $country_label, get_setting('aliship_product_not_available_message'));
-
-            } else {
-                $shipping_info = Shipping::get_not_available_shipping_message($country_label);
-            }
-
-            $normalized_methods = array();
-
-            $type = "select";
-
-            if (isset($_POST['type'])) {
-                if ($_POST['type'] == "popup") {
-                    $type = "popup";
-                }
-            }
-
-            foreach ($result['items'] as $method) {
-
-                $normalized_method = Shipping::get_normalized($method, $shipping_to_country, $type);
-
-                if (!$normalized_method) {
-                    continue;
-                }
-
-                $normalized_methods[] = $normalized_method;
-
-            }
-
-            if ($normalized_methods) {
-
-            }
-
-            $result['items'] = $normalized_methods;
-
-            echo wp_json_encode(ResultBuilder::buildOk(array('products' => $result, 'shipping_info' => $shipping_info)));
-        } else {
-            echo wp_json_encode(ResultBuilder::buildError("load_product_shipping_info: waiting for ID..."));
+        if (empty($_POST['id']) || intval($_POST['id']) < 0) {
+            echo wp_json_encode(ResultBuilder::buildError("Missing product ID..."));
         }
+
+        if (!empty($_POST['variation_id']) && intval($_POST['variation_id']) <= 0) {
+            echo wp_json_encode(ResultBuilder::buildError("Illegal product variation ID..."));
+        }
+
+        $countryToCode = isset($_POST['country']) ? wc_clean(wp_unslash($_POST['country'])) : "";
+
+        if (!$countryToCode) {
+            echo wp_json_encode(ResultBuilder::buildError("Country is required."));
+            wp_die();
+        }
+
+        $wcProductId = intval($_POST['id']);
+        $wcVariationId = null;
+        if (!empty($_POST['variation_id']) && intval($_POST['variation_id']) > 0) {
+            $wcVariationId = intval($_POST['variation_id']);
+        }
+
+        $countries = Shipping::get_countries();
+
+        $country_label = $countries[$countryToCode];
+
+        $page = "cart";
+
+        if (isset($_POST['page'])) {
+            if ($_POST['page'] == "product") {
+                $page = "product";
+            }
+        }
+
+        if ($page == "product" && get_setting('aliship_not_available_remove')) {
+            //if this product page and option is enabled we use a separate not available message
+            $shipping_info = str_replace(
+                '{country}', $country_label, get_setting('aliship_product_not_available_message')
+            );
+
+        } else {
+            $shipping_info = Shipping::get_not_available_shipping_message($country_label);
+        }
+
+        $normalized_methods = [];
+
+        $type = "select";
+
+        if (isset($_POST['type'])) {
+            if ($_POST['type'] == "popup") {
+                $type = "popup";
+            }
+        }
+
+        $WC_ProductOrVariation = wc_get_product($wcProductId);
+        if (!$WC_ProductOrVariation) {
+            echo wp_json_encode(ResultBuilder::buildError("Bad product ID"));
+            wp_die();
+        }
+
+        if ($wcVariationId) {
+            $WC_ProductOrVariation = wc_get_product($wcVariationId);
+            if (!$WC_ProductOrVariation) {
+                echo wp_json_encode(ResultBuilder::buildError("Bad product variation ID"));
+                wp_die();
+            }
+        }
+
+        $countryFromCode = 'CN';
+
+        try {
+            $importedProduct = $this->WoocommerceService->updateProductShippingInfo(
+                $WC_ProductOrVariation,
+                $countryToCode,
+                $countryFromCode
+            );
+        } catch (RepositoryException $Exception) {
+            a2wl_error_log($Exception->getMessage());
+
+            echo wp_json_encode(ResultBuilder::buildError(
+                'Can`t get product shipping')
+            );
+
+            wp_die();
+        }
+
+        $shippingItems = $this->ProductService->getShippingItems(
+            $importedProduct, $countryToCode, $countryFromCode
+        );
+
+        foreach ($shippingItems as $method) {
+            $normalized_method = Shipping::get_normalized($method, $countryToCode, $type);
+            if (!$normalized_method) {
+                continue;
+            }
+            $normalized_methods[] = $normalized_method;
+        }
+
+        echo wp_json_encode(ResultBuilder::buildOk([
+            'products' => [
+                'product_id' => $importedProduct['post_id'],
+                'default_method' => $importedProduct[ImportedProductService::FIELD_METHOD],
+                'items' => $normalized_methods,
+                'shipping_cost' => $importedProduct[ImportedProductService::FIELD_COST],
+            ],
+            'shipping_info' => $shipping_info
+        ]));
 
         wp_die();
     }
@@ -197,7 +255,7 @@ class FrontendInitController extends AbstractController
         //todo: remove?
         $customer_id = apply_filters('woocommerce_checkout_customer_id', get_current_user_id());
         if ($customer_id && !empty($_POST['calc_shipping_country'])) {
-            $customer = new \WC_Customer($customer_id);
+            $customer = new WC_Customer($customer_id);
             $customer->set_shipping_country(strval($_POST['calc_shipping_country']));
             $customer->save();
         }
@@ -292,57 +350,59 @@ class FrontendInitController extends AbstractController
 
     }
 
-    public function woocommerce_package_rates($methods, $package)
+    public function woocommerce_package_rates($methods, $package): array
     {
-
         if (!empty($package['contents'])) {
-
             $ali_shipping_type = get_setting('aliship_shipping_type', 'new');
-
-            $default_shipping_to_country = $package["destination"]["country"];
-
+            $countryToCode = $package["destination"]["country"];
             $default_tariff_code = get_setting('fulfillment_prefship', 'EMS_ZX_ZX_US'); //ePacket
 
             $ali_total_shipping = 0;
             $ali_shipping = false;
-            $items_in_package = array();
+            $items_in_package = [];
 
             $remove_cart_item = get_setting('aliship_not_available_remove');
-
             $not_available_cost = get_setting('aliship_not_available_cost');
 
             foreach ($package['contents'] as $cart_item_key => $cart_item) {
+                $WC_Product = $cart_item['data'];
+                $quantity = $cart_item['quantity'];
 
-                $product_id = $cart_item['product_id'];
 
-                $external_id = get_post_meta($product_id, '_a2w_external_id', true);
+                $importedProductService = $this->ImportedProductServiceFactory->createFromProduct($WC_Product);
+                $externalId = $importedProductService->getExternalId();
 
-                if ($external_id) {
-                    //we must check for $external_id here, because we can't rely on $cart_item['a2wl_shipping_method']
-                    //because if the shipping selection is not enabled on the product page
-                    //$cart_item['a2wl_shipping_method'] is unset
-
+                if ($externalId) {
                     $ali_shipping = true;
 
-                    $_product = $cart_item['data'];
+                    $countryFromCode = 'CN';
+                    try {
+                        $importedProduct = $this->WoocommerceService
+                            ->updateProductShippingInfo($WC_Product, $countryToCode, $countryFromCode, $quantity);
+                    } catch (RepositoryException $Exception) {
+                        a2wl_error_log($Exception->getMessage());
 
-                    $shipping_info = Utils::get_product_shipping_info($_product, $cart_item['quantity'], $default_shipping_to_country, false);
+                        return $methods;
+                    }
 
-                    $normalized_methods = array();
+                    $shippingItems = $this->ProductService->getShippingItems(
+                        $importedProduct, $countryToCode, $countryFromCode
+                    );
 
-                    if ($shipping_info) {
+                    $normalized_methods = [];
 
-                        $shipping_methods = $shipping_info['items'];
+                    if (!empty($shippingItems)) {
+                        $shipping_methods = $shippingItems;
 
                         if (!empty($shipping_methods)) {
 
-                            $search_tariff_code = isset($cart_item['a2wl_shipping_method']) ? $cart_item['a2wl_shipping_method'] : $default_tariff_code;
+                            $search_tariff_code = $cart_item['a2wl_shipping_method'] ?? $default_tariff_code;
 
                             $min_method = false;
 
                             foreach ($shipping_methods as $method) {
 
-                                $normalized_method = Shipping::get_normalized($method, $default_shipping_to_country);
+                                $normalized_method = Shipping::get_normalized($method, $countryToCode);
 
                                 if (!$normalized_method) {
                                     continue;
@@ -370,7 +430,7 @@ class FrontendInitController extends AbstractController
                                 'delivery_time' => $chosen_method['time'],
                                 'shipping_cost' => $chosen_method['price']);
 
-                            $items_in_package[] = $_product->get_name() . ' &times; ' . $cart_item['quantity'];
+                            $items_in_package[] = $WC_Product->get_name() . ' &times; ' . $cart_item['quantity'];
 
                         } else {
 
@@ -384,7 +444,7 @@ class FrontendInitController extends AbstractController
                     } else {
 
                         //todo: it looks like rudiment condition shipping_info can't be false
-                        //funtion can't come here, remove?
+                        //function can't come here, remove?
 
                         if (!$remove_cart_item && $not_available_cost) {
                             $ali_total_shipping += $not_available_cost;
@@ -413,16 +473,16 @@ class FrontendInitController extends AbstractController
                 switch ($ali_shipping_type) {
                     case 'new':
                         /*Create a new shipping method but still show other available shipping methods*/
-                        $taxes = \WC_Tax::calc_shipping_tax($ali_total_shipping, \WC_Tax::get_shipping_tax_rates());
-                        $methods[$id] = new \WC_Shipping_Rate($id, $label, $ali_total_shipping, $taxes, $id, '');
+                        $taxes = WC_Tax::calc_shipping_tax($ali_total_shipping, WC_Tax::get_shipping_tax_rates());
+                        $methods[$id] = new WC_Shipping_Rate($id, $label, $ali_total_shipping, $taxes, $id, '');
                         if (count($items_in_package)) {
                             $methods[$id]->add_meta_data(esc_html__('Items', 'woocommerce'), implode(', ', $items_in_package));
                         }
                         break;
                     case 'new_only':
                         /*Create a new shipping method and make it the only available shipping method*/
-                        $taxes = \WC_Tax::calc_shipping_tax($ali_total_shipping, \WC_Tax::get_shipping_tax_rates());
-                        $methods = array($id => new \WC_Shipping_Rate($id, $label, $ali_total_shipping, $taxes, $id, ''));
+                        $taxes = WC_Tax::calc_shipping_tax($ali_total_shipping, WC_Tax::get_shipping_tax_rates());
+                        $methods = array($id => new WC_Shipping_Rate($id, $label, $ali_total_shipping, $taxes, $id, ''));
                         if (count($items_in_package)) {
                             $methods[$id]->add_meta_data(esc_html__('Items', 'woocommerce'), implode(', ', $items_in_package));
                         }
@@ -433,7 +493,7 @@ class FrontendInitController extends AbstractController
                             foreach ($methods as $rate_k => $rate) {
                                 if (is_a($rate, 'WC_Shipping_Rate') && $rate && $rate->get_method_id() !== 'free_shipping') {
                                     $cost = $rate->get_cost() + $ali_total_shipping;
-                                    $taxes = \WC_Tax::calc_shipping_tax($cost, \WC_Tax::get_shipping_tax_rates());
+                                    $taxes = WC_Tax::calc_shipping_tax($cost, WC_Tax::get_shipping_tax_rates());
                                     $methods[$rate_k]->set_cost($cost);
                                     $methods[$rate_k]->set_taxes($taxes);
                                 }
@@ -457,12 +517,10 @@ class FrontendInitController extends AbstractController
                         $label = esc_html__('Free Shipping', 'ali2woo');
                     }
 
-                    $taxes = \WC_Tax::calc_shipping_tax(0, \WC_Tax::get_shipping_tax_rates());
-                    $methods[$id] = new \WC_Shipping_Rate('free_shipping', $label, 0, $taxes, $id, '');
+                    $taxes = WC_Tax::calc_shipping_tax(0, WC_Tax::get_shipping_tax_rates());
+                    $methods[$id] = new WC_Shipping_Rate('free_shipping', $label, 0, $taxes, $id, '');
                 }
-
             }
-
         }
 
         return $methods;

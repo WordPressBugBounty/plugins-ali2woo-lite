@@ -73,7 +73,8 @@ class JSON_API
                 $this->error("Unknown controller '$controller_class'.");
             }
 
-            $this->controller = new $controller_class();
+
+            $this->controller = A2WL()->getDI()->get($controller_class);
             $method = $this->query->get_method($controller);
 
             if ($method) {

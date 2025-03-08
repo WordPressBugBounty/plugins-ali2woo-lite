@@ -19,9 +19,13 @@ class SettingPageAjaxController extends AbstractController
 {
     public const FREE_TARIFF_CODE = 'free';
 
-    public function __construct()
+    private ProductShippingDataRepository $ProductShippingDataRepository;
+
+    public function __construct(ProductShippingDataRepository $ProductShippingDataRepository)
     {
         parent::__construct();
+
+        $this->ProductShippingDataRepository = $ProductShippingDataRepository;
 
         add_action('wp_ajax_a2wl_update_price_rules', [$this, 'ajax_update_price_rules']);
 
@@ -406,8 +410,7 @@ class SettingPageAjaxController extends AbstractController
         }
 
         $result = ResultBuilder::buildOk();
-        //remove saved shipping meta
-        ProductShippingMeta::clear_in_all_product();
+        $this->ProductShippingDataRepository->clear();
 
         echo wp_json_encode($result);
         wp_die();

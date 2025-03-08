@@ -5,6 +5,7 @@
  */
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
 use AliNext_Lite\AbstractController;
+use AliNext_Lite\ImportedProductService;
 use AliNext_Lite\TipOfDay;
 use AliNext_Lite\Utils;
 
@@ -141,7 +142,12 @@ use AliNext_Lite\Utils;
                     
                     <div class='row space-top'>
                         <div class='col-xs-12'>                            
-                            <div class='product<?php echo isset($product['shipping_cost'])?" shiping_loaded":""?>' data-id="<?php echo $product['import_id']; ?>" data-country_from_list="<?php echo empty($product['shipping_from_country_list'])?'':implode(";",$product['shipping_from_country_list']); ?>" data-country_from="<?php echo isset($product['shipping_from_country'])?$product['shipping_from_country']:''; ?>" data-country_to="<?php echo isset($product['shipping_to_country'])?$product['shipping_to_country']:''; ?>">
+                            <div class='product<?php echo isset($product['shipping_cost'])?" shiping_loaded":""?>'
+                                 data-id="<?php echo $product['import_id']; ?>"
+                                 data-country_from_list="<?php echo empty($product[ImportedProductService::FIELD_COUNTRY_FROM_LIST]) ? 'CN' : implode(";", $product[ImportedProductService::FIELD_COUNTRY_FROM_LIST]); ?>"
+                                 data-country_from="<?php echo $product[ImportedProductService::FIELD_COUNTRY_FROM] ?? ''; ?>"
+                                 data-country_to="<?php echo $product[ImportedProductService::FIELD_COUNTRY_TO] ?? ''; ?>"
+                                 data-variation_key="<?php echo $product[ImportedProductService::FIELD_VARIATION_KEY] ?? ''; ?>">
                             <?php if (!isset($product['sku_products']['variations'])) $product['sku_products']['variations'] = [];  ?>
                             <?php if (!isset($product['sku_products']['attributes'])) $product['sku_products']['attributes'] = [];  ?>
                             <div class="a2wl-row">
@@ -154,7 +160,7 @@ use AliNext_Lite\Utils;
                                         <li> <a href="#" rel="images"><?php  esc_html_e('Images', 'ali2woo'); ?></a></li> 
                                     </ul>
                                     <div class="actions">
-                                        <span class="margin-small-right"><?php  esc_html_e('External Id', 'ali2woo'); ?>: <b><?php echo $product['id']; ?></b></span>
+                                        <span class="margin-small-right"><?php  esc_html_e('External Id', 'ali2woo'); ?>: <b><?php echo $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]; ?></b></span>
                                         <div class="btn-group margin-small-right">
                                             <button type="button" class="btn btn-default dropdown-toggle btn-icon-right" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                 <?php  esc_html_e('Action', 'ali2woo'); ?> <span class="caret"></span>
@@ -239,7 +245,7 @@ use AliNext_Lite\Utils;
                                                                 <?php  esc_html_e('SKU', 'ali2woo'); ?>:
                                                             </label>
                                                             <div class="field__input-wrap">
-                                                                <input type="text" class="field__input form-control sku" maxlength="255" value="<?php echo empty($product['sku'])?$product['id']:$product['sku']; ?>"/>
+                                                                <input type="text" class="field__input form-control sku" maxlength="255" value="<?php echo empty($product['sku'])?$product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]:$product['sku']; ?>"/>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -399,7 +405,7 @@ use AliNext_Lite\Utils;
                                                     <td></td>
                                                     <!-- <td colspan="<?php echo (4 + count($product['sku_products']['attributes'])); ?>"></td> -->
                                                     <td>
-                                                        <a href="#" class="shipping-country"><?php echo isset($product['shipping_to_country'])? (isset($product['shipping_to_country_name'])?$product['shipping_to_country_name']:$product['shipping_to_country']):esc_html__('Select country', 'ali2woo'); ?></a>
+                                                        <a href="#" class="shipping-country"><?php echo $product[ImportedProductService::FIELD_COUNTRY_TO] ?? esc_html__('Select country', 'ali2woo'); ?></a>
                                                     </td>
                                                     <td>
                                                         <div class="price-edit-selector edit-price">

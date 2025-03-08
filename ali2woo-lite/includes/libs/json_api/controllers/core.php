@@ -10,18 +10,25 @@ Controller description: Basic introspection methods
 class JSON_API_Core_Controller
 {
 
-    private $product_import_model;
-    private $loader;
+    protected GlobalSystemMessageService $GlobalSystemMessageService;
+    protected ProductImport $ProductImportModel;
+    protected Woocommerce $WoocommerceModel;
+    protected ProductService $ProductService;
 
-    public function __construct()
-    {
-		//todo: perhaps it would be better to move this call to some other controller
-        $GlobalSystemMessageService = A2WL()->getDI()->get('AliNext_Lite\GlobalSystemMessageService');
-        $GlobalSystemMessageService->clear();
+    public function __construct(
+        GlobalSystemMessageService $GlobalSystemMessageService,
+        ProductImport $ProductImportModel,
+        Woocommerce $WoocommerceModel,
+        ProductService $ProductService
+    ) {
 
-        $this->product_import_model = new ProductImport();
-        $this->woocommerce_model = A2WL()->getDI()->get('AliNext_Lite\Woocommerce');
-        $this->loader = new Aliexpress();
+        $this->GlobalSystemMessageService = $GlobalSystemMessageService;
+        $this->ProductImportModel = $ProductImportModel;
+        $this->WoocommerceModel = $WoocommerceModel;
+        $this->ProductService = $ProductService;
+
+        //todo: perhaps it would be better to move this call to some other controller
+        $this->GlobalSystemMessageService->clear();
     }
 
     public function permissions($method)
@@ -95,19 +102,19 @@ class JSON_API_Core_Controller
 
             $PriceFormulaService = A2WL()->getDI()->get('AliNext_Lite\PriceFormulaService');
 
-            $imported = !!$this->woocommerce_model->get_product_id_by_external_id($product['id']) || !!$this->product_import_model->get_product($product['id']);
+            $imported = !!$this->WoocommerceModel->get_product_id_by_external_id($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]) || !!$this->ProductImportModel->get_product($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]);
             // $post_id = $wpdb->get_var($wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_a2w_external_id' AND meta_value='%s' LIMIT 1", $product['id']));
             if (get_setting('allow_product_duplication') || !$imported) {
                 $params = (a2wl_check_defined('A2WL_CHROME_EXT_IMPORT') && !empty($_POST['apd']))
                 ? array('data' => array('apd' => json_decode(stripslashes($_POST['apd']))))
                 : array();
 
-                $result = $this->loader->load_product($product['id'], $params);
+                $result = $this->ProductService->loadProductWithShippingInfo($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID], $params);
                 if ($result['state'] !== 'error') {
                     $product = array_replace_recursive($product, $result['product']);
                     $product = $PriceFormulaService->applyFormula($product);
 
-                    $result = $this->product_import_model->add_product($product);
+                    $result = $this->ProductImportModel->add_product($product);
                     $result = array('status' => 'ok');
                 } else {
                     $a2wl_json_api->error($result['message']);
@@ -129,7 +136,7 @@ class JSON_API_Core_Controller
             $a2wl_json_api->error("No ID specified. Include 'id' var in your request.");
         } else {
 
-            $product = $this->product_import_model->get_product($product_id);
+            $product = $this->ProductImportModel->get_product($product_id);
             if (!$product) {
                 $product = array('id' => $product_id);
             }
@@ -156,7 +163,7 @@ class JSON_API_Core_Controller
                 $product['currency'] = $_REQUEST['currency'];
             }
 
-            $this->product_import_model->upd_product($product);
+            $this->ProductImportModel->upd_product($product);
         }
 
         return array();
@@ -170,7 +177,7 @@ class JSON_API_Core_Controller
         if (empty($product_id)) {
             $a2wl_json_api->error("No ID specified. Include 'id' var in your request.");
         } else {
-            $this->product_import_model->del_product($product_id);
+            $this->ProductImportModel->del_product($product_id);
         }
         return array();
     }
@@ -179,7 +186,7 @@ class JSON_API_Core_Controller
     {
         global $a2wl_json_api;
 
-        $tmp_products = $this->product_import_model->get_product_list();
+        $tmp_products = $this->ProductImportModel->get_product_list();
 
         if (isset($_REQUEST['html'])) {
             return array('products' => $tmp_products);
@@ -200,8 +207,8 @@ class JSON_API_Core_Controller
             $ids = array_map('trim', is_array($_REQUEST['id']) ? $_REQUEST['id'] : explode(",", $_REQUEST['id']));
             foreach ($ids as $id) {
                 $product = array('id' => $id);
-                $product['imported'] = !!$this->woocommerce_model->get_product_id_by_external_id($id) ||
-                !!$this->product_import_model->get_product($id);
+                $product['imported'] = !!$this->WoocommerceModel->get_product_id_by_external_id($id) ||
+                !!$this->ProductImportModel->get_product($id);
                 $products[] = $product;
             }
             return array('products' => $products);
@@ -298,7 +305,7 @@ class JSON_API_Core_Controller
     {
         global $a2wl_json_api;
 
-        $result = $this->woocommerce_model->get_fulfilled_orders_data();
+        $result = $this->WoocommerceModel->get_fulfilled_orders_data();
 
         return array('orders' => $result);
 
@@ -326,7 +333,7 @@ class JSON_API_Core_Controller
                 $carrier_url = isset($order['tracking_data']['carrier_url']) ? $order['tracking_data']['carrier_url'] : '';
                 $tracking_status = isset($order['tracking_data']['tracking_status']) ? $order['tracking_data']['tracking_status'] : '';
 
-                $result = $this->woocommerce_model->save_tracking_code($order_id, $ext_id, $tracking_codes, $carrier_name, $carrier_url, $tracking_status);
+                $result = $this->WoocommerceModel->save_tracking_code($order_id, $ext_id, $tracking_codes, $carrier_name, $carrier_url, $tracking_status);
             }
 
         }

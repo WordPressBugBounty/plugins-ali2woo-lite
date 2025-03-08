@@ -22,17 +22,20 @@ class Woocommerce
     private Helper $helper;
     private ProductChange $product_change_model;
     private VideoShortcodeService $VideoShortcodeService;
+    private ProductShippingDataService $ProductShippingDataService;
 
     public function __construct(
         Attachment $AttachmentModel,
         Helper $HelperModel,
         ProductChange $ProductChangeModel,
-        VideoShortcodeService $VideoShortcodeService
+        VideoShortcodeService $VideoShortcodeService,
+        ProductShippingDataService $ProductShippingDataService
     ) {
         $this->attachment_model = $AttachmentModel;
         $this->helper = $HelperModel;
         $this->product_change_model = $ProductChangeModel;
         $this->VideoShortcodeService = $VideoShortcodeService;
+        $this->ProductShippingDataService = $ProductShippingDataService;
     }
 
     public static function is_woocommerce_installed(): bool
@@ -189,7 +192,7 @@ class Woocommerce
         $product_type = (isset($product['product_type']) && $product['product_type']) ? $product['product_type'] : get_setting('default_product_type', 'simple');
         $product_status = (isset($product['product_status']) && $product['product_status']) ? $product['product_status'] : get_setting('default_product_status', 'publish');
 
-        $post_title = isset($product['title']) && $product['title'] ? $product['title'] : "Product " . $product['id'];
+        $post_title = isset($product['title']) && $product['title'] ? $product['title'] : "Product " . $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID];
 
         $first_ava_var = false;
         $variations_active_cnt = 0;
@@ -197,7 +200,9 @@ class Woocommerce
         if (!empty($product['sku_products']['variations'])) {
             foreach ($product['sku_products']['variations'] as $variation) {
                 // check quantity only for non-external import
-                if (($product_type === "external" || intval($variation['quantity']) > 0) && !in_array($variation['id'], $product['skip_vars'])) {
+                $condition = ($product_type === "external" || intval($variation['quantity']) > 0) &&
+                    !in_array($variation['id'], $product['skip_vars']);
+                if ($condition) {
                     if (!$first_ava_var) {
                         $first_ava_var = $variation;
                     }
@@ -232,10 +237,10 @@ class Woocommerce
                 'tax_input' => $tax_input,
                 'meta_input' => [
                     '_stock_status' => 'instock',
-                    '_sku' => empty($product['sku']) ? $product['id'] : $product['sku'],
+                    '_sku' => empty($product['sku']) ? $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID] : $product['sku'],
                     '_visibility' => 'visible', // for old WooCommerce
                     '_product_url' => $product['affiliate_url'],
-                    '_a2w_external_id' => $product['id'],
+                    '_a2w_external_id' => $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID],
                     '_a2w_import_id' => $product['import_id'],
                     '_a2w_product_url' => $product['affiliate_url'],
                     '_a2w_original_product_url' => $product['url'],
@@ -334,8 +339,11 @@ class Woocommerce
                 }
             }
 
-            if (!empty($product['extra_data'])){
-                update_post_meta($product_id, '_a2w_extra_data', $product['extra_data']);
+            if (!empty($product[ImportedProductService::FIELD_EXTRA_DATA])){
+                update_post_meta(
+                    $product_id, ImportedProductService::KEY_EXTRA_DATA,
+                    $product[ImportedProductService::FIELD_EXTRA_DATA]
+                );
             }
 
             unset($post);
@@ -346,7 +354,7 @@ class Woocommerce
                 foreach ($first_ava_var['attributes'] as $cur_var_attr) {
                     foreach ($product['sku_products']['attributes'] as $attr) {
                         if (isset($attr['value'][$cur_var_attr])) {
-                            $aliexpress_sku_props_id_arr[] = isset($attr['value'][$cur_var_attr]['original_id']) ? $attr['value'][$cur_var_attr]['original_id'] : $attr['value'][$cur_var_attr]['id'];
+                            $aliexpress_sku_props_id_arr[] = $attr['value'][$cur_var_attr]['original_id'] ?? $attr['value'][$cur_var_attr]['id'];
                             break;
                         }
                     }
@@ -379,29 +387,7 @@ class Woocommerce
                 update_post_meta($product_id, '_a2w_country_code', $product['local_seller_tag']);
             }
 
-            // save shipping meta data
-            $shipping_meta = new ProductShippingMeta($product_id);
-            if (!empty($product['shipping_info']) && is_array($product['shipping_info'])) {
-                $shipping_data = array();
-                foreach ($product['shipping_info'] as $mk => $data) {
-                    // if shipping data was saved without quantity
-                    $shipping_data[$mk] = isset($data[0]['serviceName']) ? array(1 => $data) : $data;
-                }
-                $shipping_meta->save_data($shipping_data);
-            }
-            if (isset($product['shipping_default_method'])) {
-                $shipping_meta->save_method($product['shipping_default_method'], false);
-            }
-            if (isset($product['shipping_to_country'])) {
-                $shipping_meta->save_country_to($product['shipping_to_country'], false);
-            }
-            if (isset($product['shipping_from_country'])) {
-                $shipping_meta->save_country_from($product['shipping_from_country'], false);
-            }
-            if (isset($product['shipping_cost'])) {
-                $shipping_meta->save_cost($product['shipping_cost'], false);
-            }
-            $shipping_meta->save();
+            $this->ProductShippingDataService->updateFromProduct($product_id, $product);
 
             // update global price
             $this->update_price($product_id, $first_ava_var);
@@ -435,7 +421,7 @@ class Woocommerce
             }
 
             if ($step !== false) {
-                return $result = ResultBuilder::buildOk(array('product_id' => $product_id, 'step' => $step));
+                return ResultBuilder::buildOk(['product_id' => $product_id, 'step' => $step]);
             }
 
         }
@@ -596,7 +582,10 @@ class Woocommerce
             @Utils::update_post_terms_count($product_id);
         }
 
-        return apply_filters('a2wl_woocommerce_after_add_product', ResultBuilder::buildOk(array('product_id' => $product_id)), $product_id, $product, $params);
+        return apply_filters(
+            'a2wl_woocommerce_after_add_product',
+            ResultBuilder::buildOk(['product_id' => $product_id]), $product_id, $product, $params
+        );
     }
 
     public function upd_product($product_id, $product, $params = array())
@@ -662,22 +651,15 @@ class Woocommerce
             $wc_product->update_meta_data('_a2w_store_id', $product['store_id']);
         }
 
-        if (!empty($product['extra_data'])){
-            $wc_product->update_meta_data('_a2w_extra_data', $product['extra_data']);
+        if (!empty($product[ImportedProductService::FIELD_EXTRA_DATA])){
+            $wc_product->update_meta_data(
+                ImportedProductService::KEY_EXTRA_DATA,
+                $product[ImportedProductService::FIELD_EXTRA_DATA]
+            );
         }
 
         // update shipping meta data
-        $shipping_meta = new ProductShippingMeta($product_id);
-        if (isset($product['shipping_default_method'])) {
-            $shipping_meta->save_method($product['shipping_default_method'], false);
-        }
-        if (isset($product['shipping_to_country'])) {
-            $shipping_meta->save_country_to($product['shipping_to_country'], false);
-        }
-        if (isset($product['shipping_cost'])) {
-            $shipping_meta->save_cost($product['shipping_cost'], false);
-        }
-        $shipping_meta->save();
+        $this->ProductShippingDataService->updateFromProduct($product_id, $product);
 
         $result = [
             "state" => "ok",
@@ -699,7 +681,7 @@ class Woocommerce
         if (!$old_variations) {
             $old_aliexpress_sku_props = get_post_meta($product_id, '_aliexpress_sku_props', true);
             if ($old_aliexpress_sku_props) {
-                $external_variation_id = $product['id'] . '-' .
+                $external_variation_id = $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID] . '-' .
                     implode('-', explode(';', $old_aliexpress_sku_props));
                 $old_variations = [
                     $external_variation_id
@@ -945,7 +927,7 @@ class Woocommerce
                 }
             }
 
-            $this->set_images($product, $product_id, $thumb_url, $image_to_load, true, isset($product['title']) && $product['title'] ? $product['title'] : "Product " . $product['id']);
+            $this->set_images($product, $product_id, $thumb_url, $image_to_load, true, isset($product['title']) && $product['title'] ? $product['title'] : "Product " . $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]);
         }
 
         if (isset($params['manual_update']) && $params['manual_update'] && a2wl_check_defined('A2WL_FIX_RELOAD_DESCRIPTION') && !get_setting('not_import_description')) {
@@ -1010,7 +992,7 @@ class Woocommerce
                 if (in_array($img_id, $product['skip_images']) || isset($product['tmp_move_images'][$img_id])) {
                     $e->parentNode->removeChild($e);
                 } else if (!get_setting('use_external_image_urls')) {
-                    $tmp_title = isset($product['title']) && $product['title'] ? $product['title'] : "Product " . $product['id'];
+                    $tmp_title = isset($product['title']) && $product['title'] ? $product['title'] : "Product " . $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID];
 
                     // if it has edited image, then user initial url
                     $clear_image_url = !empty($product['tmp_edit_images'][$img_id]) ?
@@ -1317,11 +1299,21 @@ class Woocommerce
             delete_post_meta($product_id, '_a2w_original_variations_attributes');
         }
 
-        $deleted_variations_attributes = get_post_meta($product_id, '_a2w_deleted_variations_attributes', true);
-        $deleted_variations_attributes = $deleted_variations_attributes && is_array($deleted_variations_attributes) ? $deleted_variations_attributes : array();
+        $deleted_variations_attributes = get_post_meta(
+            $product_id,
+            '_a2w_deleted_variations_attributes',
+            true
+        );
+        $deleted_variations_attributes = $deleted_variations_attributes && is_array($deleted_variations_attributes) ?
+            $deleted_variations_attributes : array();
 
-        $original_variations_attributes = get_post_meta($product_id, '_a2w_original_variations_attributes', true);
-        $original_variations_attributes = $original_variations_attributes && is_array($original_variations_attributes) ? $original_variations_attributes : array();
+        $original_variations_attributes = get_post_meta(
+            $product_id,
+            '_a2w_original_variations_attributes',
+            true
+        );
+        $original_variations_attributes = $original_variations_attributes && is_array($original_variations_attributes) ?
+            $original_variations_attributes : array();
 
         $attributes = array();
         $used_variation_attributes = array();
@@ -1370,7 +1362,9 @@ class Woocommerce
             }
         }
 
-        $old_variations_tmp = $wpdb->get_results($wpdb->prepare("SELECT p.ID as id, pm.meta_value as external_variation_id FROM $wpdb->posts p INNER JOIN $wpdb->postmeta pm ON (p.ID=pm.post_id AND pm.meta_key='external_variation_id') WHERE post_parent = %d and post_type='product_variation' GROUP BY p.ID ORDER BY p.post_date desc", $product_id), ARRAY_A);
+        $query = $wpdb->prepare("SELECT p.ID as id, pm.meta_value as external_variation_id FROM $wpdb->posts p INNER JOIN $wpdb->postmeta pm ON (p.ID=pm.post_id AND pm.meta_key = 'external_variation_id') WHERE post_parent = %d and post_type = 'product_variation' GROUP BY p.ID ORDER BY p.post_date DESC", $product_id);
+
+        $old_variations_tmp = $wpdb->get_results($query, ARRAY_A);
         $old_variations = array();
         foreach ($old_variations_tmp as $v) {
             $old_variations[$v['external_variation_id']] = $v;
@@ -1383,7 +1377,11 @@ class Woocommerce
             $variations['attributes'][$key]['swatch_id'] = $swatch_id;
             $variations['attributes'][$key]['attribute_taxonomies'] = true;
 
-            $used_variation_attributes[$attr_tax] = array('original_attribute_id' => $attr['id'], 'attribute_taxonomies' => true, 'values' => array());
+            $used_variation_attributes[$attr_tax] = array(
+                'original_attribute_id' => $attr['id'],
+                'attribute_taxonomies' => true,
+                'values' => array()
+            );
 
             //added 03.02.2018 ---
             if (!empty($old_swatch_type_options) && isset($old_swatch_type_options[$swatch_id])) {
@@ -1440,7 +1438,8 @@ class Woocommerce
                     }
                 }
 
-                $RELOAD_ATTR_IMAGES = a2wl_check_defined('A2WL_FIX_RELOAD_IMAGES') || a2wl_check_defined('A2WL_FIX_RELOAD_ATTR_IMAGES');
+                $RELOAD_ATTR_IMAGES = a2wl_check_defined('A2WL_FIX_RELOAD_IMAGES') ||
+                    a2wl_check_defined('A2WL_FIX_RELOAD_ATTR_IMAGES');
 
                 //added 03.02.2018
                 if (isset($swatch_type_options[$swatch_id]['attributes'][$swatch_value_id]) && !$RELOAD_ATTR_IMAGES) {
@@ -1454,7 +1453,8 @@ class Woocommerce
                 }
 
                 $swatch_type_options[$swatch_id]['attributes'][$swatch_value_id]['type'] = 'color';
-                $swatch_type_options[$swatch_id]['attributes'][$swatch_value_id]['color'] = empty($val['color']) ? '#FFFFFF' : $val['color'];
+                $swatch_type_options[$swatch_id]['attributes'][$swatch_value_id]['color'] = empty($val['color']) ?
+                    '#FFFFFF' : $val['color'];
                 $swatch_type_options[$swatch_id]['attributes'][$swatch_value_id]['image'] = 0;
 
                 if (($step === false || $step === 'variations#attributes') && $attr_image) {
@@ -1469,9 +1469,28 @@ class Woocommerce
                         if (intval($old_attachment_id) > 0) {
                             Utils::delete_attachment($old_attachment_id, true);
                         }
-                        $attachment_id = $this->attachment_model->create_attachment($product_id, $attr_image, array('inner_post_id' => $product_id, 'title' => null, 'alt' => null, 'edit_images' => !empty($product['tmp_edit_images']) ? $product['tmp_edit_images'] : array()));
+                        $attachment_id = $this->attachment_model->create_attachment(
+                            $product_id,
+                            $attr_image,
+                            array(
+                                'inner_post_id' => $product_id,
+                                'title' => null,
+                                'alt' => null,
+                                'edit_images' => !empty($product['tmp_edit_images']) ? $product['tmp_edit_images'] : []
+                            )
+                        );
                     } else if (!in_array(Utils::buildImageIdFromPath($attr_image), $product['skip_images'])) {
-                        $attachment_id = $old_attachment_id ? $old_attachment_id : $this->attachment_model->create_attachment($product_id, $attr_image, array('inner_post_id' => $product_id, 'title' => null, 'alt' => null, 'edit_images' => !empty($product['tmp_edit_images']) ? $product['tmp_edit_images'] : array()));
+                        $attachment_id = $old_attachment_id ?:
+                            $this->attachment_model->create_attachment(
+                                $product_id,
+                                $attr_image,
+                                array(
+                                    'inner_post_id' => $product_id,
+                                    'title' => null,
+                                    'alt' => null,
+                                    'edit_images' => !empty($product['tmp_edit_images']) ? $product['tmp_edit_images'] : []
+                                )
+                            );
                     }
 
                     if (!empty($attachment_id)) {
@@ -1490,7 +1509,7 @@ class Woocommerce
                 $is_deleted_attr = in_array($tmp_attr_name, $skip_attr);
             }
             foreach ($deleted_variations_attributes as $key_del_attr => $del_attr) {
-                $del_name = sanitize_title(isset($del_attr['current_name']) ? $del_attr['current_name'] : $del_attr['name']);
+                $del_name = sanitize_title($del_attr['current_name'] ?? $del_attr['name']);
                 if ($del_name == $tmp_attr_name || $key_del_attr == $tmp_attr_name) {
                     $is_deleted_attr = true;
                 }
@@ -1500,8 +1519,8 @@ class Woocommerce
                 $attributes[$attr_tax] = array(
                     'name' => $attr_tax,
                     'value' => '',
-                    'position' => isset($tmp_attributes[$attr_tax]['position']) ? $tmp_attributes[$attr_tax]['position'] : count($attributes),
-                    'is_visible' => isset($tmp_attributes[$attr_tax]['is_visible']) ? $tmp_attributes[$attr_tax]['is_visible'] : '0',
+                    'position' => $tmp_attributes[$attr_tax]['position'] ?? count($attributes),
+                    'is_visible' => $tmp_attributes[$attr_tax]['is_visible'] ?? '0',
                     'is_variation' => '1',
                     'is_taxonomy' => '1',
                 );
@@ -1611,7 +1630,8 @@ class Woocommerce
                 foreach ($variation['attributes'] as $cur_var_attr) {
                     foreach ($variations['attributes'] as $attr) {
                         if (isset($attr['value'][$cur_var_attr])) {
-                            $aliexpress_sku_props_id_arr[] = isset($attr['value'][$cur_var_attr]['original_id']) ? $attr['value'][$cur_var_attr]['original_id'] : $attr['value'][$cur_var_attr]['id'];
+                            $aliexpress_sku_props_id_arr[] = $attr['value'][$cur_var_attr]['original_id'] ??
+                                $attr['value'][$cur_var_attr]['id'];
                             break;
                         }
                     }
@@ -1632,10 +1652,19 @@ class Woocommerce
                         foreach ($attr['value'] as $val) {
                             if ($val['id'] == $va) {
                                 $attr_tax = $attr['tax'];
-                                $attr_value = $attr['attribute_taxonomies'] ? $this->helper->cleanTaxonomyName(htmlspecialchars($val['name'], ENT_NOQUOTES), false, false) : $val['name'];
+                                /*$attr_value = $attr['attribute_taxonomies'] ?
+                                    $this->helper->cleanTaxonomyName(htmlspecialchars($val['name'], ENT_NOQUOTES), false, false) :
+                                    $val['name'];*/
+
+                                $attr_value = sanitize_title(htmlspecialchars($val['name'],ENT_NOQUOTES));
                                 // build original variations attributes
                                 if (!isset($original_variations_attributes[$tmp_name])) {
-                                    $original_variations_attributes[$tmp_name] = array('original_attribute_id' => $attr['id'], 'current_name' => $attr['name'], 'name' => !empty($attr['original_name']) ? $attr['original_name'] : $attr['name'], 'values' => array());
+                                    $original_variations_attributes[$tmp_name] = array(
+                                        'original_attribute_id' => $attr['id'],
+                                        'current_name' => $attr['name'],
+                                        'name' => !empty($attr['original_name']) ? $attr['original_name'] : $attr['name'],
+                                        'values' => array()
+                                    );
                                 }
 
                                 $original_variations_attributes[$tmp_name]['values'][$val['id']] = array(
@@ -1654,7 +1683,10 @@ class Woocommerce
                     }
 
                     if ($attr_tax && $attr_value) {
-                        $variation_attribute_list[] = array('key' => ('attribute_' . $attr_tax), 'value' => $attr_value);
+                        $variation_attribute_list[] = array(
+                            'key' => ('attribute_' . $attr_tax),
+                            'value' => $attr_value
+                        );
 
                         // collect used variation attribute values
                         if (isset($used_variation_attributes[$attr_tax])) {
@@ -1740,7 +1772,7 @@ class Woocommerce
                         $curr_swatch_value_id = md5(sanitize_title(strtolower($attr_value)));
                         foreach ($aliexpress_sku_props_id_arr as $var_attr_id) {
                             foreach ($variations['attributes'] as $external_attr) {
-                                if ($external_attr['tax'] === $attr_tax && isset($external_attr['value'][$var_attr_id]) && isset($external_attr['value'][$var_attr_id]['swatch_value_id'])) {
+                                if (isset($external_attr['value'][$var_attr_id]['swatch_value_id']) && $external_attr['tax'] === $attr_tax) {
                                     $swatch_id = $external_attr['swatch_id'];
                                     $swatch_value_id = $external_attr['value'][$var_attr_id]['swatch_value_id'];
 
@@ -1771,7 +1803,7 @@ class Woocommerce
                                             'id' => $oav['id'],
                                             'name' => $oav['name'],
                                             'attr_name' => $orig_attr['name'],
-                                            'attr_original_name' => isset($orig_attr['original_name']) ? $orig_attr['original_name'] : $orig_attr['name'],
+                                            'attr_original_name' => $orig_attr['original_name'] ?? $orig_attr['name'],
                                         );
                                         break;
                                     }
@@ -1819,7 +1851,10 @@ class Woocommerce
                                     foreach ($attr['value'] as $val) {
                                         if ($val['id'] == $va) {
                                             $attr_tax = $attr['tax'];
-                                            $attr_value = $attr['attribute_taxonomies'] ? $this->helper->cleanTaxonomyName(htmlspecialchars($val['name'], ENT_NOQUOTES), false, false) : $val['name'];
+                                           /* $attr_value = $attr['attribute_taxonomies'] ?
+                                                $this->helper->cleanTaxonomyName(htmlspecialchars($val['name'], ENT_NOQUOTES), false, false) :
+                                                sanitize_title(htmlspecialchars($val['name'],ENT_NOQUOTES));*/
+                                            $attr_value = sanitize_title(htmlspecialchars($val['name'],ENT_NOQUOTES));
                                             // build original variations attributes
                                             if (!isset($original_variations_attributes[$tmp_name])) {
                                                 $original_variations_attributes[$tmp_name] = array('original_attribute_id' => $attr['id'], 'current_name' => $attr['name'], 'name' => !empty($attr['original_name']) ? $attr['original_name'] : $attr['name'], 'values' => array());
@@ -2173,60 +2208,6 @@ class Woocommerce
         return $result;
     }
 
-    public function sync_order_with_aliexpress($order_id) {
-        a2wl_init_error_handler();
-        try {
-            $result = ResultBuilder::buildOk();
-            $order = wc_get_order($order_id);
-            if(!$order) {
-                $errorMessage = esc_html_x('Order not found', 'error text', 'ali2woo');
-                $result = ResultBuilder::buildError($errorMessage);
-            } else {
-                $external_order_ids = array();
-                $order_items = $order->get_items();
-                foreach ($order_items as $item) {
-                    $a2wl_order_item = new WooCommerceOrderItem($item);
-                    $external_order_id = $a2wl_order_item->get_external_order_id();
-                    if (!empty($external_order_id)) {
-                        $external_order_ids[] = $external_order_id;
-                    }
-                }
-
-                $Aliexpress = new Aliexpress();
-                foreach ($external_order_ids as $external_order_id) {
-                    $apiResult = $Aliexpress->load_order($external_order_id);
-                    $isNotAvailableOrder = $apiResult['state'] === 'error' &&
-                        isset($apiResult['error_code']) && $apiResult['error_code'] === 404;
-                    if ($isNotAvailableOrder) {
-                        // remove external order id (decided to not make this, because it can erase data if token aliexpress account changed)
-                        // $this->delete_external_order_id($order_id, $external_order_id);
-                    } else if ($apiResult['state'] === 'ok') {
-                        $this->save_tracking_code(
-                            $order_id,
-                            $external_order_id,
-                            $apiResult['order']['tracking_codes'],
-                            $apiResult['order']['courier_name'],
-                            '',
-                            $apiResult['order']['tracking_status']
-                        );
-                    } else {
-                        $errorMessage = esc_html_x(
-                            'Unhandled error during order sync',
-                            'error text',
-                            'ali2woo'
-                        );
-                        $result = ResultBuilder::buildError($apiResult['message'] ?? $errorMessage);
-                    }
-                }
-            }
-        } catch (Throwable $e) {
-            a2wl_print_throwable($e);
-            $result = ResultBuilder::buildError($e->getMessage());
-        }
-
-        return $result;
-    }
-
     public function get_sorted_products_ids($sort_type, $ids_count, $compare = false, $untrash = false)
     {
         global $wpdb;
@@ -2324,22 +2305,27 @@ class Woocommerce
         return $external_id;
     }
 
-    public function get_product_by_post_id($post_id, $with_vars = true)
+    /**
+     * You should pass here only main WC_Product and NOT WC_Product_Variable
+     * @param int $post_id
+     * @param bool $with_vars
+     * @return array
+     */
+    public function get_product_by_post_id(int $post_id, bool $with_vars = true): array
     {
-        global $wpdb;
-        $product = array();
+        $product = [];
 
         $external_id = get_post_meta($post_id, "_a2w_external_id", true);
         if ($external_id) {
-            $woocommerce_manage_stock = get_option('woocommerce_manage_stock', 'no');
+            $woocommerce_manage_stock = $this->isManagedStock();
 
-            $product = array(
+            $product = [
                 'id' => $external_id,
                 'post_id' => $post_id,
                 'url' => get_post_meta($post_id, "_a2w_original_product_url", true),
                 'affiliate_url' => get_post_meta($post_id, "_a2w_product_url", true),
                 'seller_url' => get_post_meta($post_id, "_a2w_seller_url", true),
-            );
+            ];
 
             $cats = wp_get_object_terms($post_id, 'product_cat');
             if (!is_wp_error($cats) && $cats) {
@@ -2347,16 +2333,16 @@ class Woocommerce
             }
 
             $import_lang = get_post_meta($post_id, "_a2w_import_lang", true);
-            $product['import_lang'] = $import_lang ? $import_lang : AliexpressLocalizator::getInstance()->language;
+            $product['import_lang'] = $import_lang ?: AliexpressLocalizator::getInstance()->language;
 
             $price = get_post_meta($post_id, "_aliexpress_price", true);
             $regular_price = get_post_meta($post_id, "_aliexpress_regular_price", true);
 
-            $price = $price ? $price : 0;
-            $regular_price = $regular_price ? $regular_price : 0;
+            $price = $price ?: 0;
+            $regular_price = $regular_price ?: 0;
 
-            $product['price'] = $price ? $price : $regular_price;
-            $product['regular_price'] = $regular_price ? $regular_price : $price;
+            $product['price'] = $price ?: $regular_price;
+            $product['regular_price'] = $regular_price ?: $price;
             $product['discount'] = $product['regular_price'] ?
                     100 - round($product['price'] * 100 / $product['regular_price'], 2) :
                     0;
@@ -2365,77 +2351,57 @@ class Woocommerce
             $regular_price = get_post_meta($post_id, "_regular_price", true);
 
             $price = $price ? $price : 0;
-            $regular_price = $regular_price ? $regular_price : 0;
+            $regular_price = $regular_price ?: 0;
 
-            $product['calc_price'] = $price ? $price : $regular_price;
-            $product['calc_regular_price'] = $regular_price ? $regular_price : $price;
+            $product['calc_price'] = $price ?: $regular_price;
+            $product['calc_regular_price'] = $regular_price ?: $price;
 
             if ($woocommerce_manage_stock === 'yes') {
                 $product['quantity'] = get_post_meta($post_id, "_stock", true);
             } else {
-                $product['quantity'] = get_post_meta($post_id, '_stock_status', true) === 'outofstock' ? 0 : 1;
+                $product['quantity'] = get_post_meta($post_id, '_stock_status', true) === 'outofstock' ?
+                    0 : 1;
             }
 
             $original_product_url = get_post_meta($post_id, "_a2w_original_product_url", true);
-            $product['original_product_url'] = $original_product_url ? $original_product_url : 'www.aliexpress.com/item//' . $product['id'] . '.html';
+            $product['original_product_url'] = $original_product_url ?:
+                'www.aliexpress.com/item//' . $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID] . '.html';
 
             $availability_meta = get_post_meta($post_id, "_a2w_availability", true);
-            $product['availability'] = $availability_meta ? filter_var($availability_meta, FILTER_VALIDATE_BOOLEAN) : true;
+            $product['availability'] = $availability_meta ?
+                filter_var($availability_meta, FILTER_VALIDATE_BOOLEAN) : true;
 
             $a2wl_skip_meta = get_post_meta($post_id, "_a2w_skip_meta", true);
 
-            $product['skip_vars'] = $a2wl_skip_meta && !empty($a2wl_skip_meta['skip_vars']) ? $a2wl_skip_meta['skip_vars'] : array();
-            $product['skip_images'] = $a2wl_skip_meta && !empty($a2wl_skip_meta['skip_images']) ? $a2wl_skip_meta['skip_images'] : array();
-
-            $shipping_meta = new ProductShippingMeta($post_id);
-            $product['shipping_default_method'] = $shipping_meta->get_method();
-            $product['shipping_to_country'] = $shipping_meta->get_country_to();
-            $product['shipping_cost'] = $shipping_meta->get_cost();
+            $product['skip_vars'] = $a2wl_skip_meta && !empty($a2wl_skip_meta['skip_vars']) ?
+                $a2wl_skip_meta['skip_vars'] : [];
+            $product['skip_images'] = $a2wl_skip_meta && !empty($a2wl_skip_meta['skip_images']) ?
+                $a2wl_skip_meta['skip_images'] : [];
 
             $product['disable_sync'] = get_post_meta($post_id, "_a2w_disable_sync", true);
-            $product['disable_var_price_change'] = get_post_meta($post_id, "_a2w_disable_var_price_change", true);
-            $product['disable_var_quantity_change'] = get_post_meta($post_id, "_a2w_disable_var_quantity_change", true);
-            $product['disable_add_new_variants'] = get_post_meta($post_id, "_a2w_disable_add_new_variants", true);
+            $product['disable_var_price_change'] = get_post_meta(
+                $post_id, "_a2w_disable_var_price_change", true
+            );
+            $product['disable_var_quantity_change'] = get_post_meta(
+                $post_id, "_a2w_disable_var_quantity_change", true
+            );
+            $product['disable_add_new_variants'] = get_post_meta(
+                $post_id, "_a2w_disable_add_new_variants", true
+            );
 
-            $product['sku_products']['attributes'] = array();
-            $product['sku_products']['variations'] = array();
+            $product['sku_products']['attributes'] = [];
+            $product['sku_products']['variations'] = [];
             if ($with_vars) {
-                $variations = $wpdb->get_col($wpdb->prepare("SELECT ID FROM $wpdb->posts WHERE post_parent = %d and post_type='product_variation'", $post_id));
-                if ($variations) {
-                    foreach ($variations as $variation_id) {
-                        $var = array('id' => get_post_meta($variation_id, "external_variation_id", true), 'attributes' => array());
-
-                        $price = get_post_meta($variation_id, "_aliexpress_price", true);
-                        $regular_price = get_post_meta($variation_id, "_aliexpress_regular_price", true);
-
-                        $price = $price ? $price : 0;
-                        $regular_price = $regular_price ? $regular_price : 0;
-
-                        $var['price'] = $price ? $price : $regular_price;
-                        $var['regular_price'] = $regular_price ? $regular_price : $price;
-                        $var['discount'] = $var['regular_price'] ? 100 - round($var['price'] * 100 / $var['regular_price']) : 0;
-
-                        $price = get_post_meta($variation_id, "_price", true);
-                        $regular_price = get_post_meta($variation_id, "_regular_price", true);
-
-                        $price = $price ? $price : 0;
-                        $regular_price = $regular_price ? $regular_price : 0;
-
-                        $var['calc_price'] = $price ? $price : $regular_price;
-                        $var['calc_regular_price'] = $regular_price ? $regular_price : $price;
-
-                        if ($woocommerce_manage_stock === 'yes') {
-                            $var['quantity'] = get_post_meta($variation_id, "_stock", true);
-                        } else {
-                            $var['quantity'] = get_post_meta($variation_id, '_stock_status', true) === 'outofstock' ? 0 : 1;
-                        }
-
-                        $var['skuId'] = get_post_meta($variation_id, '_a2w_ali_sku_id', true);
-
-                        $product['sku_products']['variations'][] = $var;
-                    }
+                $variations = $this->getProductVariations($post_id);
+                if (!empty($variations)) {
+                    $product['sku_products']['variations'] = $variations;
                 } else {
-                    $var = array('id' => $external_id . "-1", 'attributes' => array(), 'skuId' => '');
+                    $var = [
+                        'id' => $external_id . "-1",
+                        'attributes' => [],
+                        'skuId' => '',
+                        'title' => '',
+                    ];
                     if (isset($product['price'])) {
                         $var['price'] = $product['price'];
                     }
@@ -2463,24 +2429,106 @@ class Woocommerce
         return $product;
     }
 
-    public function get_product_id_by_external_id($external_id)
+    public function isManagedStock(): string
+    {
+        return get_option('woocommerce_manage_stock', 'no');
+    }
+
+    public function getProductVariations(int $postId): array
     {
         global $wpdb;
+
+        $query = $wpdb->prepare(
+            "SELECT ID, post_excerpt FROM $wpdb->posts WHERE post_parent = %d and post_type = %s",
+            $postId,
+            'product_variation');
+        $variations = $wpdb->get_results($query);
+
+        if (!$variations) {
+            return [];
+        }
+
+        $woocommerce_manage_stock = $this->isManagedStock();
+
+        $resultVariations = [];
+
+        foreach ($variations as $variation) {
+            $variation_id = $variation->ID;
+
+            $var = [
+                'id' => get_post_meta($variation_id, "external_variation_id", true),
+                'attributes' => [],
+                'title' => $variation->post_excerpt,
+            ];
+
+            $price = get_post_meta($variation_id, "_aliexpress_price", true);
+            $regular_price = get_post_meta($variation_id, "_aliexpress_regular_price", true);
+
+            $price = $price ?: 0;
+            $regular_price = $regular_price ?: 0;
+
+            $var['price'] = $price ?: $regular_price;
+            $var['regular_price'] = $regular_price ?: $price;
+            $var['discount'] = $var['regular_price'] ? 100 - round($var['price'] * 100 / $var['regular_price']) : 0;
+
+            $price = get_post_meta($variation_id, "_price", true);
+            $regular_price = get_post_meta($variation_id, "_regular_price", true);
+
+            $price = $price ?: 0;
+            $regular_price = $regular_price ?: 0;
+
+            $var['calc_price'] = $price ?: $regular_price;
+            $var['calc_regular_price'] = $regular_price ?: $price;
+
+            if ($woocommerce_manage_stock === 'yes') {
+                $var['quantity'] = get_post_meta($variation_id, "_stock", true);
+            } else {
+                $var['quantity'] = get_post_meta($variation_id, '_stock_status', true) === 'outofstock' ? 0 : 1;
+            }
+
+            $var['skuId'] = get_post_meta($variation_id, '_a2w_ali_sku_id', true);
+
+            $resultVariations[] = $var;
+        }
+
+        return $resultVariations;
+    }
+
+    public function get_product_id_by_external_id(string $external_id): ?string
+    {
+        global $wpdb;
+
         return $wpdb->get_var(
             $wpdb->prepare(
-                "SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_a2w_external_id' AND meta_value=%s LIMIT 1",
+                "SELECT post_id FROM $wpdb->postmeta WHERE meta_key=%s AND meta_value=%s LIMIT 1",
+                '_a2w_external_id',
                 $external_id
             )
         );
     }
 
-    public function get_product_id_by_import_id($import_id)
+    public function getProductIdByExternalVariationID(string $externalVariationId): ?string
     {
         global $wpdb;
+
+        return  $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT post_id FROM $wpdb->postmeta WHERE meta_key=%s AND meta_value=%s LIMIT 1",
+                'external_variation_id',
+                $externalVariationId
+            )
+        );
+    }
+
+    public function get_product_id_by_import_id(string $importId): ?string
+    {
+        global $wpdb;
+
         return $wpdb->get_var(
             $wpdb->prepare(
-                "SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_a2w_import_id' AND meta_value=%s LIMIT 1",
-                $import_id
+                "SELECT post_id FROM $wpdb->postmeta WHERE meta_key=%s AND meta_value=%s LIMIT 1",
+                '_a2w_import_id',
+                $importId
             )
         );
     }

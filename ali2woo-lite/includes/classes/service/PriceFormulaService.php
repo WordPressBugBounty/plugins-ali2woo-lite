@@ -33,8 +33,8 @@ class PriceFormulaService
 
         $shipping_cost = 0;
         //todo: add this method to the test
-        if ($this->PriceFormulaSettingsRepository->getAddShippingToPrice() && !empty($product['shipping_cost'])) {
-            $shipping_cost = round($product['shipping_cost'], $round);
+        if ($this->PriceFormulaSettingsRepository->getAddShippingToPrice() && !empty($product[ImportedProductService::FIELD_COST])) {
+            $shipping_cost = round($product[ImportedProductService::FIELD_COST], $round);
         }
 
         if ($this->PriceFormulaSettingsRepository->getUseSeparateFormula()) {
@@ -297,7 +297,7 @@ class PriceFormulaService
                     }
                 }
             } else {
-                a2wl_error_log("can't find normalize product price for " . $product['id']);
+                a2wl_error_log("can't find normalize product price for " . $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]);
             }
         }
 

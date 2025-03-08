@@ -69,7 +69,7 @@ class SplitProductService
                 if ($i === 0) {
                     $product_import_model->upd_product($new_product);
                 } else {
-                    $new_product['import_id'] = $new_product['id'] . "-" . md5($k . microtime(true));
+                    $new_product['import_id'] = $new_product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID] . "-" . md5($k . microtime(true));
                     $product_import_model->add_product($new_product);
                 }
                 $i++;
@@ -123,7 +123,7 @@ class SplitProductService
                 }
 
                 $new_product = $product;
-                $new_product['import_id'] = $new_product['id'] . "-" . md5('new_product' . microtime(true));
+                $new_product['import_id'] = $new_product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID] . "-" . md5('new_product' . microtime(true));
                 $new_product['disable_add_new_variants'] = true;
                 $new_product['skip_vars'] = $selected_vars;
                 if ($new_product_thumb) {

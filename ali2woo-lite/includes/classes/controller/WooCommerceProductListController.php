@@ -15,12 +15,20 @@ use Throwable;
 
 class WooCommerceProductListController extends AbstractController
 {
-    private $bulk_actions = array();
-    private $bulk_actions_text = array();
+    protected ProductService $ProductService;
+    protected WoocommerceService $WoocommerceService;
 
-    public function __construct()
-    {
+    private $bulk_actions = [];
+    private $bulk_actions_text = [];
+
+    public function __construct(
+        ProductService $ProductService,
+        WoocommerceService $WoocommerceService
+    ) {
         parent::__construct();
+
+        $this->ProductService = $ProductService;
+        $this->WoocommerceService = $WoocommerceService;
 
         add_action('admin_footer-edit.php', array($this, 'scripts'));
         add_action('load-edit.php', array($this, 'bulk_actions'));
@@ -273,34 +281,16 @@ class WooCommerceProductListController extends AbstractController
 
             $products = array();
             foreach ($ids as $post_id) {
-                $product = $woocommerce_model->get_product_by_post_id($post_id, false);
+                $product = $this->WoocommerceService->getProduct($post_id);
                 if ($product) {
                     $product['disable_var_price_change'] = $product['disable_var_price_change'] || $on_price_changes !== "update";
                     $product['disable_var_quantity_change'] = $product['disable_var_quantity_change'] || $on_stock_changes !== "update";
-                    $products[strval($product['id'])] = $product;
+                    $products[strval($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID])] = $product;
                 }
             }
 
             $result = array("state" => "ok", "update_state" => array('ok' => count($ids), 'error' => 0));
             if (count($products) > 0) {
-                $product_ids = array_map(function ($p) {
-                    $complex_id = $p['id'] . ';' . $p['import_lang'];
-
-                    $shipping_meta = new ProductShippingMeta($p['post_id']);
-
-                    $country_to = $shipping_meta->get_country_to();
-                    if (!empty($country_to)) {
-                        $complex_id .= ';' . $country_to;
-                    }
-
-                    $method = $shipping_meta->get_method();
-                    if (!empty($method)) {
-                        $complex_id .= ';' . $method;
-                    }
-
-                    return $complex_id;
-                }, $products);
-
                 $apd_items = empty($_POST['apd_items']) ? array() : $_POST['apd_items'];
 
                 foreach ($apd_items as $k => $adpi) {
@@ -308,12 +298,13 @@ class WooCommerceProductListController extends AbstractController
                 }
                 $data = empty($apd_items) ? array() : array('data' => array('apd_items' => $apd_items));
 
-                $aliexpress_model = new Aliexpress();
-                $sync_model = new Synchronize();
-
-                $res = $aliexpress_model->sync_products($product_ids,
-                    array_merge(array('manual_update' => 1, 'pc' => $sync_model->get_product_cnt()), $data)
+                $params = array_merge(
+                        ['manual_update' => 1],
+                        $data
                 );
+
+                $res = $this->ProductService->synchronizeProducts($products, $params);
+
                 if ($res['state'] === 'error') {
                     $result = $res;
 
@@ -323,7 +314,7 @@ class WooCommerceProductListController extends AbstractController
                     }
                 } else {
                     foreach ($res['products'] as $product) {
-                        $product = array_replace_recursive($products[strval($product['id'])], $product);
+                        $product = array_replace_recursive($products[strval($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID])], $product);
                         $product = $PriceFormulaService->applyFormula($product);
                         $woocommerce_model->upd_product($product['post_id'], $product, array('manual_update' => 1));
                     }

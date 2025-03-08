@@ -439,19 +439,6 @@ class Utils
         return null;
     }
 
-    public static function get_date_diff($first_timestamp, $params = array())
-    {
-        if (!isset($params['second_timestamp'])) {
-            $second_timestamp = time();
-        } else {
-            $second_timestamp = $params['second_timestamp'];
-        }
-
-        $datediff = $first_timestamp - $second_timestamp;
-
-        return round($datediff / (60 * 60 * 24));
-    }
-
     /*
         public static function get_images_from_description($description)
         {
@@ -627,95 +614,6 @@ class Utils
         return !$text ? '_' : $text;
     }
 
-    public static function get_product_shipping_info($_product, $quantity = 1, $default_country_to = false, $with_vars = true)
-    {
-        /** @var $woocommerce_model  Woocommerce */ 
-        $woocommerce_model = A2WL()->getDI()->get('AliNext_Lite\Woocommerce');
-        $loader = new Aliexpress();
-
-        $default_ff_method = get_setting('fulfillment_prefship');
-        $product_id = $_product->get_type() == 'variation' ? $_product->get_parent_id() : $_product->get_id();
-
-        $sku_id = '';
-        if ($_product->get_type() == 'variation' ) {
-            $sku_id = get_post_meta($_product->get_id(), '_a2w_ali_sku_id', true);
-        }
-
-        $shipping_meta = new ProductShippingMeta($product_id);
-
-        $product = $woocommerce_model->get_product_by_post_id($product_id, $with_vars);
-
-        $product_country = isset($product['shipping_to_country']) && $product['shipping_to_country'] ? $product['shipping_to_country'] : '';
-        $shiping_to_country = $default_country_to ? $default_country_to : $product_country;
-
-        $shiping_from_country = get_post_meta($_product->get_id(), '_a2w_country_code', true);
-        $shiping_from_country = empty($shiping_from_country) ? "CN" : $shiping_from_country;
-
-        $items = $shipping_meta->get_items($quantity, $shiping_from_country, $shiping_to_country);
-
-        // Load only if data not in cache
-        if ($shiping_to_country && $items === false) {
-            $extra_data = get_post_meta($_product->get_id(), '_a2w_extra_data', true);
-           
-            $res = $loader->load_shipping_info(
-                $product['id'], 
-                $quantity, 
-                $shiping_to_country, 
-                $shiping_from_country, 
-                $product['price'], 
-                $product['price'], 
-                '', 
-                '',
-                $extra_data,
-                $sku_id
-            );
-
-            if ($res['state'] !== 'error') {
-                $items = $res['items'];
-                $shipping_meta->save_items($quantity, $shiping_from_country, $shiping_to_country, $items, true);
-            }
-        }
-
-        $items = !empty($items) ? $items : array();
-
-        $default_method = !empty($product['shipping_default_method']) ? $product['shipping_default_method'] : $default_ff_method;
-
-        $has_shipping_method = false;
-        foreach ($items as $item) {
-            if ($item['serviceName'] == $default_method) {
-                $has_shipping_method = true;
-                break;
-            }
-        }
-
-        $current_currency = apply_filters('wcml_price_currency', NULL);
-        if (!$has_shipping_method) {
-            $default_method = "";
-            $tmp_p = -1;
-            foreach ($items as $k => $item) {
-                $price = isset($item['previewFreightAmount']['value']) ? $item['previewFreightAmount']['value'] : $item['freightAmount']['value'];
-                $price = apply_filters('wcml_raw_price_amount', $price, $current_currency);
-                if ($tmp_p < 0 || $price < $tmp_p || $item['serviceName'] == $default_ff_method) {
-                    $tmp_p = $price;
-                    $default_method = $item['serviceName'];
-                    if ($default_method == $default_ff_method) {
-                        break;
-                    }
-                }
-            }
-        }
-
-        $shipping_cost = 0;
-        foreach ($items as $item) {
-            if ($item['serviceName'] == $default_method) {
-                $shipping_cost = isset($item['previewFreightAmount']['value']) ? $item['previewFreightAmount']['value'] : $item['freightAmount']['value'];
-                $shipping_cost = apply_filters('wcml_raw_price_amount', $shipping_cost, $current_currency);
-            }
-        }
-
-        return array('product_id' => $_product->get_id(), 'default_method' => $default_method, 'items' => $items, 'shipping_cost' => $shipping_cost);
-    }
-
     public static function remove_ship_from($product, $country_from = 'CN')
     {
         $default_country = 'CN';
@@ -734,7 +632,7 @@ class Utils
             }
         }
 
-        $ship_from_attr_value = empty($ship_from_attr_value) ? false : (isset($ship_from_attr_value[$country_from]) ? $ship_from_attr_value[$country_from] : $ship_from_attr_value[$default_country]);
+        $ship_from_attr_value = empty($ship_from_attr_value) ? false : ($ship_from_attr_value[$country_from] ?? $ship_from_attr_value[$default_country]);
 
         if ($ship_from_attr_name && $ship_from_attr_value) {
             $product['disable_add_new_variants'] = true;
@@ -743,134 +641,6 @@ class Utils
             foreach ($product['sku_products']['variations'] as $v) {
                 if (!in_array($ship_from_attr_value, $v['attributes'])) {
                     $product['skip_vars'][] = $v['id'];
-                }
-            }
-        }
-
-        return $product;
-    }
-
-    public static function update_product_shipping($product, $country_from, $country_to, $page, $update_price)
-    {
-        if (!isset($product['shipping_info'])) {
-            $product['shipping_info'] = [];
-        }
- 
-        $country_from = !empty($country_from) ? $country_from : 'CN';
-        $country_from = ProductShippingMeta::normalize_country($country_from);
-        $country_to = ProductShippingMeta::normalize_country($country_to);
-
-        $country_model = new Country();
-        $any_sku_id = '';
-        $shipping_from_country_list = [];
-        if (isset($product['sku_products'])) {
-            foreach ($product['sku_products']['variations'] as $var) {
-                if (!empty($var['country_code'])) {
-                    $shipping_from_country_list[$var['country_code']] = $var['country_code'];
-                }
-                if (!empty($var['skuId']) && $var['quantity'] > 0) {
-                    $any_sku_id = $var['skuId'];
-                }
-            }
-        }
-
-        // TODO experimental
-        if (empty($shipping_from_country_list) && isset($product['local_seller_tag']) && strlen($product['local_seller_tag']) == 2) {
-            $shipping_from_country_list[$product['local_seller_tag']] = $product['local_seller_tag'];
-        }
-
-        $shipping_from_country_list = array_values($shipping_from_country_list);
-        $product['shipping_from_country_list'] = $shipping_from_country_list;
-
-        if (count($shipping_from_country_list) > 0 && !in_array($country_from, $shipping_from_country_list)) {
-            $country_from = $shipping_from_country_list[0];
-        }
-
-        $product['shipping_from_country'] = $country_from;
-        if ($c = $country_model->get_country($product['shipping_from_country'])) {
-            $product['shipping_from_country_name'] = ProductShippingMeta::normalize_country($c);
-        }
-
-        if (!$country_to) {
-            return $product;
-        }
-
-        $product['shipping_to_country'] = $country_to;
-        if ($c = $country_model->get_country($product['shipping_to_country'])) {
-            $product['shipping_to_country_name'] = ProductShippingMeta::normalize_country($c);
-        }
-
-        if ($update_price) {
-            $loader = new Aliexpress();
-
-            $country = ProductShippingMeta::meta_key($country_from, $country_to);
-
-            if (empty($product['shipping_info'][$country])) {
-
-                $extra_data = get_post_meta($product['post_id'], '_a2w_extra_data', true);
-
-                if (empty($extra_data) && isset($product['extra_data'])){
-                    $extra_data = $product['extra_data'];
-                }
-
-                $res = $loader->load_shipping_info(
-                    $product['id'], 
-                    1, 
-                    $country_to, 
-                    $country_from, 
-                    $page == 'import' ? $product['price_min'] : $product['price'], 
-                    $page == 'import' ? $product['price_max'] : $product['price'],
-                    '',
-                    '',
-                    $extra_data,
-                    $any_sku_id
-                );
-
-                if ($res['state'] !== 'error') {
-                    $product['shipping_info'][$country] = $res['items'];
-                } else {
-                    $product['shipping_info'][$country] = [];
-                }
-            }
-
-            $items = $product['shipping_info'][$country] ?? [];
-
-            $default_ff_method = get_setting('fulfillment_prefship');
-
-            if (empty($product['shipping_default_method'])) {
-                $product['shipping_default_method'] = $default_ff_method;
-            }
-
-            $has_shipping_method = false;
-            foreach ($items as $item) {
-                if ($item['serviceName'] == $product['shipping_default_method']) {
-                    $has_shipping_method = true;
-                    break;
-                }
-            }
-
-            $current_currency = apply_filters('wcml_price_currency', NULL);
-            if (!$has_shipping_method) {
-                $default_method = "";
-                $tmp_p = -1;
-                foreach ($items as $k => $item) {
-                    $price = $item['previewFreightAmount']['value'] ?? $item['freightAmount']['value'];
-                    $price = apply_filters('wcml_raw_price_amount', $price, $current_currency);
-                    if ($tmp_p < 0 || $price < $tmp_p || $item['serviceName'] == $default_ff_method) {
-                        $tmp_p = $price;
-                        $default_method = $item['serviceName'];
-                        if ($default_method == $default_ff_method) {
-                            break;
-                        }
-                    }
-                }
-                $product['shipping_default_method'] = $default_method;
-            }
-
-            foreach ($items as $item) {
-                if ($item['serviceName'] == $product['shipping_default_method']) {
-                    $product['shipping_cost'] = $item['previewFreightAmount']['value'] ?? $item['freightAmount']['value'];
-                    $product['shipping_cost'] = apply_filters('wcml_raw_price_amount', $product['shipping_cost'], $current_currency);
                 }
             }
         }
@@ -1132,29 +902,10 @@ class Utils
             );
         }
         if ($country) {
-            return isset($data[$country]) ? $data[$country] : '';
+            return $data[$country] ?? '';
         } else {
             return $data;
         }
-    }
-
-    public static function get_country_by_phone_code($code)
-    {
-        $data = array();
-        $file = A2WL()->plugin_path() . '/assets/data/phone_country_code.json';
-        if (file_exists($file)) {
-            $data = json_decode(
-                // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-                file_get_contents($file),
-                true
-            );
-        }
-        foreach ($data as $country => $c) {
-            if ($code === $code) {
-                return $country;
-            }
-        }
-        return '';
     }
 
     public static function sanitize_phone_number($phone): ?string

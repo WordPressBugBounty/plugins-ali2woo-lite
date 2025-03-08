@@ -37,7 +37,7 @@ class ImportProcess extends BaseJob implements ImportJobInterface
 
             if (str_starts_with($item['step'], 'reviews')) {
                 if (get_setting('load_review')) {
-                    $reviews_model = new Review();
+                    $reviews_model = A2WL()->getDI()->get('AliNext_Lite\Review');
 
                     $result = $reviews_model->load($item['product_id'], true, array('step'=>$item['step']));
 

@@ -81,8 +81,11 @@ class ApplyPricingRulesProcess extends BaseJob implements ApplyPricingRulesJobIn
             } elseif ($item['scope'] === self::SCOPE_SHOP) {
                 /** @var Woocommerce $WoocommerceModel  */
                 $WoocommerceModel = A2WL()->getDI()->get('AliNext_Lite\Woocommerce');
+                /** @var WoocommerceService $WoocommerceService */
+                $WoocommerceService = A2WL()->getDI()->get('AliNext_Lite\WoocommerceService');
                 foreach ($productIds as $product_id) {
-                    $product = $WoocommerceModel->get_product_by_post_id($product_id);
+
+                    $product = $WoocommerceService->getProductWithVariations($product_id);
                     if (empty($product)) {
                         a2wl_info_log(sprintf(
                             "Process job: %s, skip product id: %s (because no external data available); scope: %s]",

@@ -180,18 +180,58 @@ function find_min_shipping_price(items, default_method) {
     return result;
 }
 
-function fill_modal_shipping_info(product_id, country_from_list, country_from, country_to, items, page = 'a2wl_dashboard', default_method = '', onSelectCallback = null) {    
-    const tmp_data = { product_id, country_from_list, country_from, country_to, 'shipping': items, page, default_method, onSelectCallback };
+function fill_modal_shipping_info(
+    product_id, variations, variation_key, country_from_list, country_from,
+    country_to, items, page = 'a2wl_dashboard',
+    default_method = '', onSelectCallback = null
+) {
+    const tmp_data = {
+        product_id,
+        variations,
+        variation_key,
+        country_from_list,
+        country_from,
+        country_to,
+        'shipping': items,
+        page,
+        default_method,
+        onSelectCallback
+    };
     jQuery(".modal-shipping").data(tmp_data);
 
-    jQuery('#a2wl-modal-country-from-select').html('')
-    if (country_from_list.length>0) {
-        jQuery(".modal-shipping").addClass('with-country-from')
-        jQuery.each(country_from_list, function (i, c) {
-            jQuery('#a2wl-modal-country-from-select').append('<option value="'+c+'">'+c+'</option>')
+    const variationSelectNode = jQuery('#a2wl-modal-variation-select');
+
+    if (Array.isArray(variations) && variations.length) {
+        variationSelectNode.empty();
+        jQuery.each(variations, function (i, data) {
+            let isSelected = false;
+            if (data.id === variation_key) {
+                isSelected = true
+            }
+            let newOption = new Option(data.title, data.id, isSelected, isSelected);
+            variationSelectNode.append(newOption);
         });
-        jQuery('#a2wl-modal-country-from-select').val(country_from).trigger('change');
+        variationSelectNode.parent(".country-select").show();
     } else {
+        variationSelectNode.parent(".country-select").hide()
+    }
+
+    if (!variation_key) {
+        variationSelectNode.val(null);
+    }
+
+    jQuery('#a2wl-modal-country-from-select').html('');
+
+    if (typeof country_from_list === 'object' && Object.keys(country_from_list).length > 0) {
+        jQuery(".modal-shipping").addClass('with-country-from');
+
+        Object.keys(country_from_list).forEach(function(key, index) {
+            jQuery('#a2wl-modal-country-from-select').append('<option value="'+key+'">'+this[key]+'</option>')
+        }, country_from_list);
+
+        jQuery('#a2wl-modal-country-from-select').val(country_from).trigger('change');
+    }
+    else {
         jQuery(".modal-shipping").removeClass('with-country-from')
     }
 
@@ -205,16 +245,19 @@ function fill_modal_shipping_info(product_id, country_from_list, country_from, c
     });
     html += '</tbody></table>';
     jQuery('.modal-shipping .shipping-method').html(html);
-    if (tmp_data.shipping.length > 0) {
+    if (tmp_data.shipping && tmp_data.shipping.length > 0) {
         jQuery(".modal-shipping .select_method:checked").trigger('change');
     }
 
 }
 
-function a2wl_load_shipping_info ( product_id, country_from, country_to, page = 'a2wl_dashboard', callback = null){
+function a2wl_load_shipping_info(
+    product_id, variation_key, country_from, country_to, page = 'a2wl_dashboard', callback = null
+){
     let data = {
         'action': 'a2wl_load_shipping_info',
         'id': product_id,
+        'variation_key': variation_key,
         'country_from':country_from,
         'country_to': country_to,
         'page': page,
@@ -229,7 +272,13 @@ function a2wl_load_shipping_info ( product_id, country_from, country_to, page = 
         }
         if (json.state !== 'error' && callback) {
             const product = json.products.length > 0 ? json.products[0] : false
-            callback(json.state, product ? product.items : [], product ? product.default_method : '', product ? product.shipping_cost : 0, product ? product.variations : [])
+            callback(
+                json.state,
+                product ? product.items : [],
+                product ? product.default_method : '',
+                product ? product.shipping_cost : 0,
+                product ? product.variations : []
+            );
 
             if (product && product.items.length > 0) {
                 jQuery.post(a2wl_admin_script.ajaxurl, {
@@ -277,13 +326,20 @@ function a2wl_update_product_shipping_info(product_id) {
     const product_data = jQuery(product).data();
 
     const loadCallback = function (state, items, default_method, shipping_cost, variations) {
-        if (state != 'error') {
+        if (state !== 'error') {
             a2wl_update_product_prices(product_id, shipping_cost, variations)
             jQuery(product).data({ ...product_data, shipping: items, default_method });
         }
     }
 
-    a2wl_load_shipping_info(product_id, product_data.country_from || '', product_data.country_to || '', 'import', loadCallback)
+    a2wl_load_shipping_info(
+        product_id,
+        product_data.variation_key,
+        product_data.country_from || '',
+        product_data.country_to || '',
+        'import',
+        loadCallback
+    )
 }
 
 function a2wl_get_product_proc(params, callback) {
@@ -431,7 +487,16 @@ var Utils = new Utils();
 
 
 
-        $(".country_list").select2();
+        $(".country_list").select2({
+            placeholder: "Select a country",
+            allowClear: true,
+            width: '130px',
+        });
+        $(".variation_list").select2({
+            placeholder: "Select a variation",
+            allowClear: true,
+            width: '130px',
+        });
         $("#a2wl_category").select2();
 
         $("img.lazy").lazyload && $("img.lazy").lazyload({ effect: "fadeIn" });
@@ -881,50 +946,56 @@ var Utils = new Utils();
 
             const $btn = $(this);
 
+            const onSelectCallback = function (product_id, variation_key, items, country_from, country_to, method) {
+                if (method && items) {
+                    $btn.data('country_from', country_from);
+                    $btn.data('country_to', country_to);
+                    $btn.data('shipping_method', method);
+                    $btn.data('variation_key', variation_key);
+
+                    let cost;
+                    let selected_item;
+
+                    $.each(items, function (i, item) {
+                        if (item.serviceName === method) {
+                            cost = item.previewFreightAmount ?
+                                item.previewFreightAmount.value :
+                                item.freightAmount.value
+                            selected_item = item;
+                        }
+                    });
+
+                    $(document).trigger('product_shipping_info_updated', {
+                        product_id,
+                        items,
+                        country_from,
+                        country_to,
+                        method,
+                        selected_item,
+                        cost
+                    });
+                }
+            }
+
             const onProductUpdateCallback = function (response_state, state) {
                 if ((state.update_cnt + state.update_error_cnt) === state.num_to_update) {
-                    const onSelectCallback = function (product_id, items, country_from, country_to, method) {
-                        if(method && items){
-                            $btn.data('country_from', country_from)
-                            $btn.data('country_to', country_to)
-                            $btn.data('shipping_method', method)
 
-                            let cost;
-                            let selected_item;
-
-                            $.each(items, function (i, item) {
-                                if(item.serviceName == method){
-                                    cost = item.previewFreightAmount?item.previewFreightAmount.value:item.freightAmount.value
-                                    selected_item = item;
-                                }
-                            });
-
-                            $(document).trigger('product_shipping_info_updated', {
-                                product_id,
-                                items,
-                                country_from,
-                                country_to,
-                                method,
-                                selected_item,
-                                cost
-                            });
-                        }
-                    }
                     const country_from = $btn.data('country_from')
                     const country_to = $btn.data('country_to')
                     const shipping_method = $btn.data('shipping_method')
                     const product_id = $btn.data('external_id');
                     let country_from_list = $btn.data('country_from_list');
+                    let variationKey = $btn.data('variation_key');
 
                     if (!country_from_list) {
                         country_from_list = [];
                     }
 
                     a2wl_load_shipping_info(
-                        product_id, country_from, country_to, 'fulfillment',
+                        product_id, variationKey, country_from, country_to, 'fulfillment',
                         function (state, items, default_method, shipping_cost, variations) {
                             fill_modal_shipping_info(
-                                product_id, country_from_list, country_from, country_to,
+                                product_id, variations, variationKey, country_from_list, country_from, country_to,
                                 items, 'fulfillment', shipping_method, onSelectCallback
                             );
                     });
@@ -946,7 +1017,10 @@ var Utils = new Utils();
             $(".modal-shipping").addClass('opened');
         });
 
-        $(".product-card-shipping-info").on("click", function () {
+        $(".product-card-shipping-info").on("click", function (event) {
+            return; // disable this feature
+            event.preventDefault();
+
             const tmp_data = $( this ).data();
             
             if ( !tmp_data.shipping || tmp_data.shipping.constructor !== Array ) return false;
@@ -954,31 +1028,63 @@ var Utils = new Utils();
             const onSelectCallback = function (product_id, items, country_from, country_to, method) {
                 const product_block = jQuery('.product-card[data-id="' + product_id + '"]');
 
-                const item = items.find(function (s) { return s.serviceName == method })
+                const item = items.find(function (s) { return s.serviceName === method })
 
                 if (item) {
-                    const price = item.previewFreightAmount ? item.previewFreightAmount.value : item.freightAmount.value;
+                    const price = item.previewFreightAmount ?
+                        item.previewFreightAmount.value :
+                        item.freightAmount.value;
+
                     const formated_price = price > 0.009 ? (item.freightAmount.formatedAmount) : 'Free';
 
                     jQuery(product_block).find('.product-card-shipping-info .shipping-title').html(formated_price + ' ' + item.company);
                     jQuery(product_block).find('.product-card-shipping-info .delivery-time').html(item.time + ' days');
-                    jQuery(product_block).find('.product-card-shipping-info').data({ country_from, country_to, 'shipping': items, 'default_method': method });
+                    jQuery(product_block).find('.product-card-shipping-info').data({
+                        country_from,
+                        country_to,
+                        'shipping': items,
+                        'default_method': method
+                    });
                 }
             }
 
-            fill_modal_shipping_info($(this).closest(".product-card").attr('data-id'), [], tmp_data.country_from || "", tmp_data.country_to || "", tmp_data.shipping ? tmp_data.shipping : [], $('#page').val(), tmp_data.default_method ? tmp_data.default_method : '', onSelectCallback);
+            let countryFromList = [];
+
+            fill_modal_shipping_info(
+                $(this).closest(".product-card").attr('data-id'),
+                [],
+                '',
+                countryFromList,
+                tmp_data.country_from || "",
+                tmp_data.country_to || "",
+                tmp_data.shipping ? tmp_data.shipping : [],
+                $('#page').val(),
+                tmp_data.default_method ? tmp_data.default_method : '',
+                onSelectCallback
+            );
 
             $(".modal-shipping").addClass('opened');
-            return false;
         });
 
-        $(".product .shipping-country").on("click", function () {
+        $(".product .shipping-country").on("click", function (event) {
+            event.preventDefault();
+
             const product = $(this).parents(".product");
             const product_data = $(product).data();
-            const onSelectCallback = function (product_id, items, country_from, country_to, method) {
+            const onSelectCallback = function (
+                product_id, variation_key, items, country_from, country_to, method
+            ) {
+
+                let shouldSetShippingInfo = country_to && method;
+
+                if (!shouldSetShippingInfo) {
+                    return;
+                }
+
                 const data = {
                     'action': 'a2wl_set_shipping_info',
                     'id': product_id,
+                    variation_key,
                     country_from,
                     country_to,
                     method,
@@ -994,7 +1100,11 @@ var Utils = new Utils();
                             $(product).find('.shipping-country').html(shiping_to_name)
                         }
                         a2wl_update_product_prices(product_id, json.shipping_cost, json.variations);
-                        $(product).data({ ...product_data, shipping: items, country_from, country_to, default_method: json.default_method });
+                        $(product).data(
+                            { ...product_data, shipping: items,
+                                country_from, country_to,
+                                default_method: json.default_method
+                            });
                     }
                 }).fail(function (xhr, status, error) {
                     console.log(error);
@@ -1003,59 +1113,113 @@ var Utils = new Utils();
 
 
             const product_id = $(this).parents(".product").attr('data-id')
+            const variation_key = $(this).parents(".product").attr('data-variation_key');
 
-            const country_from_list = product_data.country_from_list.split(';').filter(c=>c)            
-            if (!product_data.country_to) {
-                fill_modal_shipping_info(product_id, country_from_list, product_data.country_from || "", "", null, 'import', '', onSelectCallback);
-            } else if(!product_data.shipping){
-                a2wl_load_shipping_info(product_id, product_data.country_from || '', product_data.country_to || '', 'import', function (state, items, default_method, shipping_cost, variations) {
-                    if (state != 'error') {                        
-                        fill_modal_shipping_info(product_id, country_from_list, product_data.country_from || "", product_data.country_to || "", items, 'import', product_data.default_method || default_method, onSelectCallback);
-                    }
-                })
-            }else {
-                fill_modal_shipping_info(product_id, country_from_list, product_data.country_from || "", product_data.country_to || "", product_data.shipping, 'import', product_data.default_method, onSelectCallback);
+            const country_from_list = product_data.country_from_list.split(';').filter(c=>c);
+
+            let onLoadShippingInfoCallback = function (state, items, default_method, shipping_cost, variations) {
+                if (state !== 'error') {
+                    fill_modal_shipping_info(
+                        product_id, variations, variation_key, country_from_list, product_data.country_from || "",
+                        product_data.country_to || "", items, 'import',
+                        product_data.default_method || default_method, onSelectCallback
+                    );
+                }
             }
+
+            a2wl_load_shipping_info(
+                product_id, variation_key, product_data.country_from || '',
+                product_data.country_to || '', 'import', onLoadShippingInfoCallback
+            );
+
             $(".modal-shipping").addClass('opened');
-            return false;
+        });
+
+        //simple function to create a hash
+        function hashCode(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash |= 0;
+            }
+
+            return hash;
+        }
+
+        function shippingModalUpdateHandler()
+        {
+            let shipping_data = $(".modal-shipping").data();
+
+            let variationSelectNode = $('#a2wl-modal-variation-select');
+            let countryFromSelectNode = $('#a2wl-modal-country-from-select');
+            let countrySelectNode = $('#a2wl-modal-country-select');
+
+            let previousValues = {};
+            let currentValues = {};
+
+            if (variationSelectNode.children('option').length) {
+                previousValues.variation_key = shipping_data.variation_key || null;
+                currentValues.variation_key = variationSelectNode.val();
+            }
+
+            if (countryFromSelectNode.children('option').length) {
+                previousValues.country_from = shipping_data.country_from || null;
+                currentValues.country_from = countryFromSelectNode.val();
+            }
+
+            if (countrySelectNode.children('option').length) {
+                previousValues.country_to = shipping_data.country_to || null;
+                currentValues.country_to = countrySelectNode.val();
+            }
+
+            const allValuesSet = Object.values(currentValues).every(value => value !== null && value !== '');
+
+            if (!allValuesSet) {
+                return;
+            }
+
+            const previousHash = hashCode(JSON.stringify(previousValues));
+            const currentHash = hashCode(JSON.stringify(currentValues));
+
+
+            if (previousHash !== currentHash) {
+                $(".modal-shipping").data({...shipping_data, ...currentValues});
+
+                $('.modal-shipping .shipping-method').html(
+                    '<div class="a2wl-load-container"><div class="a2wl-load-speeding-wheel"></div></div>'
+                );
+
+                a2wl_load_shipping_info(
+                    shipping_data.product_id, shipping_data.variation_key, shipping_data.country_from,
+                    shipping_data.country_to, shipping_data.page,
+                    function (state, items, default_method, shipping_cost, variations) {
+                        fill_modal_shipping_info(
+                            shipping_data.product_id, variations, shipping_data.variation_key,
+                            shipping_data.country_from_list, shipping_data.country_from, shipping_data.country_to,
+                            items, shipping_data.page, default_method, shipping_data.onSelectCallback
+                        );
+                        if (state !== 'error') {
+                            if (shipping_data.onSelectCallback) {
+                                shipping_data.onSelectCallback(
+                                    shipping_data.product_id, shipping_data.variation_key, items,
+                                    shipping_data.country_from, shipping_data.country_to, default_method
+                                )
+                            }
+                        }
+                    });
+            }
+        }
+
+        $('#a2wl-modal-variation-select').on('change', function () {
+            shippingModalUpdateHandler();
         });
 
         $('#a2wl-modal-country-from-select').on('change', function () {
-            const shipping_data = $(".modal-shipping").data();
-            if ($(this).val() && $(this).val() != "" && shipping_data.country_from != $(this).val()) {
-                shipping_data.country_from = $(this).val();
-                $(".modal-shipping").data(shipping_data);
-
-                $('.modal-shipping .shipping-method').html('<div class="a2wl-load-container"><div class="a2wl-load-speeding-wheel"></div></div>');
-
-                a2wl_load_shipping_info(shipping_data.product_id, shipping_data.country_from, shipping_data.country_to, shipping_data.page, function (state, items, default_method, shipping_cost, variations) {
-                    fill_modal_shipping_info(shipping_data.product_id, shipping_data.country_from_list, shipping_data.country_from, shipping_data.country_to, items, shipping_data.page, default_method, shipping_data.onSelectCallback);
-                    if (state != 'error') {
-                        if (shipping_data.onSelectCallback) {
-                            shipping_data.onSelectCallback(shipping_data.product_id, items, shipping_data.country_from, shipping_data.country_to, default_method)
-                        }
-                    }
-                })
-            }
+            shippingModalUpdateHandler();
         });
 
         $('#a2wl-modal-country-select').on('change', function () {
-            const shipping_data = $(".modal-shipping").data();
-            if ($(this).val() && $(this).val() != "" && shipping_data.country_to != $(this).val()) {
-                shipping_data.country_to = $(this).val();
-                $(".modal-shipping").data(shipping_data);
-
-                $('.modal-shipping .shipping-method').html('<div class="a2wl-load-container"><div class="a2wl-load-speeding-wheel"></div></div>');
-
-                a2wl_load_shipping_info(shipping_data.product_id, shipping_data.country_from, shipping_data.country_to, shipping_data.page, function (state, items, default_method, shipping_cost, variations) {
-                    fill_modal_shipping_info(shipping_data.product_id, shipping_data.country_from_list, shipping_data.country_from, shipping_data.country_to, items, shipping_data.page, default_method, shipping_data.onSelectCallback);
-                    if (state != 'error') {
-                        if (shipping_data.onSelectCallback) {
-                            shipping_data.onSelectCallback(shipping_data.product_id, items, shipping_data.country_from, shipping_data.country_to, default_method)
-                        }
-                    }
-                })
-            }
+            shippingModalUpdateHandler();
         });
 
         $('.modal-shipping').on('change', '.select_method', function () {
@@ -1065,7 +1229,10 @@ var Utils = new Utils();
 
             waitForFinalEvent(function () {
                 if (shipping_data.onSelectCallback) {
-                    shipping_data.onSelectCallback(shipping_data.product_id, shipping_data.shipping, shipping_data.country_from, shipping_data.country_to, _this_value)
+                    shipping_data.onSelectCallback(
+                        shipping_data.product_id, shipping_data.variation_key, shipping_data.shipping,
+                        shipping_data.country_from, shipping_data.country_to, _this_value
+                    )
                 }
             }, delay, "change_shipping_method");
         });

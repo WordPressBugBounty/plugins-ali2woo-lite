@@ -7,7 +7,8 @@ jQuery(document).ready(function($){
             country_value = country_node.val();
 
             var item_id = shipping_wrap_node.find('.item_id').val();
-
+            let variation_id = shipping_wrap_node.find('.variation_id').val() || null;
+            let product_id = shipping_wrap_node.find(".product_id").val();
             var page = a2wl_select_shipping_js.is_product_page() ? 'product' : 'cart';
 
             shipping_wrap_node.block({message: null, overlayCSS: {background: '#fff', opacity: 0.6}});
@@ -30,7 +31,7 @@ jQuery(document).ready(function($){
             } 
 
 
-            a2wl_select_shipping_js.a2wl_load_shipping_info(item_id, country_value, $quantity, function (state, items, default_method, shipping_cost, shipping_info){
+            a2wl_select_shipping_js.a2wl_load_shipping_info(product_id, variation_id, country_value, $quantity, function (state, items, default_method, shipping_cost, shipping_info){
 
                 if (state !== 'error') {
                     var shipping = items, 
@@ -185,7 +186,7 @@ jQuery(document).ready(function($){
               });    
          },
 
-         a2wl_load_shipping_info : function(product_id, country, $quantity, callback = null, type = 'select', page = 'cart') {
+         a2wl_load_shipping_info : function(product_id, variation_id = null, country, $quantity, callback = null, type = 'select', page = 'cart') {
             let data = {
                 'action': 'a2wl_frontend_load_shipping_info',
                 'id': product_id,
@@ -195,6 +196,10 @@ jQuery(document).ready(function($){
                 'page': page,
                 'ali2woo_nonce': a2wl_ali_ship_data.nonce_action,
             };
+
+             if (variation_id) {
+                 data['variation_id'] = variation_id;
+             }
         
             jQuery.post(a2wl_ali_ship_data.ajaxurl, data).done(function (response) {
                 let json = JSON.parse(response);

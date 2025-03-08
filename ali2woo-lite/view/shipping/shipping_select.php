@@ -90,6 +90,7 @@ $a2wl_shipping_html = str_replace(array("\r", "\n"), '', $a2wl_shipping_html);
 <div class="a2wl_shipping_wrap" id="a2wl_shipping_wrap_<?php echo isset($cart_item_key) ? $cart_item_key : $product_id; ?>">
     
     <input type="hidden" class="product_id" value="<?php echo $product_id; ?>">
+    <input type="hidden" class="variation_id" value="">
     <input type="hidden" class="item_id" value="<?php echo isset($cart_item_key) ? $cart_item_key : $product_id; ?>">
     <?php  if ( is_product() ):  ?>
     <input type="hidden" class="a2wl_remove_cart_item" name="a2wl_remove_cart_item" value="<?php echo AliNext_Lite\get_setting( 'aliship_not_available_remove' ) ? 1 : 0; ?>">

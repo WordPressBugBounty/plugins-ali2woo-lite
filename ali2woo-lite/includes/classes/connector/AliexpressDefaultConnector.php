@@ -135,7 +135,6 @@ class AliexpressDefaultConnector extends AbstractConnector
         $product_id, $quantity, $country_code, $country_code_from = 'CN',
         $min_price = '', $max_price = '', $province = '', $city = '', $extra_data = '', $sku_id = ''
     ) {
-        $country_code = ProductShippingMeta::normalize_country($country_code);
         $params = [
             'product_id' => $product_id,
             'sku_id' => $sku_id,
@@ -143,9 +142,6 @@ class AliexpressDefaultConnector extends AbstractConnector
             'country_code' => $country_code,
             'extra_data' => $extra_data,
         ];
-        if (!empty($country_code_from)) {
-            $params['country_code_from'] = ProductShippingMeta::normalize_country($country_code_from);
-        }
 
         $request_url = RequestHelper::build_request('get_shipping_info', $params);
         $request = a2wl_remote_get($request_url);

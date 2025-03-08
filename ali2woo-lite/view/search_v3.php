@@ -2,6 +2,7 @@
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
 
 use AliNext_Lite\AbstractAdminPage;
+use AliNext_Lite\ImportedProductService;
 use AliNext_Lite\TipOfDay;
 
 /**
@@ -245,7 +246,7 @@ use AliNext_Lite\TipOfDay;
                         </article>
                         <?php else: ?>
                         
-                        <article class="product-card<?php if ($product['post_id'] || $product['import_id']): ?> product-card--added<?php endif;?>" data-id="<?php echo $product['id'] ?>">
+                        <article class="product-card<?php if ($product['post_id'] || $product['import_id']): ?> product-card--added<?php endif;?>" data-id="<?php echo $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID] ?>">
                             <div class="product-card__img"><a href="<?php echo $product['affiliate_url'] ?>" target="_blank"><img src="<?php echo A2WL()->plugin_url() . '/assets/img/blank_image.png'; ?>" class="lazy" data-original="<?php echo !empty($product['thumb']) ? $product['thumb'] : ""; ?>" alt="#"></a>
                                 <div class="product-card__marked-corner">
                                     <svg class="product-card__marked-icon"><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#icon-selected"></use></svg>
@@ -264,7 +265,7 @@ use AliNext_Lite\TipOfDay;
                                 
                                 <span class="product-card__subtitle">
                                     <div>
-                                        <div class="product-card-shipping-info"<?php if (isset($product['shipping_to_country'])): ?> data-country="<?php echo $product['shipping_to_country'] ?>"<?php endif;?>>
+                                        <div class="product-card-shipping-info"<?php if (isset($product[ImportedProductService::FIELD_COUNTRY_TO])): ?> data-country="<?php echo $product[ImportedProductService::FIELD_COUNTRY_TO] ?>"<?php endif;?>>
                                             <div class="shipping-title"><?php  esc_html_e('Choose shipping country', 'ali2woo');?></div>
                                             <div class="delivery-time"></div>
                                         </div>

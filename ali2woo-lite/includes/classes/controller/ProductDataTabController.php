@@ -20,8 +20,28 @@ class ProductDataTabController extends AbstractController
     public $tab_title = '';
     public $tab_icon = '';
 
-    public function __construct() {
+    protected ProductShippingDataRepository $ProductShippingDataRepository;
+    protected ProductShippingDataService $ProductShippingDataService;
+    protected Country $CountryModel;
+    protected Woocommerce $WoocommerceModel;
+    protected WoocommerceService $WoocommerceService;
+
+    public function __construct(
+            ProductShippingDataRepository $ProductShippingDataRepository,
+            ProductShippingDataService $ProductShippingDataService,
+            Country $CountryModel,
+            Woocommerce $WoocommerceModel,
+            WoocommerceService $WoocommerceService
+    ) {
         parent::__construct();
+
+        $this->ProductShippingDataRepository = $ProductShippingDataRepository;
+        $this->ProductShippingDataService = $ProductShippingDataService;
+        $this->CountryModel = $CountryModel;
+        $this->WoocommerceModel = $WoocommerceModel;
+        $this->WoocommerceService = $WoocommerceService;
+
+
         $this->tab_class = 'a2wl_product_data';
         $this->tab_id = 'a2wl_product_data';
         $this->tab_title = 'A2WL Data';
@@ -35,8 +55,8 @@ class ProductDataTabController extends AbstractController
         add_action('wp_ajax_a2wl_data_remove_deleted_attribute', [$this, 'ajax_remove_deleted_attribute']);
         add_action('wp_ajax_a2wl_data_remove_deleted_variation', [$this, 'ajax_remove_deleted_variation']);
         add_action('wp_ajax_a2wl_data_last_update_clean', [$this, 'ajax_last_update_clean']);
-        add_action('wp_ajax_a2wl_update_product_shipping_info', [$this, 'ajax_update_product_shipping_info']);
-        add_action('wp_ajax_a2wl_remove_product_shipping_info', [$this, 'ajax_remove_product_shipping_info']);
+        add_action('wp_ajax_a2wl_update_product_shipping_info_cache', [$this, 'ajax_update_product_shipping_info_cache']);
+        add_action('wp_ajax_a2wl_remove_product_shipping_info', [$this, 'ajaxRemoveProductDefaultShipping']);
     }
 
     public function on_admin_head() {
@@ -60,14 +80,44 @@ class ProductDataTabController extends AbstractController
 
     private function render_product_tab_content(): void
     {
-        global $post;
+        $productId = $_REQUEST['post'] ?? null;
 
-        $post_id = $_REQUEST['post'] ?? "";
+        if (!$productId) {
+            return;
+        }
 
-        $country_model = new Country();
+        try {
+            $ProductShippingData = $this->ProductShippingDataRepository->get($productId);
+        } catch (RepositoryException $RepositoryException) {
+            error_log($RepositoryException->getMessage());
+            return;
+        }
 
-        $this->model_put('post_id', $post_id);
-        $this->model_put('countries', $country_model->get_countries());
+
+        $product = $this->WoocommerceService->getProductWithVariations($productId);
+
+        $variationList = [];
+        if (!empty($product['sku_products']['variations'])) {
+            foreach ($product['sku_products']['variations'] as $variation) {
+                $variationList[] = [
+                    'id' => $variation['id'],
+                    'title' => $variation['title'],
+                ];
+            }
+        }
+
+        $variationExternalId = !empty($product[ImportedProductService::FIELD_VARIATION_KEY]) ?
+            $product[ImportedProductService::FIELD_VARIATION_KEY] : '';
+
+
+        $shipping_country_from_list = $this->ProductShippingDataService->getCountryFromList($productId);
+
+        $this->model_put('shipping_country_from_list', $shipping_country_from_list);
+        $this->model_put('ProductShippingData', $ProductShippingData);
+        $this->model_put('post_id', $productId);
+        $this->model_put('countries',  $this->CountryModel->get_countries());
+        $this->model_put('variationExternalId', $variationExternalId);
+        $this->model_put('variationList', $variationList);
 
         $this->include_view("product_data_tab.php");
     }
@@ -224,7 +274,7 @@ class ProductDataTabController extends AbstractController
         wp_die();
     }
 
-    public function ajax_update_product_shipping_info(): void
+    public function ajax_update_product_shipping_info_cache(): void
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
@@ -234,29 +284,51 @@ class ProductDataTabController extends AbstractController
             wp_die();
         }
 
-        if (!empty($_POST['id']) && isset($_POST['cost']) && !empty($_POST['country_to']) && !empty($_POST['method']) && !empty($_POST['items'])) {
-            $shipping_meta = new ProductShippingMeta($_POST['id']);
-            $shipping_meta->save_cost($_POST['cost'], false);
-            $shipping_meta->save_method($_POST['method'], false);
+        $isValidOperation = !empty($_POST['id']) && isset($_POST['cost']) && !empty($_POST['country_to']) &&
+            !empty($_POST['method']) && !empty($_POST['items']);
 
-            $shipping_meta->save_country_to($_POST['country_to'], false);
-            if (isset($_POST['country_from'])) {
-                $shipping_meta->save_country_from($_POST['country_from'], false);
-                $shipping_meta->save_items(1, $_POST['country_from'], $_POST['country_to'], $_POST['items'], false);
-            } else {
-                $shipping_meta->save_items(1, '', $_POST['country_to'], $_POST['items'], false);
+        if ($isValidOperation) {
+            $wc_product_id = intval($_POST['id']);
+
+            $cost = floatval($_POST['cost']);
+            $method = sanitize_text_field($_POST['method']);
+            $countryTo = sanitize_text_field($_POST['country_to']);
+            $countryFrom = isset($_POST['country_from']) ? sanitize_text_field($_POST['country_from']) : null;
+            $items = rest_sanitize_array($_POST['items']);
+            $variationKey = isset($_POST['variation_key']) ? sanitize_text_field($_POST['variation_key']) : null;
+
+            try {
+                $ProductShippingData = $this->ProductShippingDataRepository->get($wc_product_id);
+                $ProductShippingData
+                    ->setCost($cost)
+                    ->setMethod($method)
+                    ->setCountryTo($countryTo)
+                    ->setCountryFrom($countryFrom)
+                    ->setItems(1, $countryFrom, $countryTo, $items)
+                    ->setVariationKey($variationKey);
+
+                $this->ProductShippingDataRepository->save($wc_product_id, $ProductShippingData);
+            } catch (RepositoryException $RepositoryException) {
+                error_log($RepositoryException->getMessage());
+                $errorText = esc_html__(
+                        'Repository error: can`t update product shipping  cache', 'ali2woo'
+                );
+                echo wp_json_encode(ResultBuilder::buildError($errorText));
+                wp_die();
             }
 
-            $shipping_meta->save();
             echo wp_json_encode(ResultBuilder::buildOk());
         } else {
-            echo wp_json_encode(ResultBuilder::buildError('wrong params'));
+            $errorText = esc_html__(
+                'ProductDataTabController error: can`t update product shipping cache', 'ali2woo'
+            );
+            echo wp_json_encode(ResultBuilder::buildError($errorText));
         }
 
         wp_die();
     }
 
-    public function ajax_remove_product_shipping_info(): void
+    public function ajaxRemoveProductDefaultShipping(): void
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
@@ -266,17 +338,36 @@ class ProductDataTabController extends AbstractController
             wp_die();
         }
 
-        if (!empty($_POST['id'])) {
-            $shipping_meta = new ProductShippingMeta($_POST['id']);
-            $shipping_meta->save_cost('', false);
-            $shipping_meta->save_country_to('', false);
-            $shipping_meta->save_method('', false);
-            $shipping_meta->save();
-            echo wp_json_encode(ResultBuilder::buildOk());
-        } else {
-            echo wp_json_encode(ResultBuilder::buildError('wrong params'));
+        if (empty($_POST['id'])) {
+            $errorText = esc_html__(
+                'Can`t reset product shipping data: wrong params',
+                'ali2woo'
+            );
+            $result = ResultBuilder::buildError($errorText);
+            echo wp_json_encode($result);
+            wp_die();
         }
 
+
+        $productId = intval($_POST['id']);
+
+        try {
+            $this->ProductShippingDataService->resetProductDefaultShipping($productId);
+        }
+        catch (RepositoryException $RepositoryException) {
+            error_log($RepositoryException->getMessage());
+
+            $errorText = esc_html__(
+                'Can`t reset product shipping data: repository error',
+                'ali2woo'
+            );
+
+            $result = ResultBuilder::buildError($errorText);
+            echo wp_json_encode($result);
+            wp_die();
+        }
+
+        echo wp_json_encode(ResultBuilder::buildOk());
         wp_die();
     }
 

@@ -12,17 +12,39 @@
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
 namespace AliNext_Lite;;
 
+use Throwable;
 use WC_Order;
 use Automattic\WooCommerce\Utilities\OrderUtil;
 
 class OrderFulfillmentController extends AbstractController
 {
+    protected ProductShippingDataRepository $ProductShippingDataRepository;
+    protected ProductShippingDataService $ProductShippingDataService;
+    protected WoocommerceService $WoocommerceService;
+    protected Woocommerce $WoocommerceModel;
+    protected OrderFulfillmentService $OrderFulfillmentService;
+    protected ProductService $ProductService;
+
     protected static array $shipping_fields = [];
     protected static array $additional_shipping_fields = [];
 
-    public function __construct()
-    {
+    public function __construct(
+            ProductShippingDataRepository $ProductShippingDataRepository,
+            ProductShippingDataService $ProductShippingDataService,
+            WoocommerceService $WoocommerceService,
+            Woocommerce $WoocommerceModel,
+            OrderFulfillmentService $OrderFulfillmentService,
+            ProductService $ProductService
+    ) {
         parent::__construct(A2WL()->plugin_path() . '/view/');
+
+        $this->ProductShippingDataRepository = $ProductShippingDataRepository;
+        $this->ProductShippingDataService = $ProductShippingDataService;
+        $this->WoocommerceService = $WoocommerceService;
+        $this->WoocommerceModel = $WoocommerceModel;
+        $this->OrderFulfillmentService = $OrderFulfillmentService;
+        $this->ProductService = $ProductService;
+
         add_action('admin_init', [$this, 'admin_init']);
 
         add_filter('a2wl_wcol_bulk_actions_init', array($this, 'bulk_actions'));
@@ -43,7 +65,7 @@ class OrderFulfillmentController extends AbstractController
         add_filter('a2wl_fill_additional_shipping_fields', array($this, 'fill_additional_shipping_fields'), 10, 3);
         add_action('a2wl_update_custom_shipping_field', [$this, 'update_custom_shipping_field'], 10, 3);
 
-        add_action( 'init', array($this, 'init') );
+        add_action('init', [$this, 'init']);
     }
 
     public function admin_init(): void
@@ -509,8 +531,6 @@ class OrderFulfillmentController extends AbstractController
         $AliexpressHelper = A2WL()->getDI()->get('AliNext_Lite\AliexpressHelper');
 
         return $AliexpressHelper->convertToAliexpressCountryCode($shipping_address['country']);
-
-      //  return ProductShippingMeta::normalize_country($shipping_address['country']);
     }
 
     public function ajax_load_fulfillment_orders_html(): void
@@ -537,9 +557,7 @@ class OrderFulfillmentController extends AbstractController
 
         $is_wpml = $this->isWpml();
 
-        /** @var OrderFulfillmentService $OrderFulfillmentService  */
-        $OrderFulfillmentService = A2WL()->getDI()->get('AliNext_Lite\OrderFulfillmentService');
-        $orders_data = $OrderFulfillmentService->getFulfillmentOrdersData($orders, $is_wpml);
+        $orders_data =  $this->OrderFulfillmentService->getFulfillmentOrdersData($orders, $is_wpml);
 
          if (empty($orders_data)) {
             $text = esc_html__("Orders not found", 'ali2woo');
@@ -549,6 +567,10 @@ class OrderFulfillmentController extends AbstractController
             $this->model_put("shipping_fields", self::$shipping_fields);
             $this->model_put("additional_shipping_fields", self::$additional_shipping_fields);
             $this->model_put("countries", WC()->countries->get_countries());
+            $this->model_put('ProductShippingDataRepository', $this->ProductShippingDataRepository);
+            $this->model_put("ProductShippingDataService", $this->ProductShippingDataService);
+
+            //$ProductShippingDataService
 
             foreach ($orders_data as $order_data) {
                 $urls_to_data = '';
@@ -591,9 +613,7 @@ class OrderFulfillmentController extends AbstractController
 
         $is_wpml = $this->isWpml();
 
-        /** @var OrderFulfillmentService $OrderFulfillmentService  */
-        $OrderFulfillmentService = A2WL()->getDI()->get('AliNext_Lite\OrderFulfillmentService');
-        $orderData = $OrderFulfillmentService->getFulfillmentOrderServiceData($WC_Order, $is_wpml);
+        $orderData = $this->OrderFulfillmentService->getFulfillmentOrderServiceData($WC_Order, $is_wpml);
 
         if (!($orderData)) {
             wp_die();
@@ -649,76 +669,110 @@ class OrderFulfillmentController extends AbstractController
             wp_die();
         }
 
-        $shiping_to_country = false;
+        $shipping_to_country = $_POST['_shipping_country'] ?? false;
 
-        if(isset($_POST['_shipping_country'])) {
-            $shiping_to_country = ProductShippingMeta::normalize_country($_POST['_shipping_country']);
+        if (empty($_POST['order_id'])) {
+            $result = ResultBuilder::buildError('waiting for order id');
+            echo wp_json_encode($result);
+            wp_die();
         }
 
-        if(!isset($_POST['order_id'])) {
-            $result=array('state'=>'error', 'message'=>'waiting for order id');
-        } else {
-            // Get order object.
-            $order = wc_get_order($_POST['order_id']);
-            $props = array();
+        // Get order object.
+        $order = wc_get_order($_POST['order_id']);
+        $props = [];
 
-            $additional_shipping_fields = apply_filters('a2wl_fill_additional_shipping_fields', self::$additional_shipping_fields, $order, $shiping_to_country);
-            $shipping_fields = array_merge(self::$shipping_fields, $additional_shipping_fields);
+        $additional_shipping_fields = apply_filters(
+                'a2wl_fill_additional_shipping_fields',
+                self::$additional_shipping_fields,
+                $order,
+                $shipping_to_country
+        );
 
-            // Update shipping fields.
-            if ( !empty($shipping_fields)) {
-                foreach ($shipping_fields as $key => $field) {
-                    if (!isset($field['id'])) {
-                        $field['id'] = '_shipping_' . $key;
-                    }
+        $shipping_fields = array_merge(self::$shipping_fields, $additional_shipping_fields);
 
-                    if (!isset($_POST[$field['id']])) {
-                        continue;
-                    }
+        // Update shipping fields.
+        if ( !empty($shipping_fields)) {
+            foreach ($shipping_fields as $key => $field) {
+                if (!isset($field['id'])) {
+                    $field['id'] = '_shipping_' . $key;
+                }
 
-                    if (!empty($field['custom'])) {
-                        do_action('a2wl_update_custom_shipping_field', $key, $field, $order);
+                if (!isset($_POST[$field['id']])) {
+                    continue;
+                }
+
+                if (!empty($field['custom'])) {
+                    do_action('a2wl_update_custom_shipping_field', $key, $field, $order);
+                } else {
+                    if (is_callable(array($order, 'set_shipping_' . $key))) {
+                        $props['shipping_' . $key] = wc_clean(wp_unslash($_POST[$field['id']]));
                     } else {
-                        if (is_callable(array($order, 'set_shipping_' . $key))) {
-                            $props['shipping_' . $key] = wc_clean(wp_unslash($_POST[$field['id']]));
-                        } else {
-                            $order->update_meta_data($field['id'], wc_clean(wp_unslash($_POST[$field['id']])));
-                        }
+                        $order->update_meta_data($field['id'], wc_clean(wp_unslash($_POST[$field['id']])));
                     }
-
                 }
             }
-
-            // Save order data.
-            $order->set_props( $props );
-            $order->save();
-
-            if($shiping_to_country) {
-                foreach ($order->get_items() as $item) {
-                    $product = $item->get_product();
-
-                    $shipping_info = Utils::get_product_shipping_info($product, $item->get_quantity(), $shiping_to_country, false);
-
-                    $shipping_meta_data = $item->get_meta(Shipping::get_order_item_shipping_meta_key());
-                    $shipping_meta_data = $shipping_meta_data ? json_decode($shipping_meta_data, true) : array('company' => '', 'service_name' => '', 'delivery_time' => '', 'shipping_cost' => '', 'quantity' => $item->get_quantity(), 'cost_added' => true);
-                    foreach ($shipping_info['items'] as $si) {
-                        if ($si['serviceName'] == $shipping_info['default_method']) {
-                            $shipping_meta_data['company'] = $si['company'];
-                            $shipping_meta_data['service_name'] = $si['serviceName'];
-                            $shipping_meta_data['shipping_cost'] = $si['freightAmount']['value'];
-                            $shipping_meta_data['delivery_time'] = $si['time'];  
-                        }
-                    }
-
-                    $item->update_meta_data(Shipping::get_order_item_shipping_meta_key(), wp_json_encode($shipping_meta_data));
-                    $item->save_meta_data();
-                }
-            }
-
-            $result = array('state'=>'ok');
         }
 
-        echo wp_json_encode($result);
+        // Save order data.
+        $order->set_props($props);
+        $order->save();
+
+        if ($shipping_to_country) {
+            foreach ($order->get_items() as $item) {
+                $WC_Product = $item->get_product();
+
+                $quantity = $item->get_quantity();
+                $countryFromCode = 'CN';
+                try {
+                    $importedProduct = $this->WoocommerceService
+                        ->updateProductShippingInfo($WC_Product, $shipping_to_country, $countryFromCode, $quantity);
+
+                    $shippingItems = $this->ProductService->getShippingItems(
+                        $importedProduct, $shipping_to_country, $countryFromCode
+                    );
+                } catch (RepositoryException $Exception) {
+                    a2wl_error_log($Exception->getMessage());
+                    continue;
+                }
+
+            /*    $shippingItems = $this->WoocommerceService->getShippingInfoByProduct(
+                        $WC_Product, $item->get_quantity(),
+                        $shipping_to_country
+                );*/
+               /* $importedProduct = $this->WoocommerceService->getProduct($WC_Product->get_parent_id());*/
+
+                $ShippingItemDto = $this->ProductService->findDefaultFromShippingItems(
+                        $shippingItems, $importedProduct
+                );
+
+                $shipping_meta_data = $item->get_meta(Shipping::get_order_item_shipping_meta_key());
+                $shipping_meta_data = $shipping_meta_data ? json_decode($shipping_meta_data, true) :
+                    [
+                        'company' => '',
+                        'service_name' => '',
+                        'delivery_time' => '',
+                        'shipping_cost' => '',
+                        'quantity' => $item->get_quantity(),
+                        'cost_added' => true
+                    ];
+
+                foreach ($shippingItems as $shippingItem) {
+                    if ($shippingItem['serviceName'] === $ShippingItemDto->getMethodName()) {
+                        $shipping_meta_data['company'] = $shippingItem['company'];
+                        $shipping_meta_data['service_name'] = $shippingItem['serviceName'];
+                        $shipping_meta_data['shipping_cost'] = $shippingItem['freightAmount']['value'];
+                        $shipping_meta_data['delivery_time'] = $shippingItem['time'];
+                    }
+                }
+
+                $item->update_meta_data(
+                        Shipping::get_order_item_shipping_meta_key(), wp_json_encode($shipping_meta_data)
+                );
+                $item->save_meta_data();
+            }
+        }
+
+        echo wp_json_encode(ResultBuilder::buildOK());
         wp_die();
     }
 
@@ -748,9 +802,8 @@ class OrderFulfillmentController extends AbstractController
 
         if ($shiping_to_country && $order_id) {
             $order = new WC_Order($order_id);
-            /** @var OrderFulfillmentService $OrderFulfillmentService  */
-            $OrderFulfillmentService = A2WL()->getDI()->get('AliNext_Lite\OrderFulfillmentService');
-            $UpdateFulfillmentShippingResult = $OrderFulfillmentService->updateFulfillmentShipping(
+
+            $UpdateFulfillmentShippingResult = $this->OrderFulfillmentService->updateFulfillmentShipping(
                     $order, $order_items, $shiping_to_country, $is_wpml
             );
 
@@ -785,9 +838,6 @@ class OrderFulfillmentController extends AbstractController
         $orderItemsIds = isset($_POST['items']) && is_array($_POST['items']) ?
             array_map('intval', $_POST['items']) : [];
 
-        /** @var OrderFulfillmentService $OrderFulfillmentService  */
-        $OrderFulfillmentService = A2WL()->getDI()->get('AliNext_Lite\OrderFulfillmentService');
-
         if ($order_id && $orderItemsIds) {
             $WC_Order = new WC_Order($order_id);
             $OrderItems = [];
@@ -796,7 +846,7 @@ class OrderFulfillmentController extends AbstractController
                     $OrderItems[] = $orderItem;
                 }
             }
-            $result = $OrderFulfillmentService->placeOrder($WC_Order, $OrderItems);
+            $result = $this->OrderFulfillmentService->placeOrder($WC_Order, $OrderItems);
         } else {
             $result = ResultBuilder::buildError('Wrong params');
         }
@@ -818,11 +868,23 @@ class OrderFulfillmentController extends AbstractController
         if (empty($_POST['order_id'])) {
             $result = ResultBuilder::buildError('wrong params');
         } else {
-            /**
-             * @var Woocommerce $wc_api
-             */
-            $wc_api = A2WL()->getDI()->get('AliNext_Lite\Woocommerce');
-            $result = $wc_api->sync_order_with_aliexpress($_POST['order_id']);
+
+            $orderId = intval($_POST['order_id']);
+            a2wl_init_error_handler();
+            try {
+                $result = ResultBuilder::buildOk();
+                $WC_Order = wc_get_order($orderId);
+                if (!$WC_Order) {
+                    $errorMessage = esc_html_x('Order not found', 'error text', 'ali2woo');
+                    $result = ResultBuilder::buildError($errorMessage);
+                }
+
+                $this->WoocommerceService->syncOrderWithAliexpress($WC_Order);
+
+            } catch (Throwable $Exception) {
+                a2wl_print_throwable($Exception);
+                $result = ResultBuilder::buildError($Exception->getMessage());
+            }
         }
 
         echo wp_json_encode($result);

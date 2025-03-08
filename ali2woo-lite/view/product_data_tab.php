@@ -1,8 +1,15 @@
 <?php
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
+/** @var ProductShippingDataService $ProductShippingDataService */
+/** @var ProductShippingData $ProductShippingData */
+/** @var array $shipping_country_from_list */
+/** @var string $variationExternalId */
+/** @var array $variationList */
+
 use AliNext_Lite\AbstractController;
+use AliNext_Lite\ProductShippingData;
+use AliNext_Lite\ProductShippingDataService;
 use function AliNext_Lite\get_setting;
-use AliNext_Lite\ProductShippingMeta;
 use AliNext_Lite\Attachment;
 ?>
 <div class="a2wl_product_tab_menu">
@@ -11,18 +18,24 @@ use AliNext_Lite\Attachment;
         <li><a href="#" data-tab="variations">Manage Variations</a></li>
     </ul>
     <script>
-        jQuery(".a2wl_product_tab_menu li a").click(function () {
+        jQuery(".a2wl_product_tab_menu li a").on('click', function (event) {
+            event.preventDefault();
+
             jQuery(".a2wl_product_tab_menu li a").removeClass('current');
             jQuery(this).addClass('current');
 
             jQuery(".a2wl_product_tab").hide();
             jQuery(".a2wl_product_tab."+jQuery(this).data('tab')).show();
-            return false;
         });
     </script>
 </div>
 
 <div class="a2wl_product_tab general">
+    <?php
+    /**
+     * @var int $post_id
+     */
+    ?>
     <?php $external_id = get_post_meta($post_id, '_a2w_external_id', true); ?>
 
     <div class="options_group">
@@ -93,7 +106,7 @@ use AliNext_Lite\Attachment;
         if ($disable_sync) {
             ?>
             <script>
-                jQuery(document).ready(function($) {
+                jQuery(document).on('ready', function($) {
                     $(a2wFieldsSelector).hide();
                 });
             </script>
@@ -127,39 +140,45 @@ use AliNext_Lite\Attachment;
         <div class="options_group">
             <?php
             // save shipping meta data
-            $shipping_meta = new ProductShippingMeta($post_id);
-            $shipping_cost = $shipping_meta->get_cost();
-            $shipping_country_from = $shipping_meta->get_country_from();
-            $shipping_country_from_list = ProductShippingMeta::get_country_from_list($post_id);
-            $shipping_country_to = $shipping_meta->get_country_to();
-            $shipping_method = $shipping_meta->get_method();
+            $shipping_cost = $ProductShippingData->getCost();
+            $shipping_country_from = $ProductShippingData->getCountryFrom() ?: 'CN';
+            $shipping_country_to = $ProductShippingData->getCountryTo();
+            $shipping_method = $ProductShippingData->getMethod();
 
-            $shiping_info = "";
-            if($shipping_country_to && $shipping_method){
-                $shiping_info = $shipping_country_from.", ".$shipping_country_to.", ".$shipping_method.", ".($shipping_cost ? $shipping_cost : 'free');
-                $items = $shipping_meta->get_items(1,$shipping_country_from, $shipping_country_to);
-                if($items){
-                    foreach($items as $item){
-                        if($item['serviceName'] == $shipping_method){
-                            $shiping_info = $shipping_country_from.", ".$shipping_country_to.", ".$item['company'].", ".($shipping_cost ? (isset($item['freightAmount']['formatedAmount'])?$item['freightAmount']['formatedAmount']:$item['freightAmount']['value']) : 'free');
+            $shipping_info = "";
+            if ($shipping_country_to && $shipping_method) {
+                $shipping_info = $shipping_country_from.", ".$shipping_country_to.", ".$shipping_method.", ".($shipping_cost ? $shipping_cost : 'free');
+                $items = $ProductShippingData->getItems(1, $shipping_country_from, $shipping_country_to);
+                if ($items) {
+                    foreach ($items as $item) {
+                        if ($item['serviceName'] == $shipping_method) {
+                            $shipping_info = $shipping_country_from.", ".$shipping_country_to.", ".$item['company'].", ".($shipping_cost ? ($item['freightAmount']['formatedAmount'] ?? $item['freightAmount']['value']) : 'free');
                             break;
                         }
                     }
                 }
             }
             ?>
-            <p class="form-field a2wl-shiping-data"  data-country_from="<?php echo $shipping_country_from; ?>" data-country_to="<?php echo $shipping_country_to; ?>" data-shipping_method="<?php echo $shipping_method; ?>">
-                <label><?php  esc_html_e('Shipping', 'ali2woo'); ?></label>
-                <span><span class="a2wl-shiping-info"><?php echo $shiping_info; ?></span> <a href="#" class="a2wl-shipping-update">Select shipping</a> / <a href="#" class="a2wl-shipping-remove">Reset</a></span>
-                <span class="woocommerce-help-tip" data-tip="This shipping cost will be included to the product price according to pricing rules"></span>
+            <p class="form-field a2wl-shiping-data"
+               data-country_from="<?php echo $shipping_country_from; ?>"
+               data-country_to="<?php echo $shipping_country_to; ?>"
+               data-shipping_method="<?php echo $shipping_method; ?>"
+            >
+                <label><?php esc_html_e('Default shipping', 'ali2woo'); ?></label>
+                <span><span class="a2wl-shiping-info"><?php echo $shipping_info; ?></span> <a href="#" class="a2wl-shipping-update">Select shipping</a> / <a href="#" class="a2wl-shipping-remove">Reset</a></span>
+                <span class="woocommerce-help-tip" data-tip="<?php esc_html_e('The shipping cost will be included in the product price based on our pricing rules settings.', 'ali2woo'); ?>"></span>
             </p>
             <script>
                 (function ($) {
                     let ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';
                     let nonce_action = '<?php echo wp_create_nonce(AbstractController::AJAX_NONCE_ACTION); ?>';
 
-                    $(".a2wl-shipping-remove").on("click", function () {
-                        if (confirm("Are you sure you want to reset shipping info?")) {
+                    $(".a2wl-shipping-remove").on("click", function (event) {
+                        event.preventDefault();
+
+                        if (confirm(
+                            "Confirm Reset: Are you sure you want to reset the default shipping method?"
+                        )) {
                             const data = {
                                 'action': 'a2wl_remove_product_shipping_info',
                                 'id': '<?php echo $post_id; ?>',
@@ -176,21 +195,24 @@ use AliNext_Lite\Attachment;
                                 console.log(error);
                             });
                         }
-                        return false;
                     });
-                    $(".a2wl-shipping-update").on("click", function () {
-                        const onSelectCallback = function (product_id, items, country_from, country_to, method) {
+                    $(".a2wl-shipping-update").on("click", function (event) {
+                        event.preventDefault();
+
+                        const onSelectCallback = function (product_id, variation_key, items, country_from, country_to, method) {
                             if (method && items) {
                                 $('.a2wl-shiping-data').data('country_from', country_from)
                                 $('.a2wl-shiping-data').data('country_to', country_to)
                                 $('.a2wl-shiping-data').data('shipping_method', method)
 
                                 $.each(items, function (i, item) {
-                                    if (item.serviceName == method) {
-                                        const cost = item.previewFreightAmount?item.previewFreightAmount.value:item.freightAmount.value
+                                    if (item.serviceName === method) {
+                                        const cost = item.previewFreightAmount ? item.previewFreightAmount.value : item.freightAmount.value;
+                                        const companyName = item.company;
                                         const data = {
-                                            'action': 'a2wl_update_product_shipping_info',
+                                            'action': 'a2wl_update_product_shipping_info_cache',
                                             'id': '<?php echo $post_id; ?>',
+                                            variation_key,
                                             country_from,
                                             country_to,
                                             method,
@@ -203,7 +225,9 @@ use AliNext_Lite\Attachment;
                                             if (json.state !== 'ok') {
                                                 console.log(json);
                                             } else {
-                                                $('.a2wl-shiping-info').html(country_from+", "+country_to+", "+method+", "+(cost?(item.freightAmount.formatedAmount?item.freightAmount.formatedAmount:item.freightAmount.value):'free'));
+                                                let itemCost = item.freightAmount.formatedAmount ? item.freightAmount.formatedAmount : item.freightAmount.value;
+                                                let shippingInfoHtml = country_from + ", " + country_to + ", " + companyName + ", " + (cost ? itemCost : 'free');
+                                                $('.a2wl-shiping-info').html(shippingInfoHtml);
                                             }
                                         }).fail(function (xhr, status, error) {
                                             console.log(error);
@@ -212,22 +236,39 @@ use AliNext_Lite\Attachment;
                                 });
                             }
                         }
+                        const country_from = $('.a2wl-shiping-data').data('country_from');
+                        const country_to = $('.a2wl-shiping-data').data('country_to');
+                        const shipping_method = $('.a2wl-shiping-data').data('shipping_method');
 
-                        const country_from = $('.a2wl-shiping-data').data('country_from')
-                        const country_to = $('.a2wl-shiping-data').data('country_to')
-                        const shipping_method = $('.a2wl-shiping-data').data('shipping_method')
-
-                        if (!country_to || !shipping_method) {
-                            fill_modal_shipping_info('<?php echo $external_id; ?>', <?php echo wp_json_encode($shipping_country_from_list); ?>, country_from, '', null, 'product', '', onSelectCallback);
-                        } else {
-                            $('.modal-shipping .shipping-method').html('<div class="a2wl-load-container"><div class="a2wl-load-speeding-wheel"></div></div>');
-                            a2wl_load_shipping_info('<?php echo $external_id; ?>', country_from, country_to, 'product', function (state, items, default_method, shipping_cost, variations) {
-                                fill_modal_shipping_info('<?php echo $external_id; ?>', <?php echo wp_json_encode($shipping_country_from_list); ?>, country_from, country_to, items, 'product', shipping_method, onSelectCallback);
-                            })
-                        }
+                       if (!country_to && !shipping_method) {
+                            fill_modal_shipping_info(
+                                '<?php echo $external_id; ?>',
+                                <?php echo wp_json_encode($variationList); ?>,
+                                '<?php echo $variationExternalId; ?>',
+                                <?php echo wp_json_encode($shipping_country_from_list); ?>,
+                                country_from, country_to, null, 'product', shipping_method, onSelectCallback
+                            );
+                       } else {
+                           $('.modal-shipping .shipping-method').html(
+                               '<div class="a2wl-load-container"><div class="a2wl-load-speeding-wheel"></div></div>'
+                           );
+                           a2wl_load_shipping_info(
+                               '<?php echo $external_id; ?>',
+                               '<?php echo $variationExternalId; ?>',
+                               country_from, country_to, 'product',
+                               function (state, items, default_method, shipping_cost, variations) {
+                                   fill_modal_shipping_info(
+                                       '<?php echo $external_id; ?>',
+                                       variations,
+                                       '<?php echo $variationExternalId; ?>',
+                                       <?php echo wp_json_encode($shipping_country_from_list); ?>,
+                                       country_from, country_to, items, 'product',
+                                       shipping_method, onSelectCallback
+                                   );
+                           });
+                       }
 
                         $(".modal-shipping").addClass('opened');
-                        return false;
                     });
                 })(jQuery);
             </script>

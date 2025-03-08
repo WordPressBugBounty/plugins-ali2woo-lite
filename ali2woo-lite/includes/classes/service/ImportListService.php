@@ -11,13 +11,17 @@ namespace AliNext_Lite;;
 class ImportListService
 {
     protected ProductImport $ProductImportModel;
-    protected Aliexpress $AliexpressModel;
+    protected PriceFormulaService $PriceFormulaService;
+    protected ProductService $ProductService;
+
     public function __construct(
         ProductImport $ProductImportModel,
-        Aliexpress $AliexpressModel
+        PriceFormulaService $PriceFormulaService,
+        ProductService $ProductService
     ) {
         $this->ProductImportModel = $ProductImportModel;
-        $this->AliexpressModel = $AliexpressModel;
+        $this->PriceFormulaService = $PriceFormulaService;
+        $this->ProductService = $ProductService;
     }
 
     /**
@@ -33,10 +37,6 @@ class ImportListService
                 _x( "Can not read the file.", 'error text', 'ali2woo')
             );
         }
-
-        $product_import_model = $this->ProductImportModel;
-        $PriceFormulaService = A2WL()->getDI()->get('AliNext_Lite\PriceFormulaService');
-        $loader = $this->AliexpressModel;
 
         $products = a2wl_get_transient('a2wl_search_result');
         $idsCount = 0;
@@ -79,14 +79,14 @@ class ImportListService
                     )
             );
             if (get_setting('allow_product_duplication') || !$post_id) {
-                $res = $loader->load_product($id, []);
+                $res = $this->ProductService->loadProductWithShippingInfo($id);
                 if ($res['state'] !== 'error') {
                     $product = array_replace_recursive($product, $res['product']);
 
                     if ($product) {
-                        $product = $PriceFormulaService->applyFormula($product);
+                        $product = $this->PriceFormulaService->applyFormula($product);
 
-                        $product_import_model->add_product($product);
+                        $this->ProductImportModel->add_product($product);
                     } else {
                         $processErrorsIds[] = $id;
                     }

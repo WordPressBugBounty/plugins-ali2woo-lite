@@ -249,16 +249,20 @@ jQuery(document).ready(function($){
             
         },
 
-        a2wl_load_shipping_info : function(product_id, country, $quantity, callback = null, type = 'select', page = 'cart') {
+        a2wl_load_shipping_info : function(product_id, variation_id = null, country, $quantity, callback = null, type = 'select', page = 'cart') {
             let data = {
                 'action': 'a2wl_frontend_load_shipping_info',
                 'id': product_id,
                 'country': country,
-                'quantity' : $quantity,
+                'quantity': $quantity,
                 'type': type,
                 'page': page,
                 'ali2woo_nonce': a2wl_ali_ship_data.nonce_action
             };
+
+            if (variation_id) {
+                data['variation_id'] = variation_id;
+            }
         
             jQuery.post(a2wl_ali_ship_data.ajaxurl, data).done(function (response) {
                 let json = JSON.parse(response);
@@ -287,28 +291,31 @@ jQuery(document).ready(function($){
         init : function(country_node, apply_shipping = true){
          
                 $(".a2wl_shipping_wrap").each(function(){
-                    var country = country_node.val();
-                    var shipping_wrap_node = $(this); 
+                    let country = country_node.val();
+                    let shipping_wrap_node = $(this);
 
-                    var item_id = shipping_wrap_node.find('.item_id').val(); 
-                    
-                    if (typeof variation_id !== "undefined"){
-                        var item_id = variation_id;
-                    } else {
-                        var item_id = shipping_wrap_node.find('.item_id').val();
-                    }
-               
-                    var shipping_modal_node = $('#a2wl_shipping_modal_'+item_id);
+                    let item_id = shipping_wrap_node.find('.item_id').val();
+                    let variation_id = shipping_wrap_node.find('.variation_id').val() || null;
 
-                    var product_id = shipping_wrap_node.find(".product_id").val();
+                    let shipping_modal_node = $('#a2wl_shipping_modal_'+item_id);
 
-                    var page = a2wl_shipping_api.is_product_page() ? 'product' : 'cart';
+                    let product_id = shipping_wrap_node.find(".product_id").val();
 
-                    var shipping_result_node = shipping_modal_node.find('.shipping-result');
+                    let page = a2wl_shipping_api.is_product_page() ? 'product' : 'cart';
+
+                    let shipping_result_node = shipping_modal_node.find('.shipping-result');
                 
-                    shipping_result_node.block({message: null, overlayCSS: {background: '#fff', opacity: 0.6}});
+                    shipping_result_node.block(
+                        {
+                            message: null,
+                            overlayCSS: {
+                                background: '#fff',
+                                opacity: 0.6
+                            }
+                        }
+                    );
 
-                    var $quantity_node = '';
+                    let $quantity_node = '';
                     
                     if (a2wl_shipping_api.is_product_page()){
                         $quantity_node = $('form.cart input[name="quantity"]');      
@@ -316,67 +323,69 @@ jQuery(document).ready(function($){
                         console.log('Quantity field is not found. This is not a product page.');
                     }
 
-                    var $quantity = 1;
+                    let $quantity = 1;
 
                     if ($quantity_node.val() === undefined || $quantity_node.val() === 0){
                         $quantity = 1;
                     }  else {
                         $quantity = $quantity_node.val();
-                    } 
+                    }
 
-                    a2wl_popup_shipping_js.a2wl_load_shipping_info(product_id, country, $quantity, function (state, items, default_method, shipping_cost, shipping_info) {
-           
-                      if (!a2wl_shipping_api.is_product_page()){
-                        default_method = shipping_wrap_node.find(".a2wl_shipping_method_field").val();
-                      }
+                    const loadShippingCallback = function (
+                        state, items, default_method, shipping_cost, shipping_info
+                    ) {
+
+                        if (!a2wl_shipping_api.is_product_page()){
+                            default_method = shipping_wrap_node.find(".a2wl_shipping_method_field").val();
+                        }
 
                         if (state !== 'error') {
-
-                            a2wl_popup_shipping_js.fill_modal_shipping_info(item_id, product_id, country, items, default_method, shipping_info);
-                     
+                            a2wl_popup_shipping_js.fill_modal_shipping_info(
+                                item_id, product_id, country, items, default_method, shipping_info
+                            );
                             if (apply_shipping){
-
                                 a2wl_popup_shipping_js.apply_shipping_method(country_node, item_id);
-                              
                             }
-
                             shipping_result_node.unblock();
-    
                         } else {
-
                             shipping_result_node.unblock();
+                            console.log(
+                                'AliNext (Lite version) can`t get shipping info for product: ' + product_id + ', country: ' + country
+                            );
 
-                            console.log('AliNext (Lite version) can`t get shipping info for product: ' + product_id + ', country: ' + country);
                             return false;
                         }
-    
-                    }, 'popup', page);
+                    }
+
+                    a2wl_popup_shipping_js.a2wl_load_shipping_info(
+                        product_id, variation_id, country, $quantity, loadShippingCallback, 'popup', page
+                    );
                 })
         }
-
     }
 
-    var country_node = a2wl_shipping_api.get_country_node();
+    let country_node = a2wl_shipping_api.get_country_node();
 
-    if (!country_node){
+    if (!country_node) {
         console.log('AliNext (Lite version) can`t find country node on the page');
+
         return false;
     }
  
-    //init popus on page load
+    //init popup on page load
     //  a2wl_popup_shipping_js.init(country_node, false);
 
 
     //open popup on click
-    $( document ).on(
+    $(document).on(
         'click',
         '.a2wl_shipping_wrap .shipping_info',
         function(){
 
-            var shipping_wrap_node = $(this).parents('.a2wl_shipping_wrap');
-            var item_id = shipping_wrap_node.find('.item_id').val();
-      
-            var shipping_modal_node = $('#a2wl_shipping_modal_'+item_id);
+            let shipping_wrap_node = $(this).parents('.a2wl_shipping_wrap');
+            let item_id = shipping_wrap_node.find('.item_id').val();
+
+            let shipping_modal_node = $('#a2wl_shipping_modal_'+item_id);
             
             shipping_modal_node.dialog({
                 'modal': true,
@@ -386,14 +395,20 @@ jQuery(document).ready(function($){
                     "ui-dialog": "ali2woo-ui-dialog"
                 },
                 beforeClose: function( event, ui ) {
+                    let shipping_wrap_node = $('#a2wl_shipping_wrap_'+item_id);
+                    let shipping_modal_node = $('#a2wl_shipping_modal_'+item_id);
 
-                    var shipping_wrap_node = $('#a2wl_shipping_wrap_'+item_id);
-                    var shipping_modal_node = $('#a2wl_shipping_modal_'+item_id);
-
-                    var shipping_data = shipping_wrap_node.data('shipping-info');
+                    let shipping_data = shipping_wrap_node.data('shipping-info');
 
                     if (typeof shipping_data == "undefined"){
-                        shipping_data = { item_id : false, product_id : false, country :  false, 'shipping': false, default_method : false,  shipping_info : false};
+                        shipping_data = {
+                            item_id : false,
+                            product_id : false,
+                            country : false,
+                            'shipping': false,
+                            default_method : false,
+                            shipping_info : false
+                        };
                     }
 
                     shipping_table_node = shipping_modal_node.find('.shipping-table');   
@@ -407,16 +422,13 @@ jQuery(document).ready(function($){
                     } 
 
                     //remember popup data
-                    var selected_method = $radios.parent().find(':checked').val();
-
-                    var selected_row_dom =  $radios.parent().find(':checked').parent().parent();
+                    let selected_method = $radios.parent().find(':checked').val();
+                    let selected_row_dom =  $radios.parent().find(':checked').parent().parent();
 
                     shipping_data.default_method = selected_method;
-                
                     shipping_data.formated_price = selected_row_dom.find('.a2wl-div-table-col').eq(2).html();
                     shipping_data.tracking = selected_row_dom.find('.a2wl-div-table-col').eq(3).html();
                     shipping_data.method_label = selected_row_dom.find('.a2wl-div-table-col').eq(4).html();
-
                     shipping_wrap_node.data('shipping-info',shipping_data);
 
                 },
@@ -468,19 +480,14 @@ jQuery(document).ready(function($){
    
    
 //on product page:
-
-    //quantity change
     $(document).on('change', 'form.cart input[name="quantity"]', function () {
-      
         let $quantity = $(this), $form = $quantity.closest('form.cart');
         let shipping_wrap_node = $form.find('.a2wl_shipping_wrap');
         let variation_id = $form.find('input[name="variation_id"], input.variation_id').val();
-        let cur_product_id = shipping_wrap_node.find(".product_id").val();
+        let cur_variation_id = shipping_wrap_node.find(".variation_id").val();
 
-        if (variation_id && variation_id !== cur_product_id ){
-
-            //if variable product & variant is changed, update product id
-            shipping_wrap_node.find(".product_id").val(variation_id);
+        if (variation_id && variation_id !== cur_variation_id ){
+            shipping_wrap_node.find(".variation_id").val(variation_id);
 
         } else {
             //update shipping if variant is not change or if this is a simple product

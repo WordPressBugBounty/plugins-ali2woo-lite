@@ -16,12 +16,13 @@ class ProductImport {
     public function add_product($product) {
         if (!isset($product['import_id']) || !$product['import_id']) {
             // 1.7.0 for compatibility with older versions
-            $product['import_id'] = $product['id'];
+            $product['import_id'] = $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID];
         }
 
+        //todo: move this loader call to a new background TASK
         if (!isset($product['is_affiliate'])) {
-            $aliexpress_loader = new Aliexpress();
-            $check_result = $aliexpress_loader->check_affiliate($product['id']);
+            $AliexpressModel = A2WL()->getDI()->get('AliNext_Lite\Aliexpress');
+            $check_result = $AliexpressModel->check_affiliate($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]);
             $product['is_affiliate'] = $check_result['affiliate'];
         }
         
@@ -37,7 +38,7 @@ class ProductImport {
     public function upd_product($product, $merge=true) {
         if(!isset($product['import_id']) || !$product['import_id']){
             // 1.7.0 for compatibility with older versions
-            $product['import_id'] = $product['id'];
+            $product['import_id'] = $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID];
         }
 
         $product_id_list = $this->get_product_id_list();
@@ -81,7 +82,7 @@ class ProductImport {
         if ($product) {
             if (!isset($product['import_id']) || !$product['import_id']) {
                 // 1.7.0 for compatibility with older versions
-                $product['import_id'] = $product['id'];
+                $product['import_id'] = $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID];
             }
             if (!isset($product['product_type'])) {
                 $product['product_type'] = get_setting('default_product_type');
@@ -150,7 +151,7 @@ class ProductImport {
                     $product['html'] = "#needload#";
                 }
 
-                if (empty($search) || strpos($product['title'], strval($search)) !== false || strpos($product['id'], strval($search)) !== false) {
+                if (empty($search) || strpos($product['title'], strval($search)) !== false || strpos($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID], strval($search)) !== false) {
                     $products[$product_id] = $product;
                 }
                 unset($product);

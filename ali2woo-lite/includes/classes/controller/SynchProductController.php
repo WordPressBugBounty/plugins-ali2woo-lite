@@ -10,19 +10,37 @@
  * @cron: true
  */
 
- namespace AliNext_Lite;;
+namespace AliNext_Lite;;
 
 use Throwable;
 
 class SynchProductController extends AbstractController
 {
+
+    protected ProductService $ProductService;
+    protected Review $ReviewModel;
+    protected Woocommerce $WoocommerceModel;
+    protected PriceFormulaService $PriceFormulaService;
+    protected WoocommerceService $WoocommerceService;
+
     private $update_per_schedule = 100;
     private $update_per_request = 5;
     private $update_period_delay = 60 * 60 * 24;
 
-    public function __construct()
-    {
+    public function __construct(
+        ProductService $ProductService,
+        Review $ReviewModel,
+        Woocommerce $WoocommerceModel,
+        PriceFormulaService $PriceFormulaService,
+        WoocommerceService $WoocommerceService
+    ) {
         parent::__construct();
+
+        $this->ProductService = $ProductService;
+        $this->ReviewModel = $ReviewModel;
+        $this->WoocommerceModel = $WoocommerceModel;
+        $this->PriceFormulaService = $PriceFormulaService;
+        $this->WoocommerceService = $WoocommerceService;
 
         add_action('a2wl_install', array($this, 'install'));
 
@@ -148,7 +166,7 @@ class SynchProductController extends AbstractController
     }
 
     // Cron auto update event
-    public function update_products_event()
+    public function update_products_event(): void
     {
         if (!get_setting('auto_update') || $this->is_process_running('a2wl_update_products_event')) {
             return;
@@ -158,12 +176,6 @@ class SynchProductController extends AbstractController
 
         a2wl_init_error_handler();
         try {
-            /** @var $woocommerce_model  Woocommerce */ 
-            $woocommerce_model = A2WL()->getDI()->get('AliNext_Lite\Woocommerce');
-            $PriceFormulaService = A2WL()->getDI()->get('AliNext_Lite\PriceFormulaService');
-            $loader = new Aliexpress();
-            $sync_model = new Synchronize();
-
             $update_per_schedule = apply_filters('a2wl_update_per_schedule',
                 a2wl_check_defined('A2WL_UPDATE_PER_SCHEDULE') ? intval(A2WL_UPDATE_PER_SCHEDULE) : $this->update_per_schedule
             );
@@ -176,7 +188,7 @@ class SynchProductController extends AbstractController
                 a2wl_check_defined('A2WL_UPDATE_PERIOD_DELAY') ? intval(A2WL_UPDATE_PERIOD_DELAY) : $this->update_period_delay
             );
 
-            $product_ids = $woocommerce_model->get_sorted_products_ids(
+            $product_ids = $this->WoocommerceModel->get_sorted_products_ids(
                 "_a2w_last_update",
                 $update_per_schedule,
                 ['value' => time() - $update_period_delay, 'compare' => '<'],
@@ -188,12 +200,12 @@ class SynchProductController extends AbstractController
 
             $product_map = array();
             foreach ($product_ids as $product_id) {
-                $product = $woocommerce_model->get_product_by_post_id($product_id, false);
+                $product = $this->WoocommerceService->getProduct($product_id);
                 if ($product) {
                     if (!$product['disable_sync']) {
                         $product['disable_var_price_change'] = $product['disable_var_price_change'] || $on_price_changes !== "update";
                         $product['disable_var_quantity_change'] = $product['disable_var_quantity_change'] || $on_stock_changes !== "update";
-                        $product_map[strval($product['id'])] = $product;
+                        $product_map[strval($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID])] = $product;
                     } else {
                         // update meta for skipped products
                         update_post_meta($product['post_id'], '_a2w_last_update', time());
@@ -201,58 +213,50 @@ class SynchProductController extends AbstractController
                 }
                 unset($product);
             }
-            $pc = $sync_model->get_product_cnt();
+
             while ($product_map) {
                 $tmp_product_map = array_slice($product_map, 0, $update_per_request, true);
                 $product_map = array_diff_key($product_map, $tmp_product_map);
 
-                $product_ids = array_map(function ($p) {
-                    $complex_id = $p['id'] . ';' . $p['import_lang'];
+                if (count($tmp_product_map) > 0) {
+                    $result = $this->ProductService->synchronizeProducts($tmp_product_map);
 
-                    $shipping_meta = new ProductShippingMeta($p['post_id']);
-
-                    $country_to = $shipping_meta->get_country_to();
-                    if (!empty($country_to)) {
-                        $complex_id .= ';' . $country_to;
-                    }
-
-                    $method = $shipping_meta->get_method();
-                    if (!empty($method)) {
-                        $complex_id .= ';' . $method;
-                    }
-
-                    return $complex_id;
-                }, $tmp_product_map);
-
-                $result = $loader->sync_products($product_ids, array('pc' => $pc));
-                if ($result['state'] !== 'error') {
-                    foreach ($result['products'] as $product) {
-                        if (!empty($tmp_product_map[$product['id']])) {
-                            try {
-                                $product = array_replace_recursive($tmp_product_map[strval($product['id'])], $product);
-                                $product = $PriceFormulaService->applyFormula($product);
-                                $woocommerce_model->upd_product($product['post_id'], $product);
-                                if ($result['state'] !== 'ok') {
-                                    a2wl_error_log("update_products_event: " . $result['message']);
+                    if ($result['state'] !== 'error') {
+                        foreach ($result['products'] as $product) {
+                            if (!empty($tmp_product_map[$product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]])) {
+                                try {
+                                    $product = array_replace_recursive($tmp_product_map[strval($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID])], $product);
+                                    $product = $this->PriceFormulaService->applyFormula($product);
+                                    $this->WoocommerceModel->upd_product($product['post_id'], $product);
+                                    if ($result['state'] !== 'ok') {
+                                        a2wl_error_log("update_products_event: " . $result['message']);
+                                    }
+                                    unset($tmp_product_map[$product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]]);
+                                } catch (Throwable $e) {
+                                    a2wl_print_throwable($e);
                                 }
-                                unset($tmp_product_map[$product['id']]);
-                            } catch (Throwable $e) {
-                                a2wl_print_throwable($e);
                             }
+                        }
+
+                        delete_transient('_a2w_daily_limits_warning');
+                    } else {
+                        // update daily limit warning
+                        if ($result['error_code'] == 5001 && isset($result['time_left'])) {
+                            set_transient(
+                                '_a2w_daily_limits_warning',
+                                [
+                                    'limit' => $result['call_limit'],
+                                    'until' => time() + $result['time_left']
+                                ],
+                                time() + $result['time_left']
+                            );
+                        } else {
+                            a2wl_error_log($result['message']);
                         }
                     }
 
-                    delete_transient('_a2w_daily_limits_warning');
-                } else {
-                    // update daily limit warning
-                    if ($result['error_code'] == 5001 && isset($result['time_left'])) {
-                        set_transient('_a2w_daily_limits_warning', array('limit' => $result['call_limit'], 'until' => time() + $result['time_left']), time() + $result['time_left']);
-                    } else {
-                        a2wl_error_log($result['message']);
-                    }
+                    unset($result);
                 }
-
-                unset($result);
             }
         } catch (Throwable $e) {
             a2wl_print_throwable($e);
@@ -373,13 +377,10 @@ class SynchProductController extends AbstractController
 
         a2wl_init_error_handler();
         try {
-            /** @var $woocommerce_model  Woocommerce */ 
-            $woocommerce_model = A2WL()->getDI()->get('AliNext_Lite\Woocommerce');
-            $reviews_model = new Review();
 
-            $posts_by_time = $woocommerce_model->get_sorted_products_ids("_a2w_reviews_last_update", 20);
+            $posts_by_time = $this->WoocommerceModel->get_sorted_products_ids("_a2w_reviews_last_update", 20);
             foreach ($posts_by_time as $post_id) {
-                $reviews_model->load($post_id);
+                $this->ReviewModel->load($post_id);
             }
         } catch (Throwable $e) {
             a2wl_print_throwable($e);

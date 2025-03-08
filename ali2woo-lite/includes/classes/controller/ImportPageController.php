@@ -12,7 +12,9 @@ namespace AliNext_Lite;;
 
 class ImportPageController extends AbstractAdminPage
 {
-    public function __construct() {
+    protected Woocommerce $WoocommerceModel;
+
+    public function __construct(Woocommerce $WoocommerceModel) {
         $menuTitle = esc_html__('Import List', 'ali2woo') . ' ' . $this->getImportListItemCountHtml();
         parent::__construct(
             esc_html__('Import List', 'ali2woo'),
@@ -21,6 +23,8 @@ class ImportPageController extends AbstractAdminPage
             'a2wl_import',
             20
         );
+
+        $this->WoocommerceModel = $WoocommerceModel;
 
         add_filter('tiny_mce_before_init', array($this, 'tiny_mce_before_init'), 30);
         add_filter('a2wl_configure_lang_data', array($this, 'configure_lang_data'), 30);
@@ -117,6 +121,7 @@ class ImportPageController extends AbstractAdminPage
         $serach_query = !empty($_REQUEST['s']) ? $_REQUEST['s'] : '';
         $sort_query = !empty($_REQUEST['o']) ? $_REQUEST['o'] : $product_import_model->default_sort();
 
+        //todo: take into accoutn both settings
         $default_shipping_from_country = get_setting('aliship_shipfrom', 'CN');
         $default_shipping_to_country = get_setting('aliship_shipto', 'US');
 
