@@ -206,7 +206,7 @@ class OrderFulfillmentService
      * @param array $orders
      * @param bool $is_wpml
      * @return array
-     * @throws RepositoryException
+     * @throws RepositoryException|ServiceException
      */
     public function getFulfillmentOrdersData(array $orders, bool $is_wpml = false): array
     {
@@ -281,18 +281,13 @@ class OrderFulfillmentService
                 $quantity = $item->get_quantity();
 
                 $countryFromCode = 'CN';
-                try {
-                    $importedProduct = $this->WoocommerceService
-                        ->updateProductShippingInfo($WC_Product, $shipping_to_country, $countryFromCode, $quantity);
 
-                    $shippingItems = $this->ProductService->getShippingItems(
-                        $importedProduct, $shipping_to_country, $countryFromCode
-                    );
-                } catch (RepositoryException $Exception) {
-                    a2wl_error_log($Exception->getMessage());
+                $importedProduct = $this->WoocommerceService
+                    ->updateProductShippingItems($WC_Product, $shipping_to_country, $countryFromCode, $quantity);
 
-                   return [];
-                }
+                $shippingItems = $this->ProductService->getShippingItems(
+                    $importedProduct, $shipping_to_country, $countryFromCode
+                );
 
                 $ShippingItemDto = $this->ProductService->findDefaultFromShippingItems(
                     $shippingItems, $importedProduct
@@ -358,9 +353,11 @@ class OrderFulfillmentService
 
                 $total_cost = $aliexpress_price * $item->get_quantity() + ($current_shipping_cost ?: 0);
 
+
                 $order_data['items'][] = [
                     'order_item_id' => $item->get_id(),
                     'product_id' => $item->get_product_id(),
+                    'variation_id' => $item->get_product()->get_id(),
                     'image' => $image,
                     'name' => $item->get_name(),
                     'url' => $item_original_url,
@@ -417,12 +414,12 @@ class OrderFulfillmentService
                 $countryFromCode = 'CN';
                 try {
                     $importedProduct = $this->WoocommerceService
-                        ->updateProductShippingInfo($WC_Product, $shipping_to_country, $countryFromCode, $quantity);
+                        ->updateProductShippingItems($WC_Product, $shipping_to_country, $countryFromCode, $quantity);
 
                     $shippingItems = $this->ProductService->getShippingItems(
                         $importedProduct, $shipping_to_country, $countryFromCode
                     );
-                } catch (RepositoryException $Exception) {
+                } catch (RepositoryException|ServiceException $Exception) {
                     a2wl_error_log($Exception->getMessage());
                     $shippingItems = [];
                 }
@@ -439,7 +436,6 @@ class OrderFulfillmentService
                 foreach ($shippingItems as $shippingItem) {
                     if ($shippingItem['serviceName'] == $OrderItemShippingDto->getShippingCode()) {
                         $current_shipping_cost = $shippingItem['freightAmount']['value'];
-
                         $shipping_meta_data['company'] = $shippingItem['company'];
                         $shipping_meta_data['service_name'] = $shippingItem['serviceName'];
                         $shipping_meta_data['shipping_cost'] = $shippingItem['freightAmount']['value'];

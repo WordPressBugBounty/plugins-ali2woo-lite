@@ -24,6 +24,7 @@ class OrderFulfillmentController extends AbstractController
     protected Woocommerce $WoocommerceModel;
     protected OrderFulfillmentService $OrderFulfillmentService;
     protected ProductService $ProductService;
+    protected ImportedProductServiceFactory $ImportedProductServiceFactory;
 
     protected static array $shipping_fields = [];
     protected static array $additional_shipping_fields = [];
@@ -34,7 +35,8 @@ class OrderFulfillmentController extends AbstractController
             WoocommerceService $WoocommerceService,
             Woocommerce $WoocommerceModel,
             OrderFulfillmentService $OrderFulfillmentService,
-            ProductService $ProductService
+            ProductService $ProductService,
+            ImportedProductServiceFactory $ImportedProductServiceFactory,
     ) {
         parent::__construct(A2WL()->plugin_path() . '/view/');
 
@@ -44,6 +46,7 @@ class OrderFulfillmentController extends AbstractController
         $this->WoocommerceModel = $WoocommerceModel;
         $this->OrderFulfillmentService = $OrderFulfillmentService;
         $this->ProductService = $ProductService;
+        $this->ImportedProductServiceFactory = $ImportedProductServiceFactory;
 
         add_action('admin_init', [$this, 'admin_init']);
 
@@ -557,7 +560,13 @@ class OrderFulfillmentController extends AbstractController
 
         $is_wpml = $this->isWpml();
 
-        $orders_data =  $this->OrderFulfillmentService->getFulfillmentOrdersData($orders, $is_wpml);
+        try {
+            $orders_data =  $this->OrderFulfillmentService->getFulfillmentOrdersData($orders, $is_wpml);
+        } catch (RepositoryException|ServiceException $Exception) {
+            $this->model_put("text", $Exception->getMessage());
+            $this->include_view("order-fulfillment/error_container.php");
+            wp_die();
+        }
 
          if (empty($orders_data)) {
             $text = esc_html__("Orders not found", 'ali2woo');
@@ -569,6 +578,7 @@ class OrderFulfillmentController extends AbstractController
             $this->model_put("countries", WC()->countries->get_countries());
             $this->model_put('ProductShippingDataRepository', $this->ProductShippingDataRepository);
             $this->model_put("ProductShippingDataService", $this->ProductShippingDataService);
+            $this->model_put("ImportedProductServiceFactory", $this->ImportedProductServiceFactory);
 
             //$ProductShippingDataService
 
@@ -725,21 +735,15 @@ class OrderFulfillmentController extends AbstractController
                 $countryFromCode = 'CN';
                 try {
                     $importedProduct = $this->WoocommerceService
-                        ->updateProductShippingInfo($WC_Product, $shipping_to_country, $countryFromCode, $quantity);
+                        ->updateProductShippingItems($WC_Product, $shipping_to_country, $countryFromCode, $quantity);
 
                     $shippingItems = $this->ProductService->getShippingItems(
                         $importedProduct, $shipping_to_country, $countryFromCode
                     );
-                } catch (RepositoryException $Exception) {
+                } catch (RepositoryException|ServiceException $Exception) {
                     a2wl_error_log($Exception->getMessage());
                     continue;
                 }
-
-            /*    $shippingItems = $this->WoocommerceService->getShippingInfoByProduct(
-                        $WC_Product, $item->get_quantity(),
-                        $shipping_to_country
-                );*/
-               /* $importedProduct = $this->WoocommerceService->getProduct($WC_Product->get_parent_id());*/
 
                 $ShippingItemDto = $this->ProductService->findDefaultFromShippingItems(
                         $shippingItems, $importedProduct
@@ -804,7 +808,7 @@ class OrderFulfillmentController extends AbstractController
             $order = new WC_Order($order_id);
 
             $UpdateFulfillmentShippingResult = $this->OrderFulfillmentService->updateFulfillmentShipping(
-                    $order, $order_items, $shiping_to_country, $is_wpml
+                $order, $order_items, $shiping_to_country, $is_wpml
             );
 
             $result = ResultBuilder::buildOk(['result' => [

@@ -33,6 +33,10 @@ class MigrateService
             $this->migrate_to_352();
         }
 
+        if (version_compare($cur_version, "3.5.4", '<')) {
+            $this->migrate_to_354();
+        }
+
         if (version_compare($cur_version, A2WL()->version, '<')) {
             update_option('a2wl_db_version', A2WL()->version, 'no');
         }
@@ -49,6 +53,12 @@ class MigrateService
     private function migrate_to_352(): void
     {
         a2wl_error_log('migrate to 3.5.2');
+        $this->ProductShippingDataRepository->clear();
+    }
+
+    private function migrate_to_354(): void
+    {
+        a2wl_error_log('migrate to 3.5.4');
         $this->ProductShippingDataRepository->clear();
     }
 }

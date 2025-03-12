@@ -82,22 +82,22 @@ class ProductShippingDataService
             "ON (pm.post_id=p.ID AND pm.meta_key=%s) WHERE p.post_parent=%d AND p.post_type=%s";
 
         $query = $wpdb->prepare($query,self::META_COUNTRY_CODE, $productId, 'product_variation');
-        $country_from_list = $wpdb->get_col($query);
+        $countryFromList = $wpdb->get_col($query);
 
-        if (empty($country_from_list)) {
+        if (empty($countryFromList)) {
             $query = "SELECT DISTINCT pm.meta_value FROM {$wpdb->postmeta} pm WHERE pm.post_id=%d AND pm.meta_key=%s";
 
             $query = $wpdb->prepare($query, $productId, self::META_COUNTRY_CODE);
-            $country_from_list = $wpdb->get_col($query);
+            $countryFromList = $wpdb->get_col($query);
         }
 
-        if (empty($country_from_list)) {
-            $country_from_list = ['CN'];
+        if (empty($countryFromList)) {
+            $countryFromList = ['CN'];
         }
 
         $result = [];
 
-        foreach ($country_from_list as $countryCode) {
+        foreach ($countryFromList as $countryCode) {
             $result[$countryCode] = Country::get_country($countryCode);
         }
 

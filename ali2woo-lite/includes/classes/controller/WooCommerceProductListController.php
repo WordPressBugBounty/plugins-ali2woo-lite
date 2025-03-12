@@ -281,12 +281,15 @@ class WooCommerceProductListController extends AbstractController
 
             $products = array();
             foreach ($ids as $post_id) {
-                $product = $this->WoocommerceService->getProduct($post_id);
-                if ($product) {
-                    $product['disable_var_price_change'] = $product['disable_var_price_change'] || $on_price_changes !== "update";
-                    $product['disable_var_quantity_change'] = $product['disable_var_quantity_change'] || $on_stock_changes !== "update";
-                    $products[strval($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID])] = $product;
+                try {
+                    $product = $this->WoocommerceService->getProduct($post_id);
+                } catch (RepositoryException|ServiceException $Exception) {
+                    continue;
                 }
+
+                $product['disable_var_price_change'] = $product['disable_var_price_change'] || $on_price_changes !== "update";
+                $product['disable_var_quantity_change'] = $product['disable_var_quantity_change'] || $on_stock_changes !== "update";
+                $products[strval($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID])] = $product;
             }
 
             $result = array("state" => "ok", "update_state" => array('ok' => count($ids), 'error' => 0));

@@ -22,6 +22,9 @@
 }
 
 /* select shipping styles */
+/*.single_variation_wrap .a2wl_shipping_wrap {
+    display: none;
+}*/
 
 .a2wl_shipping_wrap {
     margin-bottom: 20px;

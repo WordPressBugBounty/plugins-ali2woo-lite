@@ -460,17 +460,27 @@ class Aliexpress
             $countryCodeFrom, '', '', '', '', $extraData ?? '', $externalSkuId ?? ''
         );
 
-        if ($result['state'] !== 'error') {
+       /* error_log('shipping info:');
+        error_log(print_r($result, true));
+        error_log('externalProductId: ' . $externalProductId);
+        error_log('extraData: ' . $extraData);
+        error_log('externalSkuId: ' . $externalSkuId);*/
+
+        if (!empty($result['state']) && $result['state'] !== 'error') {
             return $result['items'];
         }
 
-        if (empty($result['message']) || !str_starts_with($result['message'], '[1004]')) {
-            a2wl_error_log(print_r($result, true));
-            $exceptionMessage =  _x("Aliexpress service exception", 'error text', 'ali2woo');
-            throw new ServiceException($exceptionMessage);
+        if (empty($result['message']) || str_starts_with($result['message'], '[1004]')) {
+
+            return [];
         }
 
-        return [];
+        $exceptionMessage =  _x("Aliexpress service exception", 'error text', 'ali2woo');
+        if (!empty($result['message'])) {
+            $exceptionMessage = $result['message'];
+        }
+
+        throw new ServiceException($exceptionMessage);
     }
 
     private function clean_description($description)

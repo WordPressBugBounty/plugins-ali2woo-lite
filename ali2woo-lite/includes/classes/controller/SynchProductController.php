@@ -200,17 +200,21 @@ class SynchProductController extends AbstractController
 
             $product_map = array();
             foreach ($product_ids as $product_id) {
-                $product = $this->WoocommerceService->getProduct($product_id);
-                if ($product) {
-                    if (!$product['disable_sync']) {
-                        $product['disable_var_price_change'] = $product['disable_var_price_change'] || $on_price_changes !== "update";
-                        $product['disable_var_quantity_change'] = $product['disable_var_quantity_change'] || $on_stock_changes !== "update";
-                        $product_map[strval($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID])] = $product;
-                    } else {
-                        // update meta for skipped products
-                        update_post_meta($product['post_id'], '_a2w_last_update', time());
-                    }
+                try {
+                    $product = $this->WoocommerceService->getProduct($product_id);
+                } catch (RepositoryException|ServiceException $Exception) {
+                    continue;
                 }
+
+                if (!$product['disable_sync']) {
+                    $product['disable_var_price_change'] = $product['disable_var_price_change'] || $on_price_changes !== "update";
+                    $product['disable_var_quantity_change'] = $product['disable_var_quantity_change'] || $on_stock_changes !== "update";
+                    $product_map[strval($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID])] = $product;
+                } else {
+                    // update meta for skipped products
+                    update_post_meta($product['post_id'], '_a2w_last_update', time());
+                }
+
                 unset($product);
             }
 

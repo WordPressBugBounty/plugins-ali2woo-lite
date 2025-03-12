@@ -1912,8 +1912,12 @@ class Woocommerce
                 }
 
                 if ($need_process) {
-                    if ($variation && !empty($variation['extra_data'])){
-                        update_post_meta($variation_id, '_a2w_extra_data', $variation['extra_data']);
+                    if ($variation && !empty($variation[ImportedProductService::FIELD_EXTRA_DATA])) {
+                        update_post_meta(
+                            $variation_id,
+                            ImportedProductService::KEY_EXTRA_DATA,
+                            $variation[ImportedProductService::FIELD_EXTRA_DATA]
+                        );
                     }
 
                     if (!empty($variation['country_code'])) {
@@ -1922,8 +1926,12 @@ class Woocommerce
                         update_post_meta($variation_id, '_a2w_country_code', $product['local_seller_tag']);
                     }
 
-                    if (isset($variation['skuId'])) {
-                        update_post_meta($variation_id, '_a2w_ali_sku_id', $variation['skuId']);
+                    if (isset($variation[ImportedProductService::FIELD_EXTERNAL_SKU_ID])) {
+                        update_post_meta(
+                            $variation_id,
+                            ImportedProductService::KEY_EXTERNAL_SKU_ID,
+                            $variation[ImportedProductService::FIELD_EXTERNAL_SKU_ID]
+                        );
                     }
 
                     if (isset($variation['skuIdStr'])) {
@@ -2399,7 +2407,8 @@ class Woocommerce
                     $var = [
                         'id' => $external_id . "-1",
                         'attributes' => [],
-                        'skuId' => '',
+                        ImportedProductService::FIELD_EXTERNAL_SKU_ID => '',
+                        ImportedProductService::FIELD_EXTRA_DATA => '',
                         'title' => '',
                     ];
                     if (isset($product['price'])) {
@@ -2486,7 +2495,12 @@ class Woocommerce
                 $var['quantity'] = get_post_meta($variation_id, '_stock_status', true) === 'outofstock' ? 0 : 1;
             }
 
-            $var['skuId'] = get_post_meta($variation_id, '_a2w_ali_sku_id', true);
+            $var[ImportedProductService::FIELD_EXTERNAL_SKU_ID] = get_post_meta(
+                $variation_id,  ImportedProductService::KEY_EXTERNAL_SKU_ID, true
+            );
+            $var[ImportedProductService::FIELD_EXTRA_DATA] = get_post_meta(
+                $variation_id,  ImportedProductService::KEY_EXTRA_DATA, true
+            );
 
             $resultVariations[] = $var;
         }
@@ -2507,15 +2521,17 @@ class Woocommerce
         );
     }
 
-    public function getProductIdByExternalVariationID(string $externalVariationId): ?string
+    public function getProductIdByExternalSkuId(int $wcProductId, string $externalSkuId): ?string
     {
         global $wpdb;
 
-        return  $wpdb->get_var(
+        return $wpdb->get_var(
             $wpdb->prepare(
-                "SELECT post_id FROM $wpdb->postmeta WHERE meta_key=%s AND meta_value=%s LIMIT 1",
-                'external_variation_id',
-                $externalVariationId
+                "SELECT p.ID FROM $wpdb->postmeta AS pm LEFT JOIN $wpdb->posts AS p ON pm.post_id = p.ID " .
+                    "WHERE pm.meta_key=%s AND pm.meta_value=%s AND p.post_parent=%d LIMIT 1",
+                ImportedProductService::KEY_EXTERNAL_SKU_ID,
+                $externalSkuId,
+                $wcProductId
             )
         );
     }

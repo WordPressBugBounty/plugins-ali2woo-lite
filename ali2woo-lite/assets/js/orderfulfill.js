@@ -252,9 +252,14 @@ jQuery(function($) {
     $(document.body).on("change", ".modal-fulfillment .js_field-country", change_country)
     $(document.body).on("change", ".modal-fulfillment select.js_field-state", change_state)
 
-    $(document).on("change", ".modal-fulfillment .current-shipping-company", function () { 
-        update_order_items($(this).parents('.single-order-wrap[data-order_id]').attr('data-order_id'))        
+    $(document).on("change", ".modal-fulfillment .current-shipping-company", function () {
+        let orderId = $(this).parents('.single-order-wrap[data-order_id]').attr('data-order_id');
+        update_order_items(orderId);
     })
+    /*
+    $(document).on("a2wl_fulfillment_shipping_option_selected", function (e, data) {
+        update_order_items(data.order_id);
+    });*/
 
     $(document).on("click", ".modal-fulfillment .remove-item", function () {
         const order = $(this).parents('.single-order-wrap[data-order_id]')        

@@ -8,6 +8,8 @@
 
 namespace AliNext_Lite;;
 
+use mysql_xdevapi\Exception;
+
 class ProductImport {
 
     private $order;
@@ -132,7 +134,25 @@ class ProductImport {
 
             return $product;
         }
+
         return false;
+    }
+
+    /**
+     * @throws ServiceException
+     */
+    public function getProduct($product_id, $processing = false): array
+    {
+        $product = $this->get_product($product_id, $processing);
+
+        if ($product !== false && is_array($product)) {
+
+            return $product;
+        }
+
+        throw new ServiceException(
+            __('Invalid external product ID provided.', 'ali2woo')
+        );
     }
 
 

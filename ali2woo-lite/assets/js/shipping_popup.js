@@ -1,9 +1,9 @@
 jQuery(document).ready(function($){
     
-    var a2wl_shipping_api = { 
+    const a2wl_shipping_api = {
          get_country_node: function(){
 
-            var country_node = false;
+            let country_node = false;
 
             if ($("#a2wl_to_country_popup_field").length > 0){
                 //product
@@ -27,7 +27,18 @@ jQuery(document).ready(function($){
          is_product_page: function(){
            return  $("#a2wl_to_country_popup_field").length > 0 ? true : false;
          },
+         check_all_variants_selected: function(variationsForm) {
+            let allSelected = true;
+            const variationSelects = variationsForm.querySelectorAll('select');
+            variationSelects.forEach(select => {
+                // Check if the select has a value
+                if (!select.value) {
+                    allSelected = false;
+                }
+            });
 
+            return allSelected;
+        },
          ajax_update_shipping_method_in_cart_item : function(id, tariff_code, country){
             let data = {
                 'action': 'a2wl_update_shipping_method_in_cart_item',
@@ -98,8 +109,7 @@ jQuery(document).ready(function($){
     };
    
     //popup js
-    var a2wl_popup_shipping_js = {
-        
+    const a2wl_popup_shipping_js = {
         apply_shipping_method : function(country_node, item_id){          
             var shipping_wrap_node = $('#a2wl_shipping_wrap_'+item_id);
               
@@ -190,7 +200,6 @@ jQuery(document).ready(function($){
             }
 
         },
-        
         find_min_shipping_price : function(items, default_method) {
             var result = false;
             var p = -1;
@@ -206,7 +215,6 @@ jQuery(document).ready(function($){
             });
             return result;
         },
-
         fill_modal_shipping_info : function(item_id, product_id, country, items, default_method = '', shipping_info='') {
 
             var shipping_wrap_node = $('#a2wl_shipping_wrap_'+item_id);
@@ -248,7 +256,6 @@ jQuery(document).ready(function($){
             }
             
         },
-
         a2wl_load_shipping_info : function(product_id, variation_id = null, country, $quantity, callback = null, type = 'select', page = 'cart') {
             let data = {
                 'action': 'a2wl_frontend_load_shipping_info',
@@ -287,9 +294,7 @@ jQuery(document).ready(function($){
                 console.log(error);
             });
         },
-
         init : function(country_node, apply_shipping = true){
-         
                 $(".a2wl_shipping_wrap").each(function(){
                     let country = country_node.val();
                     let shipping_wrap_node = $(this);
@@ -321,6 +326,14 @@ jQuery(document).ready(function($){
                         $quantity_node = $('form.cart input[name="quantity"]');      
                     } else {
                         console.log('Quantity field is not found. This is not a product page.');
+                    }
+
+                    if (a2wl_shipping_api.is_product_page()) {
+                        //prevent shipping load if not all variation selected
+                        const variationsForm = document.querySelector('.variations_form');
+                        if (variationsForm && !a2wl_shipping_api.check_all_variants_selected(variationsForm)) {
+                            return false;
+                        }
                     }
 
                     let $quantity = 1;
@@ -367,14 +380,9 @@ jQuery(document).ready(function($){
     let country_node = a2wl_shipping_api.get_country_node();
 
     if (!country_node) {
-        console.log('AliNext (Lite version) can`t find country node on the page');
-
+        //stop script if the country node is not available
         return false;
     }
- 
-    //init popup on page load
-    //  a2wl_popup_shipping_js.init(country_node, false);
-
 
     //open popup on click
     $(document).on(
@@ -461,24 +469,14 @@ jQuery(document).ready(function($){
     //---POPUP BEHAVIOUR ON COUNTRY CHANGE---
            
    //on cart page
-   $( document.body ).on('updated_wc_div', function(){  
-
+   $(document.body).on('updated_wc_div', function(){
       //clear old modals
       $(".ali2woo-ui-dialog .a2wl_shipping_modal").each(function(){
         $(this).dialog('destroy').remove();
       });
-    
-       // a2wl_popup_shipping_js.init(country_node);
    }); 
 
-      //on checkout page
-  $( document.body ).on('update_checkout', function(){  
-       //todo: perhaps this is a rudiment code, remove it?
-       // a2wl_popup_shipping_js.init(country_node);
-   }); 
 
-   
-   
 //on product page:
     $(document).on('change', 'form.cart input[name="quantity"]', function () {
         let $quantity = $(this), $form = $quantity.closest('form.cart');
@@ -493,11 +491,10 @@ jQuery(document).ready(function($){
             //update shipping if variant is not change or if this is a simple product
             a2wl_popup_shipping_js.init(country_node, true);    
         }
-           
     });
 
     //country change
-    $( document ).on(
+    $(document).on(
         'change',
         '#a2wl_to_country_popup_field',function(){
             if (country_node.val() !== ""){
@@ -507,8 +504,7 @@ jQuery(document).ready(function($){
 
     //variation change
      $('.single_variation_wrap').on('show_variation', function (event, variation) {
-   
-            var shipping_wrap_node = $(this).find('.a2wl_shipping_wrap');          
+            const shipping_wrap_node = $(this).find('.a2wl_shipping_wrap');
 
             if (variation.is_in_stock){
                 shipping_wrap_node.removeClass('hidden');
@@ -516,8 +512,22 @@ jQuery(document).ready(function($){
             } else {
                 shipping_wrap_node.addClass('hidden');    
             }
-        
     });
-    
-      
+
+     const variationsFormNode =  $('.variations_form');
+
+     if (variationsFormNode.length) {
+         variationsFormNode.on('woocommerce_variation_has_changed', function (event) {
+             //fire even when not all variations selected
+             const shipping_wrap_node = $(this).find('.a2wl_shipping_wrap');
+
+             if (!a2wl_shipping_api.check_all_variants_selected(this)) {
+                 shipping_wrap_node.addClass('hidden');
+             } else {
+                 shipping_wrap_node.removeClass('hidden');
+             }
+         });
+     } else {
+         $(".a2wl_shipping_wrap").removeClass('hidden');
+     }
 })

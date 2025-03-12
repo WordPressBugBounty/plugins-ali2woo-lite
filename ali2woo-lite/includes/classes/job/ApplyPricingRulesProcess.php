@@ -85,14 +85,16 @@ class ApplyPricingRulesProcess extends BaseJob implements ApplyPricingRulesJobIn
                 $WoocommerceService = A2WL()->getDI()->get('AliNext_Lite\WoocommerceService');
                 foreach ($productIds as $product_id) {
 
-                    $product = $WoocommerceService->getProductWithVariations($product_id);
-                    if (empty($product)) {
+                    try {
+                        $product = $WoocommerceService->getProductWithVariations($product_id);
+                    } catch (RepositoryException|ServiceException $Exception) {
                         a2wl_info_log(sprintf(
                             "Process job: %s, skip product id: %s (because no external data available); scope: %s]",
                             $this->getTitle(), $product_id, $scope
                         ));
                         continue;
                     }
+
                     if (!isset($product['disable_var_price_change']) || !$product['disable_var_price_change']) {
                         $product = $PriceFormulaService->applyFormula($product, 2, $type);
                         if (isset($product['sku_products']['variations']) && count($product['sku_products']['variations']) > 0) {

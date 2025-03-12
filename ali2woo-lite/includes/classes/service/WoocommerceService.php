@@ -36,9 +36,9 @@ class WoocommerceService
     }
 
     /**
-     * @throws RepositoryException
+     * @throws RepositoryException|ServiceException
      */
-    public function updateProductShippingInfo(
+    public function getProductShippingInfo(
         WC_Product $WC_ProductOrVariation,
         ?string $countryToCode, string $countryFromCode = 'CN', int $quantity = 1,
     ): array {
@@ -46,22 +46,71 @@ class WoocommerceService
             ->createFromProduct($WC_ProductOrVariation);
 
         $wcProductId = $ImportedProductService->getParentId();
+        $importedProduct = $this->getProductWithVariations($wcProductId);
 
-        $importedProduct = $this->getProduct($wcProductId);
-        $importedProduct = $this->ProductService->updateProductShippingInfo(
-            $importedProduct,
-            $countryFromCode,
-            $countryToCode,
-            $ImportedProductService->getExternalSkuId(),
-            $ImportedProductService->getExtraData()
+        $account = Account::getInstance();
+        if ($account->get_purchase_code()) {
+            //shipping data is available only if purchase code is added
+            return $this->ProductService->updateProductShippingInfo(
+                $importedProduct,
+                $countryFromCode,
+                $countryToCode,
+                $ImportedProductService->getExternalSkuId(),
+                $ImportedProductService->getExtraData()
+            );
+        } else {
+            return $importedProduct;
+        }
+    }
+
+    /**
+     * @throws RepositoryException|ServiceException
+     */
+    public function updateProductShippingInfo(
+        WC_Product $WC_ProductOrVariation,
+        ?string $countryToCode, string $countryFromCode = 'CN', int $quantity = 1,
+    ): array {
+        $importedProduct = $this->getProductShippingInfo(
+            $WC_ProductOrVariation, $countryToCode, $countryFromCode, $quantity
         );
 
+        $wcProductId = $importedProduct['post_id'];
+
         try {
-            $this->ProductShippingDataService->updateFromProduct($wcProductId, $importedProduct);
+           $this->ProductShippingDataService->updateFromProduct($wcProductId, $importedProduct);
         } catch (RepositoryException $RepositoryException) {
-            a2wl_error_log('Can`t update product shipping cache' . $RepositoryException->getMessage());
+            a2wl_error_log('Can`t update product shipping info cache' . $RepositoryException->getMessage());
         }
 
+        return $importedProduct;
+    }
+
+    /**
+     * @throws RepositoryException|ServiceException
+     */
+    public function updateProductShippingItems(
+        WC_Product $WC_ProductOrVariation,
+        ?string $countryToCode, string $countryFromCode = 'CN', int $quantity = 1,
+    ): array {
+        $importedProduct = $this->getProductShippingInfo(
+            $WC_ProductOrVariation, $countryToCode, $countryFromCode, $quantity
+        );
+
+        $wcProductId = $importedProduct['post_id'];
+        $countryCode = ProductShippingData::meta_key($countryFromCode, $countryToCode);
+
+        if (empty($importedProduct[ImportedProductService::FIELD_SHIPPING_INFO][$countryCode])) {
+            return $importedProduct;
+        }
+
+        try {
+            $this->ProductShippingDataService->saveItems(
+                $wcProductId, $countryFromCode, $countryToCode,
+                $importedProduct[ImportedProductService::FIELD_SHIPPING_INFO][$countryCode]
+            );
+        } catch (RepositoryException $RepositoryException) {
+            a2wl_error_log('Can`t update product shipping items cache' . $RepositoryException->getMessage());
+        }
 
         return $importedProduct;
     }
@@ -111,7 +160,7 @@ class WoocommerceService
     }
 
     /**
-     * @throws RepositoryException
+     * @throws RepositoryException|ServiceException
      */
     public function getProduct(int $wcProductId): array
     {
@@ -121,7 +170,7 @@ class WoocommerceService
     }
 
     /**
-     * @throws RepositoryException
+     * @throws RepositoryException|ServiceException
      */
     public function getProductWithVariations(int $wcProductId): array
     {

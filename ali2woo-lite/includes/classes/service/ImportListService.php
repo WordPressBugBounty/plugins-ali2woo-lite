@@ -100,4 +100,20 @@ class ImportListService
 
         return new ProductsFromFileResult($idsCount, $processErrorsIds);
     }
+
+    public function getCountryFromList(array $importedProduct): array
+    {
+        $countryFromList = ['CN'];
+        if (!empty($product[ImportedProductService::FIELD_COUNTRY_FROM_LIST])) {
+            $countryFromList = implode(";", $product[ImportedProductService::FIELD_COUNTRY_FROM_LIST]);
+        }
+
+        $result = [];
+
+        foreach ($countryFromList as $countryCode) {
+            $result[$countryCode] = Country::get_country($countryCode);
+        }
+
+        return $result;
+    }
 }

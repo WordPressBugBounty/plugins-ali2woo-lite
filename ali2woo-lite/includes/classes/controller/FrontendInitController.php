@@ -28,7 +28,7 @@ class FrontendInitController extends AbstractController
     public function __construct(
         WoocommerceService $WoocommerceService,
         ImportedProductServiceFactory $ImportedProductServiceFactory,
-        ProductService $ProductService
+        ProductService $ProductService,
     ) {
         parent::__construct();
 
@@ -161,24 +161,27 @@ class FrontendInitController extends AbstractController
         $countryFromCode = 'CN';
 
         try {
-            $importedProduct = $this->WoocommerceService->updateProductShippingInfo(
+            $importedProduct = $this->WoocommerceService->updateProductShippingItems(
                 $WC_ProductOrVariation,
                 $countryToCode,
                 $countryFromCode
             );
-        } catch (RepositoryException $Exception) {
-            a2wl_error_log($Exception->getMessage());
+
+            $shippingItems = $this->ProductService->getShippingItems(
+                $importedProduct, $countryToCode, $countryFromCode
+            );
+        } catch (RepositoryException $RepositoryException) {
+            a2wl_error_log($RepositoryException->getMessage());
 
             echo wp_json_encode(ResultBuilder::buildError(
                 'Can`t get product shipping')
             );
 
             wp_die();
+        } catch (ServiceException $ServiceException) {
+            a2wl_error_log($ServiceException->getMessage());
+            $shippingItems = [];
         }
-
-        $shippingItems = $this->ProductService->getShippingItems(
-            $importedProduct, $countryToCode, $countryFromCode
-        );
 
         foreach ($shippingItems as $method) {
             $normalized_method = Shipping::get_normalized($method, $countryToCode, $type);
@@ -190,10 +193,10 @@ class FrontendInitController extends AbstractController
 
         echo wp_json_encode(ResultBuilder::buildOk([
             'products' => [
-                'product_id' => $importedProduct['post_id'],
-                'default_method' => $importedProduct[ImportedProductService::FIELD_METHOD],
+                'product_id' => $WC_ProductOrVariation->get_id(),
+                'default_method' => $importedProduct[ImportedProductService::FIELD_METHOD] ?? '',
                 'items' => $normalized_methods,
-                'shipping_cost' => $importedProduct[ImportedProductService::FIELD_COST],
+                'shipping_cost' => $importedProduct[ImportedProductService::FIELD_COST] ?? '',
             ],
             'shipping_info' => $shipping_info
         ]));
@@ -350,6 +353,14 @@ class FrontendInitController extends AbstractController
 
     }
 
+    /**
+     * Handle works on shipping address update in the cart and checkout
+     * or when click on 'update cart' button
+     *
+     * @param $methods
+     * @param $package
+     * @return WC_Shipping_Rate[]
+     */
     public function woocommerce_package_rates($methods, $package): array
     {
         if (!empty($package['contents'])) {
@@ -378,8 +389,8 @@ class FrontendInitController extends AbstractController
                     $countryFromCode = 'CN';
                     try {
                         $importedProduct = $this->WoocommerceService
-                            ->updateProductShippingInfo($WC_Product, $countryToCode, $countryFromCode, $quantity);
-                    } catch (RepositoryException $Exception) {
+                            ->updateProductShippingItems($WC_Product, $countryToCode, $countryFromCode, $quantity);
+                    } catch (RepositoryException|ServiceException $Exception) {
                         a2wl_error_log($Exception->getMessage());
 
                         return $methods;

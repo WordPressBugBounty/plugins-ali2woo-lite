@@ -308,6 +308,12 @@ In case you have any questions or need technical assistance, get in touch with u
 9. Import product video from AliExpress
 
 == Changelog ==
+= 3.5.4 - 2025.12.03 = 
+* Improve code security
+* Fix bug occurring on the product editing page
+* Fix minor bugs and code refactor
+* Fix bug with non-Latin characters in the attribute name feature of the import list
+
 = 3.5.1 - 2025.02.03 = 
 * Fix "Bad API format." error while placing orders through API
 * Fix minor bugs and code refactor

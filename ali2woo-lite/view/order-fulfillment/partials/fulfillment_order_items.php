@@ -4,7 +4,9 @@
  */
 /** @var ProductShippingDataRepository $ProductShippingDataRepository */
 /** @var ProductShippingDataService $ProductShippingDataService */
+/** @var ImportedProductServiceFactory $ImportedProductServiceFactory */
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
+use AliNext_Lite\ImportedProductServiceFactory;
 use AliNext_Lite\ProductShippingDataRepository;
 use AliNext_Lite\ProductShippingDataService;
 use AliNext_Lite\RepositoryException;
@@ -25,19 +27,24 @@ use AliNext_Lite\Utils;
     <?php
     foreach ($order_data['items'] as $item) :
         $product_id = $item['product_id'];
+        $variation_id = $item['variation_id'];
+        $WC_ProductOrVariation = wc_get_product($variation_id);
         $external_id = get_post_meta($item['product_id'], '_a2w_external_id', true);
         try {
             $ProductShippingData = $ProductShippingDataRepository->get($item['product_id']);
+            $ImportedProductService = $ImportedProductServiceFactory
+                ->createFromProduct($WC_ProductOrVariation);
         } catch (RepositoryException $RepositoryException) {
             error_log($RepositoryException->getMessage());
             continue;
         }
 
         $shipping_cost = $ProductShippingData->getCost();
-        $shipping_country_from = $ProductShippingData->getCountryFrom();
+        $shipping_country_from = $ProductShippingData->getCountryFrom() ?: 'CN';
         $shipping_country_from_list = $ProductShippingDataService->getCountryFromList($item['product_id']);
         $shipping_method = $ProductShippingData->getMethod();
-        $variationKey = $ProductShippingData->getVariationKey();
+        $variationKey = $ImportedProductService->getExternalSkuId();
+
         $attributes = $item['attributes'];
         ?>
         <tr data-order_item_id="<?php echo esc_attr($item['order_item_id']); ?>">

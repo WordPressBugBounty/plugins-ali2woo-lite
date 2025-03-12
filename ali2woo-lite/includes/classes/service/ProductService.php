@@ -32,10 +32,11 @@ class ProductService
     }
 
     /**
-     * @todo this method should be improved, add exception, use DTO instead array result
      * @param array $products
      * @param array $params
      * @return array
+     * @throws ServiceException
+     * @todo this method should be improved, add exception, use DTO instead array result
      */
     public function synchronizeProducts(array $products, array $params = []): array
     {
@@ -75,6 +76,7 @@ class ProductService
      * @param string $externalProductId
      * @param array $params
      * @return array
+     * @throws ServiceException
      */
     public function loadProductWithShippingInfo(string $externalProductId, array $params = []): array
     {
@@ -154,36 +156,35 @@ class ProductService
      * @param array $product
      * @param string $country_from
      * @param string $country_to
-     * @param string|null $variationExternalId
+     * @param string|null $externalSkuId
      * @param string|null $extraData
      * @return array
+     * @throws ServiceException
      */
     public function updateProductShippingInfo(
         array $product, string $country_from, string $country_to,
-        ?string $variationExternalId = null, ?string $extraData = null
+        ?string $externalSkuId = null, ?string $extraData = null
     ): array {
         if (!isset($product[ImportedProductService::FIELD_SHIPPING_INFO])) {
             $product[ImportedProductService::FIELD_SHIPPING_INFO] = [];
         }
 
         //todo: perhaps we can always get $extraData from product?
-        $extraData = $extraData ?? $this->getExtraDataFromProduct($product, $variationExternalId);
-
+        $extraData = $extraData ?? $this->getExtraDataFromProduct($product, $externalSkuId);
         $country_from = !empty($country_from) ? $country_from : 'CN';
 
         $country_from = $this->AliexpressHelper->convertToAliexpressCountryCode($country_from);
         $country_to = $this->AliexpressHelper->convertToAliexpressCountryCode($country_to);
 
         $shipping_from_country_list = [];
-        $externalRealSkuId = null;
         if (isset($product['sku_products'])) {
             foreach ($product['sku_products']['variations'] as $var) {
                 if (!empty($var['country_code'])) {
                     $shipping_from_country_list[$var['country_code']] = $var['country_code'];
                 }
-                if ($var['id'] === $variationExternalId) {
+               /* if ($var['id'] === $variationExternalId) {
                     $externalRealSkuId = !empty($var['skuId']) ? $var['skuId'] : null;
-                }
+                }*/
             }
         }
 
@@ -206,20 +207,14 @@ class ProductService
         }
 
         $country = ProductShippingData::meta_key($country_from, $country_to);
-
         if (empty($product[ImportedProductService::FIELD_SHIPPING_INFO][$country])) {
-            try {
-                $externalProductId = $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID];
-                $shippingItems = $this->AliexpressModel
-                    ->loadShippingItems(
-                        $externalProductId, 1, $country_to, $country_from,
-                        $externalRealSkuId, $extraData
-                    );
-                $product[ImportedProductService::FIELD_SHIPPING_INFO][$country] = $shippingItems;
-
-            } catch (ServiceException $ServiceException) {
-                $product[ImportedProductService::FIELD_SHIPPING_INFO][$country] = [];
-            }
+            $externalProductId = $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID];
+            $shippingItems = $this->AliexpressModel
+                ->loadShippingItems(
+                    $externalProductId, 1, $country_to, $country_from,
+                    $externalSkuId, $extraData
+                );
+            $product[ImportedProductService::FIELD_SHIPPING_INFO][$country] = $shippingItems;
         } else {
             a2wl_error_log(sprintf( 'Shipping data is loaded from cache. WC Product ID: %d, Country code: %s',
                 $product['post_id'], $country
@@ -241,10 +236,17 @@ class ProductService
      * @param array $product
      * @return array
      * @throws RepositoryException
+     * @throws ServiceException
      */
     public function fillProductShippingInfo(array $product): array
     {
-        $wcProductId = $product['post_id'];
+        $wcProductId = $product['post_id'] ?? '';
+
+        if (!is_numeric(trim($wcProductId))) {
+            $errorText = __('Invalid WooCommerce product ID provided.', 'ali2woo');
+            throw new ServiceException($errorText);
+        }
+
         $ProductShippingData = $this->ProductShippingDataRepository->get($wcProductId);
 
         $shippingInfo = $ProductShippingData->getShippingByQuantity(1);
@@ -300,13 +302,6 @@ class ProductService
         }
 
         return new ShippingItemDto($default_method, $shipping_cost);
-
-        /* return [
-             'product_id' => $Product->get_id(),
-             'default_method' => $default_method,
-             'items' => $items,
-             'shipping_cost' => $shipping_cost
-         ];*/
     }
 
     public function getShippingItems(
@@ -341,17 +336,17 @@ class ProductService
         return $complex_id;
     }
 
-    private function getExtraDataFromProduct(array $product, ?string $variationExternalId = null): ?string
+    private function getExtraDataFromProduct(array $product, ?string $externalSkuId = null): ?string
     {
         $extraData = $product[ImportedProductService::FIELD_EXTRA_DATA] ?? null;
 
-        if (!$variationExternalId) {
+        if (!$externalSkuId) {
             return $extraData;
         }
 
         if (!empty($product['sku_products'])) {
             foreach ($product['sku_products']['variations'] as $variation) {
-                if ($variation[ImportedProductService::FIELD_EXTERNAL_SKU_ID] === $variationExternalId) {
+                if ($variation[ImportedProductService::FIELD_EXTERNAL_SKU_ID] === $externalSkuId) {
                     return $variation[ImportedProductService::FIELD_EXTRA_DATA] ?? null;
                 }
             }

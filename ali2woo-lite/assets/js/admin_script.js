@@ -183,7 +183,7 @@ function find_min_shipping_price(items, default_method) {
 function fill_modal_shipping_info(
     product_id, variations, variation_key, country_from_list, country_from,
     country_to, items, page = 'a2wl_dashboard',
-    default_method = '', onSelectCallback = null
+    default_method = '', onSelectCallback = null, errorMessage = ''
 ) {
     const tmp_data = {
         product_id,
@@ -197,6 +197,13 @@ function fill_modal_shipping_info(
         default_method,
         onSelectCallback
     };
+
+    if (errorMessage) {
+        let html = `<div class="error">${errorMessage}</div>`;
+        jQuery('.modal-shipping .shipping-method').html(html);
+
+        return;
+    }
     jQuery(".modal-shipping").data(tmp_data);
 
     const variationSelectNode = jQuery('#a2wl-modal-variation-select');
@@ -205,7 +212,7 @@ function fill_modal_shipping_info(
         variationSelectNode.empty();
         jQuery.each(variations, function (i, data) {
             let isSelected = false;
-            if (data.id === variation_key) {
+            if (data.id.toString() === variation_key.toString()) {
                 isSelected = true
             }
             let newOption = new Option(data.title, data.id, isSelected, isSelected);
@@ -268,7 +275,9 @@ function a2wl_load_shipping_info(
         let json = JSON.parse(response);
         if (json.state !== 'ok') {
             console.log(json);
-            if (callback) { callback(json.state, [], '', '', []) }
+            if (callback) {
+                callback(json.state, [], '', '', [], json.message);
+            }
         }
         if (json.state !== 'error' && callback) {
             const product = json.products.length > 0 ? json.products[0] : false
@@ -925,20 +934,23 @@ var Utils = new Utils();
         /* ================================================================================ */
 
         $(document).on('product_shipping_info_updated', function(e, data){
-            updateFullfilmentShippingSelect(data.product_id, data.items, data.method);
+            updateFulfilmentShippingSelect(data.product_id, data.items, data.method);
         });
 
-        function updateFullfilmentShippingSelect(product_id, items, method) {
-            const $reloadButton = $('.main-fulfillment-service [data-external_id="' + product_id + '"]');
-            const $select = $reloadButton.closest('.shipping_company').find('.current-shipping-company');
+        function updateFulfilmentShippingSelect(product_id, items, method) {
+            const $reloadButton = $('.main-fulfillment-service [data-product_id="' + product_id + '"]');
+            const $select = $reloadButton.closest('.shipping_company')
+                .find('.current-shipping-company');
 
-            let options = '';
+            let options = items.map(item => {
+                const isSelected = item.serviceName === method ? 'selected' : '';
 
-            $.each(items, function(i, item){
-                options += '<option value="' + item.serviceName + '" ' + (item.serviceName === method ? 'selected="selected"' : '') + '>' + item.company + ' (' + item.time + 'days, ' + item.freightAmount.formatedAmount + ')</option>';
-            });
+                return (`<option value="${item.serviceName}" ${isSelected}>` +
+                    `${item.company} (${item.time} days, ${item.freightAmount.formatedAmount})` +
+                `</option>`).toString();
+            }).join('');
 
-            $select.html(options).change();
+            $select.html(options).trigger('change');
         }
 
         $(document).on("click", '.a2wl-shipping-update-global', function (event) {
@@ -983,7 +995,8 @@ var Utils = new Utils();
                     const country_from = $btn.data('country_from')
                     const country_to = $btn.data('country_to')
                     const shipping_method = $btn.data('shipping_method')
-                    const product_id = $btn.data('external_id');
+                   // const product_id = $btn.data('external_id');
+                    const product_id = $btn.data('product_id');
                     let country_from_list = $btn.data('country_from_list');
                     let variationKey = $btn.data('variation_key');
 
@@ -1111,11 +1124,9 @@ var Utils = new Utils();
                 });
             }
 
-
             const product_id = $(this).parents(".product").attr('data-id')
             const variation_key = $(this).parents(".product").attr('data-variation_key');
-
-            const country_from_list = product_data.country_from_list.split(';').filter(c=>c);
+            const country_from_list = product_data.country_from_list;
 
             let onLoadShippingInfoCallback = function (state, items, default_method, shipping_cost, variations) {
                 if (state !== 'error') {
@@ -1192,11 +1203,11 @@ var Utils = new Utils();
                 a2wl_load_shipping_info(
                     shipping_data.product_id, shipping_data.variation_key, shipping_data.country_from,
                     shipping_data.country_to, shipping_data.page,
-                    function (state, items, default_method, shipping_cost, variations) {
+                    function (state, items, default_method, shipping_cost, variations, errorMessage) {
                         fill_modal_shipping_info(
                             shipping_data.product_id, variations, shipping_data.variation_key,
                             shipping_data.country_from_list, shipping_data.country_from, shipping_data.country_to,
-                            items, shipping_data.page, default_method, shipping_data.onSelectCallback
+                            items, shipping_data.page, default_method, shipping_data.onSelectCallback, errorMessage
                         );
                         if (state !== 'error') {
                             if (shipping_data.onSelectCallback) {

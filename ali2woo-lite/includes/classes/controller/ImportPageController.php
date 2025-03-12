@@ -13,8 +13,9 @@ namespace AliNext_Lite;;
 class ImportPageController extends AbstractAdminPage
 {
     protected Woocommerce $WoocommerceModel;
+    protected ImportListService $ImportListService;
 
-    public function __construct(Woocommerce $WoocommerceModel) {
+    public function __construct(Woocommerce $WoocommerceModel, ImportListService $ImportListService) {
         $menuTitle = esc_html__('Import List', 'ali2woo') . ' ' . $this->getImportListItemCountHtml();
         parent::__construct(
             esc_html__('Import List', 'ali2woo'),
@@ -25,6 +26,7 @@ class ImportPageController extends AbstractAdminPage
         );
 
         $this->WoocommerceModel = $WoocommerceModel;
+        $this->ImportListService = $ImportListService;
 
         add_filter('tiny_mce_before_init', array($this, 'tiny_mce_before_init'), 30);
         add_filter('a2wl_configure_lang_data', array($this, 'configure_lang_data'), 30);
@@ -188,6 +190,11 @@ class ImportPageController extends AbstractAdminPage
             }
         }
 
+        $productShippingFromList = [];
+        foreach ($product_list as $index => $item) {
+            $productShippingFromList[$index] = $this->ImportListService->getCountryFromList($item);
+        }
+
         $product_links = [];
 
         foreach ($product_list as $index => $item) {
@@ -214,6 +221,7 @@ class ImportPageController extends AbstractAdminPage
         $this->model_put("product_list", $product_list);
         $this->model_put("product_links", $product_links);
         $this->model_put("links", $links);
+        $this->model_put('productShippingFromList', $productShippingFromList);
         $this->model_put("localizator", AliexpressLocalizator::getInstance());
         $this->model_put("categories", $woocommerce_model->get_categories());
         $this->model_put('countries', $country_model->get_countries());

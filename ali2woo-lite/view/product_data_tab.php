@@ -242,7 +242,7 @@ use AliNext_Lite\Attachment;
 
                        if (!country_to && !shipping_method) {
                             fill_modal_shipping_info(
-                                '<?php echo $external_id; ?>',
+                                '<?php echo $post_id; ?>',
                                 <?php echo wp_json_encode($variationList); ?>,
                                 '<?php echo $variationExternalId; ?>',
                                 <?php echo wp_json_encode($shipping_country_from_list); ?>,
@@ -253,17 +253,17 @@ use AliNext_Lite\Attachment;
                                '<div class="a2wl-load-container"><div class="a2wl-load-speeding-wheel"></div></div>'
                            );
                            a2wl_load_shipping_info(
-                               '<?php echo $external_id; ?>',
+                               '<?php echo $post_id; ?>',
                                '<?php echo $variationExternalId; ?>',
                                country_from, country_to, 'product',
-                               function (state, items, default_method, shipping_cost, variations) {
+                               function (state, items, default_method, shipping_cost, variations, errorMessage) {
                                    fill_modal_shipping_info(
-                                       '<?php echo $external_id; ?>',
+                                       '<?php echo $post_id; ?>',
                                        variations,
                                        '<?php echo $variationExternalId; ?>',
                                        <?php echo wp_json_encode($shipping_country_from_list); ?>,
                                        country_from, country_to, items, 'product',
-                                       shipping_method, onSelectCallback
+                                       shipping_method, onSelectCallback, errorMessage
                                    );
                            });
                        }

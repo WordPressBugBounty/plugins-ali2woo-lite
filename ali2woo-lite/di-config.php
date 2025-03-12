@@ -269,6 +269,7 @@ return [
             get(Woocommerce::class),
             get(OrderFulfillmentService::class),
             get(ProductService::class),
+            get(ImportedProductServiceFactory::class),
         ),
 
     'AliNext_Lite\SettingPageAjaxController' => create(SettingPageAjaxController::class)
@@ -304,7 +305,8 @@ return [
         ),
     'AliNext_Lite\ImportPageController' => create(ImportPageController::class)
         ->constructor(
-            get(Woocommerce::class)
+            get(Woocommerce::class),
+            get(ImportListService::class),
         ),
     /* libs */
     'AliNext_Lite\JSON_API_Core_Controller' => create(JSON_API_Core_Controller::class)

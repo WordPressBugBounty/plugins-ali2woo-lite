@@ -93,14 +93,17 @@ class ProductDataTabController extends AbstractController
             return;
         }
 
-
-        $product = $this->WoocommerceService->getProductWithVariations($productId);
+        try {
+            $product = $this->WoocommerceService->getProductWithVariations($productId);
+        } catch (RepositoryException|ServiceException $Exception) {
+            return;
+        }
 
         $variationList = [];
         if (!empty($product['sku_products']['variations'])) {
             foreach ($product['sku_products']['variations'] as $variation) {
                 $variationList[] = [
-                    'id' => $variation['id'],
+                    'id' => $variation[ImportedProductService::FIELD_EXTERNAL_SKU_ID],
                     'title' => $variation['title'],
                 ];
             }

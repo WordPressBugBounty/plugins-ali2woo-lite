@@ -342,3 +342,9 @@
 * Fix "Bad API format." error while placing orders through API
 * Fix minor bugs and code refactor
 
+3.5.4 
+* Improve code security
+* Fix bug occurring on the product editing page
+* Fix minor bugs and code refactor
+* Fix bug with non-Latin characters in the attribute name feature of the import list
+

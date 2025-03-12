@@ -43,12 +43,12 @@ $a2wl_shipping_html = str_replace(array("\r", "\n"), '', $a2wl_shipping_html);
 
 ?>
 
-<div class="a2wl_shipping_wrap" id="a2wl_shipping_wrap_<?php echo $cart_item_key ?? $product_id; ?>" data-initial-shipping-info="<?php echo htmlspecialchars(wp_json_encode($shipping_info_data), ENT_QUOTES, 'UTF-8'); ?>">
+<div class="a2wl_shipping_wrap <?php echo is_product() ? 'hidden': ''; ?>" id="a2wl_shipping_wrap_<?php echo $cart_item_key ?? $product_id; ?>" data-initial-shipping-info="<?php echo htmlspecialchars(wp_json_encode($shipping_info_data), ENT_QUOTES, 'UTF-8'); ?>">
     <div>
         <input type="hidden" class="a2wl_to_country_field" name="a2wl_to_country_field" value="<?php echo $default_country ?? ''; ?>">
         <input type="hidden" class="a2wl_shipping_method_field" name="a2wl_shipping_method_field" value="<?php if ($default_shipping_method) echo $default_shipping_method; ?>">
 
-        <?php if ( is_product() ): ?>
+        <?php if (is_product()): ?>
         <input type="hidden" class="a2wl_remove_cart_item" name="a2wl_remove_cart_item" value="<?php echo get_setting( 'aliship_not_available_remove' ) ? 1 : 0; ?>">
         <input type="hidden" class="a2wl_fake_method" name="a2wl_fake_method" value="<?php echo Shipping::get_fake_method_id(); ?>">
         <?php endif; ?>

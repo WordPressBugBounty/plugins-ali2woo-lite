@@ -11,6 +11,7 @@ use AliNext_Lite\Utils;
 
 /**
  * @var null|TipOfDay $TipOfDay
+ * @var array $productShippingFromList
  */
 ?>
 <div class="a2wl-content">
@@ -143,11 +144,11 @@ use AliNext_Lite\Utils;
                     <div class='row space-top'>
                         <div class='col-xs-12'>                            
                             <div class='product<?php echo isset($product['shipping_cost'])?" shiping_loaded":""?>'
-                                 data-id="<?php echo $product['import_id']; ?>"
-                                 data-country_from_list="<?php echo empty($product[ImportedProductService::FIELD_COUNTRY_FROM_LIST]) ? 'CN' : implode(";", $product[ImportedProductService::FIELD_COUNTRY_FROM_LIST]); ?>"
-                                 data-country_from="<?php echo $product[ImportedProductService::FIELD_COUNTRY_FROM] ?? ''; ?>"
-                                 data-country_to="<?php echo $product[ImportedProductService::FIELD_COUNTRY_TO] ?? ''; ?>"
-                                 data-variation_key="<?php echo $product[ImportedProductService::FIELD_VARIATION_KEY] ?? ''; ?>">
+                                 data-id="<?php echo esc_attr($product['import_id']); ?>"
+                                 data-country_from_list="<?php echo esc_attr(wp_json_encode($productShippingFromList[$ind])); ?>"
+                                 data-country_from="<?php echo esc_attr($product[ImportedProductService::FIELD_COUNTRY_FROM] ?? ''); ?>"
+                                 data-country_to="<?php echo esc_attr($product[ImportedProductService::FIELD_COUNTRY_TO] ?? ''); ?>"
+                                 data-variation_key="<?php echo esc_attr($product[ImportedProductService::FIELD_VARIATION_KEY] ?? ''); ?>">
                             <?php if (!isset($product['sku_products']['variations'])) $product['sku_products']['variations'] = [];  ?>
                             <?php if (!isset($product['sku_products']['attributes'])) $product['sku_products']['attributes'] = [];  ?>
                             <div class="a2wl-row">
