@@ -136,10 +136,13 @@ class Helper {
             return;
         }
 
+        $taxonomy = $this->cleanTaxonomyName($key);
+
         // get attribute name, label
         $attribute_label = $key;
 
-        $attribute_name = $this->cleanTaxonomyName($key, false);
+        //attribute name should be the same as taxonomy just without pa_
+        $attribute_name = str_replace('pa_', '', $taxonomy);
 
         // set attribute type
         $attribute_type = 'select';
@@ -169,7 +172,6 @@ class Helper {
         }
 
         // add attribute values if not exist
-        $taxonomy = $this->cleanTaxonomyName($attribute_name);
 
         $values = is_array($value) ? $value : [$value];
 
@@ -197,7 +199,14 @@ class Helper {
                     } else {
                         // add term taxonomy
                         $term_id = $wpdb->get_var("SELECT term_id FROM {$wpdb->terms} WHERE name = '" . esc_sql($name) . "'");
-                        $this->db_custom_insert($wpdb->term_taxonomy, array('values' => array('term_id' => $term_id, 'taxonomy' => $taxonomy), 'format' => array('%d', '%s')), true);
+                        $this->db_custom_insert(
+                            $wpdb->term_taxonomy,
+                            [
+                                'values' => ['term_id' => $term_id, 'taxonomy' => $taxonomy],
+                                'format' => ['%d', '%s']
+                            ],
+                            true
+                        );
                         $term_taxonomy_id = $wpdb->insert_id;
                     }
                 }
@@ -232,7 +241,10 @@ class Helper {
                         $checkSql = "SELECT * FROM {$wpdb->term_relationships} WHERE object_id = {$post_id} AND term_taxonomy_id = {$term_taxonomy_id}";
                         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
                         if (!$wpdb->get_var($checkSql)) {
-                            $wpdb->insert($wpdb->term_relationships, array('object_id' => $post_id, 'term_taxonomy_id' => $term_taxonomy_id));
+                            $wpdb->insert(
+                                $wpdb->term_relationships,
+                                array('object_id' => $post_id, 'term_taxonomy_id' => $term_taxonomy_id)
+                            );
                         }
                     }
                 }
@@ -490,47 +502,46 @@ class Helper {
         );
     }
 
-    public function load_terms($taxonomy) {
+    public function load_terms(string $taxonomy) {
         global $wpdb;
+
         $query = "SELECT DISTINCT t.name, t.slug FROM {$wpdb->terms} AS t " .
                  "INNER JOIN {$wpdb->term_taxonomy} as tt ON tt.term_id = t.term_id " .
                  "WHERE tt.taxonomy = %s";
 
-        return $wpdb->get_results(
-            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-            $wpdb->prepare($query, esc_sql($taxonomy)), OBJECT
-        );
+        return $wpdb->get_results($wpdb->prepare($query, $taxonomy), OBJECT);
     }
 
-    public function db_custom_insert($table, $fields, $ignore = false, $wp_way = false) {
+    public function db_custom_insert(string $table, array $fields, bool $ignore = false, bool $wp_way = false): int
+    {
         global $wpdb;
+
         if ($wp_way && !$ignore) {
             $wpdb->insert($table, $fields['values'], $fields['format']);
         } else {
-            $formatVals = implode(', ', array_map(array($this, 'prepareForInList'), $fields['format']));
-            $theVals = array();
-            foreach ($fields['values'] as $k => $v)
-                $theVals[] = $k;
+            $columns = [];
+            foreach ($fields['values'] as $k => $v) {
+                $columns[] = $k;
+            }
 
-            $q = "INSERT " . ($ignore ? "IGNORE" : "") . " INTO $table (" . implode(', ', $theVals) . ") VALUES (" . $formatVals . ");";
-            foreach ($fields['values'] as $kk => $vv)
-                $fields['values']["$kk"] = esc_sql($vv);
+            $query = "INSERT " . ($ignore ? "IGNORE" : "") .
+                " INTO $table (" . implode(', ', $columns) . ")" .
+                " VALUES (" . implode(', ', $fields['format']) . ");";
 
-            $r = $wpdb->query(
-                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-                $wpdb->prepare(vsprintf($q, $fields['values']))
-            );
+            $valuesForPrepare = array_values($fields['values']);
+            $wpdb->query($wpdb->prepare($query, $valuesForPrepare));
         }
+
         return $wpdb->insert_id;
     }
 
-    public function prepareForInList($v) {
+    public function prepareForInList($v): string
+    {
         return "'" . $v . "'";
     }
 
-    public function cleanTaxonomyName($value, $withPrefix = true, $checkSize = true) {
-        $ret = $value;
-
+    public function cleanTaxonomyName(string $value, bool $withPrefix = true, bool $checkSize = true): string
+    {
         // Sanitize taxonomy names. Slug format (no spaces, lowercase) - uses sanitize_title
         if ($withPrefix) {
             $ret = wc_attribute_taxonomy_name($value); // return 'pa_' . $value
@@ -538,14 +549,19 @@ class Helper {
             $ret = wc_sanitize_taxonomy_name($value); // return $value
         }
 
-        if($checkSize){
+        if ($checkSize) {
             // limit to 32 characters (database/ table wp_term_taxonomy/ field taxonomy/ is limited to varchar(32) )
             if (seems_utf8($ret)) {
                 $limit_max = $withPrefix ? 18 : 15; // utf8: 3 + 29/2
                 if (function_exists('mb_substr')) {
                     $ret = mb_substr($ret, 0, $limit_max);
+
+                    // Ensure generated name doesn't exceed byte length using strlen (because Woocommerce use strlen)
+                    while (strlen($ret) > ($withPrefix ? 32 : 28)) {
+                        $ret = mb_substr($ret, 0, -1, 'UTF-8'); // remove last character
+                    }
                 }
-            }else{
+            } else {
                 $limit_max = $withPrefix ? 32 : 29; // 29 = 32 - strlen('pa_')
                 $ret = substr($ret, 0, $limit_max);
             }

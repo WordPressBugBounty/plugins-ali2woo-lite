@@ -942,13 +942,17 @@ var Utils = new Utils();
             const $select = $reloadButton.closest('.shipping_company')
                 .find('.current-shipping-company');
 
-            let options = items.map(item => {
-                const isSelected = item.serviceName === method ? 'selected' : '';
+            let options = '<option>Shipping unavailable for this address</option>';
 
-                return (`<option value="${item.serviceName}" ${isSelected}>` +
-                    `${item.company} (${item.time} days, ${item.freightAmount.formatedAmount})` +
-                `</option>`).toString();
-            }).join('');
+            if (items && method) {
+                options = items.map(item => {
+                    const isSelected = item.serviceName === method ? 'selected' : '';
+
+                    return (`<option value="${item.serviceName}" ${isSelected}>` +
+                        `${item.company} (${item.time} days, ${item.freightAmount.formatedAmount})` +
+                        `</option>`).toString();
+                }).join('');
+            }
 
             $select.html(options).trigger('change');
         }
@@ -959,21 +963,22 @@ var Utils = new Utils();
             const $btn = $(this);
 
             const onSelectCallback = function (product_id, variation_key, items, country_from, country_to, method) {
-                if (method && items) {
-                    $btn.data('country_from', country_from);
-                    $btn.data('country_to', country_to);
-                    $btn.data('shipping_method', method);
-                    $btn.data('variation_key', variation_key);
+                $btn.data('country_from', country_from);
+                $btn.data('country_to', country_to);
+                $btn.data('shipping_method', method);
+                $btn.data('variation_key', variation_key);
 
+                if (items) {
                     let cost;
                     let selected_item;
 
                     $.each(items, function (i, item) {
-                        if (item.serviceName === method) {
+                        if (item.serviceName === method || !method) {
                             cost = item.previewFreightAmount ?
                                 item.previewFreightAmount.value :
                                 item.freightAmount.value
                             selected_item = item;
+                            return;
                         }
                     });
 
@@ -2117,7 +2122,7 @@ var Utils = new Utils();
         }
 
         function prepareProductUpdateData(product, updateDescription = false) {
-            var updateData = {
+            const updateData = {
                 title: $(product).find('input.title').val(),
                 sku: $(product).find('input.sku').val(),
                 tags: $(product).find('.tags').val(),
@@ -2160,7 +2165,7 @@ var Utils = new Utils();
         });
 
         $('.a2wl-content .product input.attr-name').change(function () {
-            var product = $(this).parents('.product');
+            let product = $(this).parents('.product');
             a2wl_update_product($(product).attr('data-id'), prepareProductUpdateData(product));
         });
 
@@ -2169,32 +2174,52 @@ var Utils = new Utils();
             a2wl_update_product($(product).attr('data-id'), prepareProductUpdateData(product));
         });
 
-        $('.a2wl-content .variants-table .var_data input[type="text"]').change(function () {
-            var product = $(this).parents('.product');
-            a2wl_calc_profit(jQuery(product).attr('data-id'));
-
-            let variations = [];
-            $(product).find('.variants-table tbody tr').each(function () {
-                var variation = { variation_id: $(this).attr('data-id'), sku: $(this).find('.sku').val(), quantity: $(this).find('.quantity').val(), price: $(this).find('.price').val(), regular_price: $(this).find('.regular_price').val(), attributes: [] };
-                $(this).find('input.attr').each(function () {
-                    variation.attributes.push({ id: $(this).attr('data-id'), value: $(this).val() });
-                });
-                variations.push(variation);
-            });
-            a2wl_update_product($(product).attr('data-id'), { variations }, response => {
-                if (response.state === "ok" && response.new_attr_mapping) {
-                    $.each(response.new_attr_mapping, function (i, a) {
-                        $('[data-id="' + a.variation_id + '"] input[data-id="' + a.old_attr_id + '"]').attr('data-id', a.new_attr_id);
+        const importListAPI = function() {
+            function updateProductAttributes(productNode) {
+                let variations = [];
+                $(productNode).find('.variants-table tbody tr').each(function () {
+                    const variation = {
+                        variation_id: $(this).attr('data-id'),
+                        sku: $(this).find('.sku').val(),
+                        quantity: $(this).find('.quantity').val(),
+                        price: $(this).find('.price').val(),
+                        regular_price: $(this).find('.regular_price').val(),
+                        attributes: []
+                    };
+                    $(this).find('input.attr').each(function () {
+                        variation.attributes.push({ id: $(this).attr('data-id'), value: $(this).val() });
                     });
-                }
-            });
+                    variations.push(variation);
+                });
+
+                a2wl_update_product($(productNode).attr('data-id'), { variations }, response => {
+                    if (response.state === "ok" && response.new_attr_mapping) {
+                        $.each(response.new_attr_mapping, function (i, a) {
+                            $('[data-id="' + a.variation_id + '"] input[data-id="' + a.old_attr_id + '"]').attr('data-id', a.new_attr_id);
+                        });
+                    }
+                });
+
+            }
+
+            return {
+                updateProductAttributes: updateProductAttributes,
+            }
+        }();
+
+        $('.a2wl-content .variants-table .var_data input[type="text"]').on('change', function () {
+            let product = $(this).parents('.product');
+            a2wl_calc_profit(jQuery(product).attr('data-id'));
+            importListAPI.updateProductAttributes(product);
         });
 
         jQuery(".wp-editor-container textarea").change(function (e) {
             a2wl_update_product($(this).attr('id'), { description: encodeURIComponent($(this).val()) })
         });
 
-        $('.a2wl-content .price-edit-selector .dropdown-menu a').click(function () {
+        $('.a2wl-content .price-edit-selector .dropdown-menu a').on('click', function (event) {
+            event.preventDefault();
+
             if ($(this).hasClass('set-new-value')) {
                 $(this).parents('.price-edit-selector').find('.price-box-top input[type="text"]').attr('placeholder', 'Enter Value');
                 $(this).parents('.price-edit-selector').find('.price-box-top input[type="text"]').data({ type: 'value' });
@@ -2216,24 +2241,35 @@ var Utils = new Utils();
                 const $attrsTable = $('.a2wl-rename-attrs-modal__table');
                 const attr_id = $(this).parents('td').attr('data-attr-id');
 
-                $(".a2wl-rename-attrs-modal")
+                const $modal = $(".a2wl-rename-attrs-modal");
+                $modal
                     .addClass('opened')
-                    .data('attr_id', attr_id)
-                    .data('product', $(this).closest('.product'));
+                    .data({
+                        'attr_id': attr_id,
+                        'product': $(this).closest('.product')
+                    });
 
                 $attrsTable.empty();
-                $(this).parents('.variants-table').find('td[data-attr-id="' + attr_id + '"] input').each(function () {
-                    const val = $(this).val();
-                    const attr_name_id = $(this).data('id');
 
-                    if (val && $attrsTable.find('input[name="' + attr_name_id + '"]').length === 0) {
-                        $attrsTable.append('<tr class="a2wl-rename-attrs-modal__row"><td class="a2wl-rename-attrs-modal__name">'+val+'</td><td class="a2wl-rename-attrs-modal__new-name" data-id="'+attr_name_id+'"><input type="text" name="'+attr_name_id+'" placeholder="'+a2wl_common_data.lang.attr_new_name+'"></td></tr>')
+                $(this).closest('.variants-table').find(`td[data-attr-id="${attr_id}"] input`).each(
+                    function () {
+                        const val = $(this).val();
+                        const attr_name_id = $(this).data('id');
+
+                        if (val && !$attrsTable.find(`input[name="${attr_name_id}"]`).length) {
+                            const newRow =
+                                `<tr class="a2wl-rename-attrs-modal__row">
+                                    <td class="a2wl-rename-attrs-modal__name">${val}</td>
+                                    <td class="a2wl-rename-attrs-modal__new-name" data-id="${attr_name_id}">
+                                        <input type="text" name="${attr_name_id}" placeholder="${a2wl_common_data.lang.attr_new_name}">
+                                    </td>
+                                </tr>`;
+                            $attrsTable.append(newRow);
+                        }
                     }
-                });
+                );
 
                 $('.price-edit-selector').find('.price-box-top').hide();
-
-                return;
             }
 
 
@@ -2262,9 +2298,7 @@ var Utils = new Utils();
 
             $attrInputs.each(function () {
                 const attr_name_id = $(this).data('id');
-                const value = $(this).val();
-
-                oldAttrs[attr_name_id] = value;
+                oldAttrs[attr_name_id] = $(this).val();
             });
 
             $newNamesInputs.each(function() {
@@ -2310,7 +2344,6 @@ var Utils = new Utils();
                 });
             });
 
-
             //save
             if (!duplicatesKeys.length) {
                 $.each(finalAttrs, function(key, value){
@@ -2319,6 +2352,8 @@ var Utils = new Utils();
 
                 $('.a2wl-rename-attrs-modal').removeClass('opened');
             }
+
+            importListAPI.updateProductAttributes($product);
         });
 
         $('.a2wl-content .price-edit-selector .price-box-top .apply').click(function () {

@@ -39,8 +39,7 @@ class WoocommerceService
      * @throws RepositoryException|ServiceException
      */
     public function getProductShippingInfo(
-        WC_Product $WC_ProductOrVariation,
-        ?string $countryToCode, string $countryFromCode = 'CN', int $quantity = 1,
+        WC_Product $WC_ProductOrVariation, ?string $countryToCode, int $quantity = 1,
     ): array {
         $ImportedProductService = $this->ImportedProductServiceFactory
             ->createFromProduct($WC_ProductOrVariation);
@@ -53,7 +52,7 @@ class WoocommerceService
             //shipping data is available only if purchase code is added
             return $this->ProductService->updateProductShippingInfo(
                 $importedProduct,
-                $countryFromCode,
+                $ImportedProductService->getShippingFromCountryCode(),
                 $countryToCode,
                 $ImportedProductService->getExternalSkuId(),
                 $ImportedProductService->getExtraData()
@@ -67,11 +66,10 @@ class WoocommerceService
      * @throws RepositoryException|ServiceException
      */
     public function updateProductShippingInfo(
-        WC_Product $WC_ProductOrVariation,
-        ?string $countryToCode, string $countryFromCode = 'CN', int $quantity = 1,
+        WC_Product $WC_ProductOrVariation, ?string $countryToCode, int $quantity = 1,
     ): array {
         $importedProduct = $this->getProductShippingInfo(
-            $WC_ProductOrVariation, $countryToCode, $countryFromCode, $quantity
+            $WC_ProductOrVariation, $countryToCode, $quantity
         );
 
         $wcProductId = $importedProduct['post_id'];
@@ -85,6 +83,14 @@ class WoocommerceService
         return $importedProduct;
     }
 
+    public function getShippingFromByProduct(WC_Product $WC_ProductOrVariation): string
+    {
+        $ImportedProductService = $this->ImportedProductServiceFactory
+            ->createFromProduct($WC_ProductOrVariation);
+
+        return $ImportedProductService->getShippingFromCountryCode();
+    }
+
     /**
      * @throws RepositoryException|ServiceException
      */
@@ -93,7 +99,7 @@ class WoocommerceService
         ?string $countryToCode, string $countryFromCode = 'CN', int $quantity = 1,
     ): array {
         $importedProduct = $this->getProductShippingInfo(
-            $WC_ProductOrVariation, $countryToCode, $countryFromCode, $quantity
+            $WC_ProductOrVariation, $countryToCode, $quantity
         );
 
         $wcProductId = $importedProduct['post_id'];

@@ -280,7 +280,7 @@ class OrderFulfillmentService
                 $variation_id = $item->get_variation_id();
                 $quantity = $item->get_quantity();
 
-                $countryFromCode = 'CN';
+                $countryFromCode = $this->WoocommerceService->getShippingFromByProduct($WC_Product);
 
                 $importedProduct = $this->WoocommerceService
                     ->updateProductShippingItems($WC_Product, $shipping_to_country, $countryFromCode, $quantity);
@@ -296,7 +296,14 @@ class OrderFulfillmentService
                 $current_shipping_company = '';
                 $current_delivery_time = '-';
                 $current_shipping_cost = '';
-                $shipping_meta_data = $item->get_meta(Shipping::get_order_item_shipping_meta_key());
+
+                if ($ShippingItemDto->getMethodName()) {
+                    $current_shipping_company = $ShippingItemDto->getMethodName();
+                    $current_shipping_cost = $ShippingItemDto->getCost();
+                    $current_delivery_time = $ShippingItemDto->getDays();
+                }
+
+               /* $shipping_meta_data = $item->get_meta(Shipping::get_order_item_shipping_meta_key());
 
                 if ($shipping_meta_data) {
                     $shipping_meta_data = json_decode($shipping_meta_data, true);
@@ -304,7 +311,7 @@ class OrderFulfillmentService
                     $current_delivery_time = $shipping_meta_data['delivery_time'];
                     $current_shipping_cost = $shipping_meta_data['shipping_cost'];
                 }
-                $current_shipping_company = $current_shipping_company ?: $ShippingItemDto->getMethodName();
+                $current_shipping_company = $current_shipping_company ?: $ShippingItemDto->getMethodName();*/
 
                 $wpml_product_id = $wpml_variation_id = '';
                 if ($is_wpml) {

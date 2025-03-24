@@ -348,3 +348,7 @@
 * Fix minor bugs and code refactor
 * Fix bug with non-Latin characters in the attribute name feature of the import list
 
+3.5.5 
+* Improved the attribute renaming feature in the Import List. Changes are now preserved after reloading the Import List
+* Resolved several issues with the product import functionality that arose from recent refactoring.
+

@@ -8,6 +8,7 @@
 
 namespace AliNext_Lite;;
 
+use DOMDocument;
 use Throwable;
 
 class Aliexpress
@@ -460,12 +461,6 @@ class Aliexpress
             $countryCodeFrom, '', '', '', '', $extraData ?? '', $externalSkuId ?? ''
         );
 
-       /* error_log('shipping info:');
-        error_log(print_r($result, true));
-        error_log('externalProductId: ' . $externalProductId);
-        error_log('extraData: ' . $extraData);
-        error_log('externalSkuId: ' . $externalSkuId);*/
-
         if (!empty($result['state']) && $result['state'] !== 'error') {
             return $result['items'];
         }
@@ -488,9 +483,11 @@ class Aliexpress
         $html = $description;
 
         if (function_exists('mb_convert_encoding')) {
-            $html = trim(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+            $html = htmlspecialchars($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         } else {
-            $html = htmlspecialchars_decode(utf8_decode(htmlentities($html, ENT_COMPAT, 'UTF-8', false)));
+            $html = htmlspecialchars_decode(
+                utf8_decode(htmlentities($html, ENT_COMPAT, 'UTF-8', false))
+            );
         }
 
         if (function_exists('libxml_use_internal_errors')) {
@@ -498,7 +495,7 @@ class Aliexpress
         }
 
         if ($html && class_exists('\DOMDocument')) {
-            $dom = new \DOMDocument();
+            $dom = new DOMDocument();
             @$dom->loadHTML($html);
             $dom->formatOutput = true;
 
@@ -817,7 +814,7 @@ class Aliexpress
 
     private function normalizeLoadedShippingInfo(array $product): array
     {
-        $hasShippingInfo = isset($product['shipping_info']['items']) &&
+        $hasShippingInfo = !empty($product['shipping_info']['items']) &&
             is_array($product['shipping_info']['items']);
 
         if ($hasShippingInfo) {

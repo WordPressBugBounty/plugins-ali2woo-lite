@@ -17,18 +17,27 @@ class WooCommerceProductListController extends AbstractController
 {
     protected ProductService $ProductService;
     protected WoocommerceService $WoocommerceService;
+    protected Review $ReviewModel;
+    protected Woocommerce $WoocommerceModel;
+    protected PriceFormulaService $PriceFormulaService;
 
     private $bulk_actions = [];
     private $bulk_actions_text = [];
 
     public function __construct(
         ProductService $ProductService,
-        WoocommerceService $WoocommerceService
+        WoocommerceService $WoocommerceService,
+        Review $ReviewModel,
+        Woocommerce $WoocommerceModel,
+        PriceFormulaService $PriceFormulaService
     ) {
         parent::__construct();
 
         $this->ProductService = $ProductService;
         $this->WoocommerceService = $WoocommerceService;
+        $this->ReviewModel = $ReviewModel;
+        $this->WoocommerceModel = $WoocommerceModel;
+        $this->PriceFormulaService = $PriceFormulaService;
 
         add_action('admin_footer-edit.php', array($this, 'scripts'));
         add_action('load-edit.php', array($this, 'bulk_actions'));
@@ -270,10 +279,6 @@ class WooCommerceProductListController extends AbstractController
 
         a2wl_init_error_handler();
         try {
-            /** @var $woocommerce_model Woocommerce */
-            $woocommerce_model = A2WL()->getDI()->get('AliNext_Lite\Woocommerce');
-            $PriceFormulaService = A2WL()->getDI()->get('AliNext_Lite\PriceFormulaService');
-
             $ids = isset($_POST['ids']) ? (is_array($_POST['ids']) ? $_POST['ids'] : array($_POST['ids'])) : array();
 
             $on_price_changes = get_setting('on_price_changes');
@@ -318,8 +323,8 @@ class WooCommerceProductListController extends AbstractController
                 } else {
                     foreach ($res['products'] as $product) {
                         $product = array_replace_recursive($products[strval($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID])], $product);
-                        $product = $PriceFormulaService->applyFormula($product);
-                        $woocommerce_model->upd_product($product['post_id'], $product, array('manual_update' => 1));
+                        $product = $this->PriceFormulaService->applyFormula($product);
+                        $this->WoocommerceModel->upd_product($product['post_id'], $product, array('manual_update' => 1));
                     }
 
                     delete_transient('_a2w_daily_limits_warning');
@@ -346,22 +351,15 @@ class WooCommerceProductListController extends AbstractController
 
         a2wl_init_error_handler();
         try {
-            /** @var $woocommerce_model  Woocommerce */ 
-            $woocommerce_model = A2WL()->getDI()->get('AliNext_Lite\Woocommerce');
-
             $ids = isset($_POST['ids']) ? (is_array($_POST['ids']) ? $_POST['ids'] : array($_POST['ids'])) : array();
 
             $error = 0;
             foreach ($ids as $post_id) {
-                $external_id = $woocommerce_model->get_product_external_id($post_id);
+                $external_id = $this->WoocommerceModel->get_product_external_id($post_id);
                 if ($external_id) {
                     try {
-                        $reviews_model = new Review();
-                        $reviews_model->load($post_id, true);
+                        $this->ReviewModel->load($post_id, true);
                     } catch (Throwable $e) {
-                        a2wl_print_throwable($e);
-                        $error++;
-                    } catch (\Exception $e) {
                         a2wl_print_throwable($e);
                         $error++;
                     }
@@ -370,7 +368,13 @@ class WooCommerceProductListController extends AbstractController
                 }
             }
 
-            $result = array("state" => "ok", "update_state" => array('ok' => count($ids), 'error' => 0));
+            $result = [
+                "state" => "ok",
+                "update_state" => [
+                    'ok' => count($ids),
+                    'error' => $error
+                ]
+            ];
         } catch (Throwable $e) {
             a2wl_print_throwable($e);
             $result = ResultBuilder::buildError($e->getMessage());
@@ -392,9 +396,7 @@ class WooCommerceProductListController extends AbstractController
         }
 
         if (!empty($_POST['post_id'])) {
-            /** @var $woocommerce_model  Woocommerce */ 
-            $woocommerce_model = A2WL()->getDI()->get('AliNext_Lite\Woocommerce');
-            $id = $woocommerce_model->get_product_external_id($_POST['post_id']);
+            $id = $this->WoocommerceModel->get_product_external_id($_POST['post_id']);
             if ($id) {
                 $result = ResultBuilder::buildOk(array('id' => $id));
             } else {

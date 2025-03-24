@@ -14,18 +14,24 @@ class JSON_API_Core_Controller
     protected ProductImport $ProductImportModel;
     protected Woocommerce $WoocommerceModel;
     protected ProductService $ProductService;
+    protected Aliexpress $AliexpressModel;
+    protected PriceFormulaService $PriceFormulaService;
 
     public function __construct(
         GlobalSystemMessageService $GlobalSystemMessageService,
         ProductImport $ProductImportModel,
         Woocommerce $WoocommerceModel,
-        ProductService $ProductService
+        ProductService $ProductService,
+        Aliexpress $AliexpressModel,
+        PriceFormulaService $PriceFormulaService
     ) {
 
         $this->GlobalSystemMessageService = $GlobalSystemMessageService;
         $this->ProductImportModel = $ProductImportModel;
         $this->WoocommerceModel = $WoocommerceModel;
         $this->ProductService = $ProductService;
+        $this->AliexpressModel = $AliexpressModel;
+        $this->PriceFormulaService = $PriceFormulaService;
 
         //todo: perhaps it would be better to move this call to some other controller
         $this->GlobalSystemMessageService->clear();
@@ -100,8 +106,6 @@ class JSON_API_Core_Controller
                 $product['currency'] = $_REQUEST['currency'];
             }
 
-            $PriceFormulaService = A2WL()->getDI()->get('AliNext_Lite\PriceFormulaService');
-
             $imported = !!$this->WoocommerceModel->get_product_id_by_external_id($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]) || !!$this->ProductImportModel->get_product($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]);
             // $post_id = $wpdb->get_var($wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_a2w_external_id' AND meta_value='%s' LIMIT 1", $product['id']));
             if (get_setting('allow_product_duplication') || !$imported) {
@@ -109,10 +113,13 @@ class JSON_API_Core_Controller
                 ? array('data' => array('apd' => json_decode(stripslashes($_POST['apd']))))
                 : array();
 
-                $result = $this->ProductService->loadProductWithShippingInfo($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID], $params);
+                $result = $this->AliexpressModel->load_product(
+                    $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID], $params
+                );
+
                 if ($result['state'] !== 'error') {
                     $product = array_replace_recursive($product, $result['product']);
-                    $product = $PriceFormulaService->applyFormula($product);
+                    $product = $this->PriceFormulaService->applyFormula($product);
 
                     $result = $this->ProductImportModel->add_product($product);
                     $result = array('status' => 'ok');

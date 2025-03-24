@@ -516,7 +516,7 @@ class OrderFulfillmentController extends AbstractController
                     </button>
                     <?php endif; ?>
                     */ ?>
-                    <button class="btn btn-default modal-close" type="button"><?php  esc_html_e('Close');?></button>
+                    <button class="btn btn-default modal-close" type="button"><?php esc_html_e('Close');?></button>
                 </div>
             </div>
         </div>
@@ -536,6 +536,10 @@ class OrderFulfillmentController extends AbstractController
         return $AliexpressHelper->convertToAliexpressCountryCode($shipping_address['country']);
     }
 
+    /**
+     * On order fulfillment popup loading
+     * @return void
+     */
     public function ajax_load_fulfillment_orders_html(): void
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
@@ -579,8 +583,6 @@ class OrderFulfillmentController extends AbstractController
             $this->model_put('ProductShippingDataRepository', $this->ProductShippingDataRepository);
             $this->model_put("ProductShippingDataService", $this->ProductShippingDataService);
             $this->model_put("ImportedProductServiceFactory", $this->ImportedProductServiceFactory);
-
-            //$ProductShippingDataService
 
             foreach ($orders_data as $order_data) {
                 $urls_to_data = '';

@@ -252,12 +252,17 @@ class Woocommerce
                         'skip_images' => $product['skip_images']
                     ],
                     '_a2w_disable_sync' => 0,
-                    '_a2w_disable_var_price_change' => isset($product['disable_var_price_change']) && $product['disable_var_price_change'] ? 1 : 0,
-                    '_a2w_disable_var_quantity_change' => isset($product['disable_var_quantity_change']) && $product['disable_var_quantity_change'] ? 1 : 0,
-                    '_a2w_disable_add_new_variants' => isset($product['disable_add_new_variants']) && $product['disable_add_new_variants'] ? 1 : 0,
+                    '_a2w_disable_var_price_change' =>
+                        isset($product['disable_var_price_change']) && $product['disable_var_price_change'] ? 1 : 0,
+                    '_a2w_disable_var_quantity_change' =>
+                        isset($product['disable_var_quantity_change']) && $product['disable_var_quantity_change'] ? 1 : 0,
+                    '_a2w_disable_add_new_variants' =>
+                        isset($product['disable_add_new_variants']) && $product['disable_add_new_variants'] ? 1 : 0,
                     '_a2w_orders_count' => (!empty($product['ordersCount']) ? intval($product['ordersCount']) : 0),
                     ImportedProductService::KEY_VIDEO_DATA => !empty($product['video']) ? $product['video'] : '',
-                    '_a2w_import_lang' => !empty($product['import_lang']) ? $product['import_lang'] : AliexpressLocalizator::getInstance()->language,
+                    '_a2w_import_lang' =>
+                        !empty($product['import_lang']) ? $product['import_lang'] :
+                            AliexpressLocalizator::getInstance()->language,
                 ],
             ];
 
@@ -381,10 +386,16 @@ class Woocommerce
             }
 
             // set default shipping country from
-            if ($first_ava_var && !empty($first_ava_var['country_code'])) {
-                update_post_meta($product_id, '_a2w_country_code', $first_ava_var['country_code']);
+            if ($first_ava_var && !empty($first_ava_var[ImportedProductService::FIELD_COUNTRY_CODE])) {
+                update_post_meta(
+                    $product_id,
+                    ImportedProductService::KEY_COUNTRY_CODE,
+                    $first_ava_var[ImportedProductService::FIELD_COUNTRY_CODE]
+                );
             } else if (isset($product['local_seller_tag']) && strlen($product['local_seller_tag']) == 2) {
-                update_post_meta($product_id, '_a2w_country_code', $product['local_seller_tag']);
+                update_post_meta(
+                    $product_id, ImportedProductService::KEY_COUNTRY_CODE, $product['local_seller_tag']
+                );
             }
 
             $this->ProductShippingDataService->updateFromProduct($product_id, $product);
@@ -395,7 +406,9 @@ class Woocommerce
             // update global stock
             if (get_option('woocommerce_manage_stock', 'no') === 'yes') {
                 update_post_meta($product_id, '_manage_stock', 'yes');
-                update_post_meta($product_id, '_stock_status', $total_quantity ? 'instock' : 'outofstock');
+                update_post_meta(
+                    $product_id, '_stock_status', $total_quantity ? 'instock' : 'outofstock'
+                );
                 update_post_meta($product_id, '_stock', $total_quantity);
             } else {
                 delete_post_meta($product_id, '_manage_stock');
@@ -403,9 +416,7 @@ class Woocommerce
                 delete_post_meta($product_id, '_stock');
             }
 
-            if (isset($product['attribute'])
-                && $product['attribute']
-                && !get_setting('not_import_attributes', false)
+            if (!empty($product['attribute']) && !get_setting('not_import_attributes', false)
                 && (!$override_product || $override_title_description)
             ) {
                 $this->set_attributes($product_id, $product['attribute']);
@@ -794,10 +805,13 @@ class Woocommerce
         }
 
         // set default shipping country from
-        if ($first_ava_var && !empty($first_ava_var['country_code'])) {
-            $wc_product->update_meta_data('_a2w_country_code', $first_ava_var['country_code']);
+        if ($first_ava_var && !empty($first_ava_var[ImportedProductService::FIELD_COUNTRY_CODE])) {
+            $wc_product->update_meta_data(
+                ImportedProductService::KEY_COUNTRY_CODE,
+                $first_ava_var[ImportedProductService::FIELD_COUNTRY_CODE]
+            );
         } else if (isset($product['local_seller_tag']) && strlen($product['local_seller_tag']) == 2) {
-            $wc_product->update_meta_data('_a2w_country_code', $product['local_seller_tag']);
+            $wc_product->update_meta_data(ImportedProductService::KEY_COUNTRY_CODE, $product['local_seller_tag']);
         }
 
         // update variations
@@ -959,9 +973,11 @@ class Woocommerce
         $html = $product['description'];
 
         if (function_exists('mb_convert_encoding')) {
-            $html = trim(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+            $html = htmlspecialchars($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         } else {
-            $html = htmlspecialchars_decode(utf8_decode(htmlentities($html, ENT_COMPAT, 'UTF-8', false)));
+            $html = htmlspecialchars_decode(
+                utf8_decode(htmlentities($html, ENT_COMPAT, 'UTF-8', false))
+            );
         }
 
         if (empty(trim($html))) {
@@ -1179,7 +1195,7 @@ class Woocommerce
         return $termData['term_id'];
     }
 
-    private function set_attributes($product_id, $attributes)
+    private function set_attributes(int $product_id, array $attributes): void
     {
         if (defined('A2WL_IMPORT_EXTENDED_ATTRIBUTE')) {
             $extended_attribute = filter_var(A2WL_IMPORT_EXTENDED_ATTRIBUTE, FILTER_VALIDATE_BOOLEAN);
@@ -1192,25 +1208,28 @@ class Woocommerce
         if ($extended_attribute) {
             $this->helper->set_woocommerce_attributes($product_id, $attributes);
         } else {
-            $tmp_product_attr = array();
+            $tmp_product_attr = [];
             foreach ($attributes as $attr) {
                 if (!isset($tmp_product_attr[$attr['name']])) {
-                    $tmp_product_attr[$attr['name']] = is_array($attr['value']) ? $attr['value'] : array($attr['value']);
+                    $tmp_product_attr[$attr['name']] = is_array($attr['value']) ? $attr['value'] : [$attr['value']];
                 } else {
-                    $tmp_product_attr[$attr['name']] = array_merge($tmp_product_attr[$attr['name']], is_array($attr['value']) ? $attr['value'] : array($attr['value']));
+                    $tmp_product_attr[$attr['name']] = array_merge(
+                        $tmp_product_attr[$attr['name']],
+                        is_array($attr['value']) ? $attr['value'] : [$attr['value']]
+                    );
                 }
             }
 
-            $product_attributes = array();
+            $product_attributes = [];
             foreach ($tmp_product_attr as $name => $value) {
-                $product_attributes[str_replace(' ', '-', $name)] = array(
+                $product_attributes[str_replace(' ', '-', $name)] = [
                     'name' => $name,
                     'value' => implode(', ', $value),
                     'position' => count($product_attributes),
                     'is_visible' => 1,
                     'is_variation' => 0,
                     'is_taxonomy' => 0,
-                );
+                ];
             }
 
             update_post_meta($product_id, '_product_attributes', $product_attributes);
@@ -1920,10 +1939,16 @@ class Woocommerce
                         );
                     }
 
-                    if (!empty($variation['country_code'])) {
-                        update_post_meta($variation_id, '_a2w_country_code', $variation['country_code']);
+                    if (!empty($variation[ImportedProductService::FIELD_COUNTRY_CODE])) {
+                        update_post_meta(
+                            $variation_id,
+                            ImportedProductService::KEY_COUNTRY_CODE,
+                            $variation[ImportedProductService::FIELD_COUNTRY_CODE]
+                        );
                     } else if (isset($product['local_seller_tag']) && strlen($product['local_seller_tag']) == 2) {
-                        update_post_meta($variation_id, '_a2w_country_code', $product['local_seller_tag']);
+                        update_post_meta(
+                            $variation_id, ImportedProductService::KEY_COUNTRY_CODE, $product['local_seller_tag']
+                        );
                     }
 
                     if (isset($variation[ImportedProductService::FIELD_EXTERNAL_SKU_ID])) {

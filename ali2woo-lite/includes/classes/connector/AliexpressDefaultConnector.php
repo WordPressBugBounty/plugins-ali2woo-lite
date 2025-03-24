@@ -140,6 +140,7 @@ class AliexpressDefaultConnector extends AbstractConnector
             'sku_id' => $sku_id,
             'quantity' => $quantity,
             'country_code' => $country_code,
+            'country_code_from' => $country_code_from,
             'extra_data' => $extra_data,
         ];
 

@@ -158,9 +158,8 @@ class FrontendInitController extends AbstractController
             }
         }
 
-        $countryFromCode = 'CN';
-
         try {
+            $countryFromCode = $this->WoocommerceService->getShippingFromByProduct($WC_ProductOrVariation);
             $importedProduct = $this->WoocommerceService->updateProductShippingItems(
                 $WC_ProductOrVariation,
                 $countryToCode,

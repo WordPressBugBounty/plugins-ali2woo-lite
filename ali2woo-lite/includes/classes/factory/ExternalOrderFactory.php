@@ -202,7 +202,7 @@ class ExternalOrderFactory
 
             $productType = $orderItem->get_product()->get_type();
 
-            if ($productType == 'variation') {
+            if ($productType === 'variation') {
                 $variationId = $orderItem->get_variation_id();
                 $WC_Product_Variation = new WC_Product_Variation($variationId);
             } else {

@@ -66,11 +66,17 @@ use AliNext_Lite\Utils;
             </td>
             <td class="shipping_company">
                 <select class="current-shipping-company">
+                    <?php if (!empty($item['shipping_items'])) : ?>
                     <?php foreach ($item['shipping_items'] as $si): ?>
                         <option value="<?php echo $si['serviceName'] . '" ' . ($si['serviceName'] == $item['current_shipping'] ? ' selected="selected"' : ''); ?>">
                             <?php echo $si['company'] . ' (' . $si['time'] . 'days, ' . $si['freightAmount']['formatedAmount'] . ')'; ?>
                         </option>
                     <?php endforeach; ?>
+                    <?php else : ?>
+                        <option>
+                        <?php echo esc_html__('Shipping unavailable for this address', 'ali2woo'); ?>
+                        </option>
+                    <?php endif; ?>
                 </select>
                 <a href="#" class="reload-companies a2wl-shipping-update-global"
                    title="<?php echo esc_attr_x('Update Shipping Companies', 'ali2woo'); ?>"
@@ -84,19 +90,38 @@ use AliNext_Lite\Utils;
                 </a>
             </td>
             <td class="delivery_time">
-                <?php echo esc_html__($item['current_delivery_time'] . ' days'); ?>
+                <?php if (!empty($item['shipping_items'])) : ?>
+                    <?php echo esc_html__($item['current_delivery_time'] . ' days', 'ali2woo'); ?>
+                <?php else : ?>
+                    —
+                <?php endif; ?>
             </td>
             <td class="shipping_cost">
-                <?php echo $item['current_shipping_cost'] ? wc_price($item['current_shipping_cost'], ['currency' => $order_data['currency']]) : esc_html__('Free Shipping', 'ali2woo'); ?>
+                <?php if (!empty($item['shipping_items'])) : ?>
+                <?php
+                    echo $item['current_shipping_cost'] ?
+                        wc_price($item['current_shipping_cost'], ['currency' => $order_data['currency']]) :
+                        esc_html__('Free Shipping', 'ali2woo'); ?>
+                <?php else : ?>
+                    —
+                <?php endif; ?>
             </td>
             <td class="cost">
+                <?php if (!empty($item['shipping_items'])) : ?>
                 <?php echo wc_price($item['cost'], ['currency' => $order_data['currency']]) . ' x ' . esc_html__($item['quantity']); ?> =
                 <strong>
                     <?php echo wc_price($item['cost'] * $item['quantity'], ['currency' => $order_data['currency']]); ?>
                 </strong>
+                <?php else : ?>
+                    —
+                <?php endif; ?>
             </td>
             <td class="total_cost">
+                <?php if (!empty($item['shipping_items'])) : ?>
                 <strong> <?php echo wc_price($item['total_cost'], ['currency' => $order_data['currency']]); ?></strong>
+                <?php else : ?>
+                    —
+                <?php endif; ?>
             </td>
             <td class="actions">
                 <a class="remove-item" href="#"></a>

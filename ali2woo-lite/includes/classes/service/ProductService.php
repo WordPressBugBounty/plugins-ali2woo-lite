@@ -179,8 +179,9 @@ class ProductService
         $shipping_from_country_list = [];
         if (isset($product['sku_products'])) {
             foreach ($product['sku_products']['variations'] as $var) {
-                if (!empty($var['country_code'])) {
-                    $shipping_from_country_list[$var['country_code']] = $var['country_code'];
+                if (!empty($var[ImportedProductService::FIELD_COUNTRY_CODE])) {
+                    $shipping_from_country_list[$var[ImportedProductService::FIELD_COUNTRY_CODE]] =
+                        $var[ImportedProductService::FIELD_COUNTRY_CODE];
                 }
                /* if ($var['id'] === $variationExternalId) {
                     $externalRealSkuId = !empty($var['skuId']) ? $var['skuId'] : null;
@@ -229,6 +230,26 @@ class ProductService
         $product[ImportedProductService::FIELD_COST] = $ShippingItemDto->getCost();
 
         return $product;
+    }
+
+    /**
+     * @param array $product
+     * @param null|string $externalSkuId
+     * @return string
+     */
+    public function getShippingFromByExternalSkuId(array $product, ?string $externalSkuId = null): string
+    {
+        if (!$externalSkuId) {
+            return 'CN';
+        }
+
+        foreach ($product['sku_products']['variations'] as $variation) {
+            if ($variation['skuId'] === $externalSkuId) {
+                return $variation[ImportedProductService::FIELD_COUNTRY_CODE] ?? 'CN';
+            }
+        }
+
+        return 'CN';
     }
 
     /**
@@ -293,15 +314,26 @@ class ProductService
             }
         }
 
+        /**
+         * todo: need to use hasTracking and companyName too in code which calls findDefaultFromShippingItems
+         */
         $shipping_cost = 0;
+        $shippingTime = '';
+        $hasTracking = false;
+        $companyName = '';
         foreach ($shippingItems as $shippingItem) {
             if ($shippingItem['serviceName'] == $default_method) {
+                $shippingTime = $shippingItem['time'] ?? '';
+                $hasTracking = isset($shippingItem['tracking']) && $shippingItem['tracking'];
+                $companyName =  $shippingItem['company'] ?? $shippingItem['serviceName'];
                 $shipping_cost = $shippingItem['previewFreightAmount']['value'] ?? $shippingItem['freightAmount']['value'];
                 $shipping_cost = apply_filters('wcml_raw_price_amount', $shipping_cost, $current_currency);
             }
         }
 
-        return new ShippingItemDto($default_method, $shipping_cost);
+        return new ShippingItemDto(
+            $default_method, $shipping_cost, $companyName, $shippingTime, $hasTracking
+        );
     }
 
     public function getShippingItems(

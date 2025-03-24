@@ -928,7 +928,7 @@ class ImportAjaxController extends AbstractController
             );
             if (get_setting('allow_product_duplication') || !$post_id) {
                 $params = empty($_POST['apd']) ? array() : array('data' => array('apd' => json_decode(stripslashes($_POST['apd']))));
-                $res = $this->ProductService->loadProductWithShippingInfo($_POST['id'], $params);
+                $res = $this->AliexpressModel->load_product($_POST['id'], $params);
                 if ($res['state'] !== 'error') {
                     $product = array_replace_recursive($product, $res['product']);
 
@@ -1081,16 +1081,17 @@ class ImportAjaxController extends AbstractController
 
         //todo: Here we take product countries to pass as parameters
         //need to move this logic to WoocommerceService::updateProductShippingInfo()
-        $product_country_from = !empty($importedProduct[ImportedProductService::FIELD_COUNTRY_FROM]) ?
+       /* $product_country_from = !empty($importedProduct[ImportedProductService::FIELD_COUNTRY_FROM]) ?
             $importedProduct[ImportedProductService::FIELD_COUNTRY_FROM] :
-            'CN';
+            'CN';*/
 
         $product_country_to = !empty($importedProduct[ImportedProductService::FIELD_COUNTRY_TO])
             ? $importedProduct[ImportedProductService::FIELD_COUNTRY_TO]
             : '';
 
         $countryToCode = $_POST['country_to'] ?? $product_country_to;
-        $countryFromCode = !empty($_POST['country_from']) ? $_POST['country_from'] : $product_country_from;
+       // $countryFromCode = !empty($_POST['country_from']) ? $_POST['country_from'] : $product_country_from;
+        $countryFromCode = $this->WoocommerceService->getShippingFromByProduct($WC_ProductOrVariation);
 
         //todo: $externalSkuId should be update if the product variations are changed
         $externalSkuId = $_POST['variation_key'] ?? '';
@@ -1210,13 +1211,13 @@ class ImportAjaxController extends AbstractController
             : '';
 
         $countryToCode = $_POST['country_to'] ?? $product_country_to;
-        $countryFromCode = !empty($_POST['country_from']) ? $_POST['country_from'] : $product_country_from;
+       // $countryFromCode = !empty($_POST['country_from']) ? $_POST['country_from'] : $product_country_from;
+
+        $countryFromCode = $this->WoocommerceService->getShippingFromByProduct($WC_ProductOrVariation);
 
         try {
             $importedProduct = $this->WoocommerceService->updateProductShippingInfo(
-                $WC_ProductOrVariation,
-                $countryToCode,
-                $countryFromCode
+                $WC_ProductOrVariation, $countryToCode,
             );
 
             $shippingItems = $this->ProductService->getShippingItems(
@@ -1287,7 +1288,9 @@ class ImportAjaxController extends AbstractController
             : '';
 
         $countryToCode = $_POST['country_to'] ?? $product_country_to;
-        $countryFromCode = !empty($_POST['country_from']) ? $_POST['country_from'] : $product_country_from;
+        $countryFromCode = $this->ProductService->getShippingFromByExternalSkuId(
+            $importedProduct, $externalSkuId
+        );
 
         $countryCode = ProductShippingData::meta_key($countryFromCode, $countryToCode);
         //need fresh shipping items data on the fulfillment page, clean cache
@@ -1441,8 +1444,6 @@ class ImportAjaxController extends AbstractController
                 $productCategoryInfo['error_code']
             );
         }
-
-       // a2wl_error_log('Aliexpress categories from server: ' . print_r($productCategoryInfo, true));
 
         $insertedCategories = [];
 

@@ -499,7 +499,9 @@ use AliNext_Lite\Utils;
                                                             <input type="text" class="form-control sku" value="<?php echo $var['sku']; ?>">
                                                         </td>
                                                         <?php foreach ($var['attributes'] as $j => $av): ?>
-                                                            <td data-attr-id="<?php echo explode(":", $av)[0]; ?>"><input type="text" class="form-control attr" data-id="<?php echo $av; ?>" value="<?php echo isset($var['attributes_names'][$j]) ? $var['attributes_names'][$j] : ''; ?>"></td>
+                                                            <td data-attr-id="<?php echo explode(":", $av)[0]; ?>">
+                                                                <input type="text" class="form-control attr" data-id="<?php echo $av; ?>" value="<?php echo $var['attributes_names'][$j] ?? ''; ?>">
+                                                            </td>
                                                         <?php endforeach; ?>
                                                         <td style="white-space: nowrap;" class="external-price" data-value="<?php echo $var['price']; ?>"><?php echo $localizator->getLocaleCurr($var['currency']); ?><?php echo $var['price']; ?></td>
                                                         <td style="white-space: nowrap;" class="external-shipping" data-value="<?php echo isset($product['shipping_cost'])?floatval($product['shipping_cost']):"0"?>" data-currency="<?php echo $localizator->getLocaleCurr($var['currency']); ?>"><?php echo isset($product['shipping_cost'])?$localizator->getLocaleCurr($var['currency']).floatval($product['shipping_cost']):"N/A"?></td>

@@ -308,6 +308,10 @@ In case you have any questions or need technical assistance, get in touch with u
 9. Import product video from AliExpress
 
 == Changelog ==
+= 3.5.5 - 2025.24.03 = 
+* Improved the attribute renaming feature in the Import List. Changes are now preserved after reloading the Import List
+* Resolved several issues with the product import functionality that arose from recent refactoring.
+
 = 3.5.4 - 2025.12.03 = 
 * Improve code security
 * Fix bug occurring on the product editing page

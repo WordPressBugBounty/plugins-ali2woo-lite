@@ -621,11 +621,11 @@ class Utils
         $ship_from_attr_name = "";
         foreach ($product['sku_products']['attributes'] as $attr) {
             foreach ($attr['value'] as $attr_val) {
-                if (isset($attr_val['country_code'])) {
+                if (isset($attr_val[ImportedProductService::FIELD_COUNTRY_CODE])) {
                     $ship_from_attr_name = $attr['name'];
-                    if ($attr_val['country_code'] === $default_country) {
+                    if ($attr_val[ImportedProductService::FIELD_COUNTRY_CODE] === $default_country) {
                         $ship_from_attr_value[$default_country] = $attr_val['id'];
-                    } else if ($attr_val['country_code'] === $country_from) {
+                    } else if ($attr_val[ImportedProductService::FIELD_COUNTRY_CODE] === $country_from) {
                         $ship_from_attr_value[$country_from] = $attr_val['id'];
                     }
                 }

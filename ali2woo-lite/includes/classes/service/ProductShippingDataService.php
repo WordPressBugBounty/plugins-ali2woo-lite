@@ -11,8 +11,6 @@ namespace AliNext_Lite;;
 class ProductShippingDataService
 {
 
-    public const META_COUNTRY_CODE = '_a2w_country_code';
-
     protected ProductShippingDataRepository $ProductShippingDataRepository;
 
     public function __construct(
@@ -81,13 +79,13 @@ class ProductShippingDataService
         $query = "SELECT DISTINCT pm.meta_value FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} pm " .
             "ON (pm.post_id=p.ID AND pm.meta_key=%s) WHERE p.post_parent=%d AND p.post_type=%s";
 
-        $query = $wpdb->prepare($query,self::META_COUNTRY_CODE, $productId, 'product_variation');
+        $query = $wpdb->prepare($query,ImportedProductService::KEY_COUNTRY_CODE, $productId, 'product_variation');
         $countryFromList = $wpdb->get_col($query);
 
         if (empty($countryFromList)) {
             $query = "SELECT DISTINCT pm.meta_value FROM {$wpdb->postmeta} pm WHERE pm.post_id=%d AND pm.meta_key=%s";
 
-            $query = $wpdb->prepare($query, $productId, self::META_COUNTRY_CODE);
+            $query = $wpdb->prepare($query, $productId, ImportedProductService::KEY_COUNTRY_CODE);
             $countryFromList = $wpdb->get_col($query);
         }
 

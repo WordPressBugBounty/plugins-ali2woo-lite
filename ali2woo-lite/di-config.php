@@ -280,6 +280,9 @@ return [
         ->constructor(
             get(ProductService::class),
             get(WoocommerceService::class),
+            get(Review::class),
+            get(Woocommerce::class),
+            get(PriceFormulaService::class),
         ),
     'AliNext_Lite\SearchPageController' => create(SearchPageController::class)
         ->constructor(
@@ -315,5 +318,7 @@ return [
             get(ProductImport::class),
             get(Woocommerce::class),
             get(ProductService::class),
+            get(Aliexpress::class),
+            get(PriceFormulaService::class)
         ),
 ];
