@@ -34,7 +34,7 @@ use function AliNext_Lite\get_setting;
                             </select>
                         </div>
                     </div>
-                    <?php if (str_contains(A2WL()->plugin_name, 'alinext-lite')): ?>
+                    <?php if (A2WL()->isAnPlugin()): ?>
                     <div class="field field_inline">
                         <div class="field__label">
                             <label>
@@ -43,7 +43,11 @@ use function AliNext_Lite\get_setting;
                                 </strong>
                             </label>
                             <div class="info-box" data-toggle="tooltip"
-                                 data-title='<?php _ex('The plugin attempts to load the category from Aliexpress. If unsuccessful, it will use the category specified in the field above.', 'setting description', 'ali2woo');?>'>
+                                 data-title='<?php _ex(
+                                         'The plugin attempts to load the category from Aliexpress. If unsuccessful, it will use the category specified in the field above.',
+                                         'setting description',
+                                         'ali2woo');
+                                 ?>'>
                             </div>
                         </div>
                         <div class="field__input-wrap">

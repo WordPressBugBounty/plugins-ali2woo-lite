@@ -41,8 +41,19 @@ class Account {
         set_setting('use_custom_account', $this->custom_account);
     }
     
-    public function get_aliexpress_account() {
-        return !empty($this->account_data['aliexpress'])?$this->account_data['aliexpress']:array('appkey'=>'', 'secretkey'=>'', 'trackingid'=>'');
+    public function get_aliexpress_account(): array
+    {
+        $account = [
+            'appkey' => '',
+            'secretkey' => '',
+            'trackingid' => ''
+        ];
+
+        if (!empty($this->account_data['aliexpress'])) {
+            $account = $this->account_data['aliexpress'];
+        }
+
+        return $account;
     }
     
     public function get_admitad_account() {
@@ -52,12 +63,12 @@ class Account {
     public function get_epn_account() {
         return !empty($this->account_data['epn'])?$this->account_data['epn']:array('cashback_url'=>'');
     }
-    
 
-    public function save_aliexpress_account($appkey, $secretkey, $trackingid) {
-        $this->account_data['aliexpress']['appkey']=$appkey;
-        $this->account_data['aliexpress']['secretkey']=$secretkey;
-        $this->account_data['aliexpress']['trackingid']=$trackingid;
+    public function save_aliexpress_account(?string $appkey, ?string $secretkey, ?string $trackingid): void
+    {
+        $this->account_data['aliexpress']['appkey'] = $appkey;
+        $this->account_data['aliexpress']['secretkey'] = $secretkey;
+        $this->account_data['aliexpress']['trackingid'] = $trackingid;
         set_setting('account_data', $this->account_data);
     }
     
@@ -74,10 +85,10 @@ class Account {
         set_setting('account_data', $this->account_data);
     }
 
-    public function get_purchase_code(){
+    public function get_purchase_code() {
         if (a2wl_check_defined('A2WL_ITEM_PURCHASE_CODE')) {
             return A2WL_ITEM_PURCHASE_CODE;
-        }else{
+        } else {
             return get_setting('item_purchase_code');
         }
     }

@@ -350,6 +350,7 @@ class OrderFulfillmentController extends AbstractController
     public function place_shipping_modal()
     {
         $this->model_put('countries', WC()->countries->get_countries());
+        $this->model_put('disableCountryTo', true);
         $this->include_view('includes/shipping_modal.php');
     }
 

@@ -18,7 +18,7 @@ class SynchProductController extends AbstractController
 {
 
     protected ProductService $ProductService;
-    protected Review $ReviewModel;
+    protected ProductReviewsService $ProductReviewsService;
     protected Woocommerce $WoocommerceModel;
     protected PriceFormulaService $PriceFormulaService;
     protected WoocommerceService $WoocommerceService;
@@ -29,7 +29,7 @@ class SynchProductController extends AbstractController
 
     public function __construct(
         ProductService $ProductService,
-        Review $ReviewModel,
+        ProductReviewsService $ProductReviewsService,
         Woocommerce $WoocommerceModel,
         PriceFormulaService $PriceFormulaService,
         WoocommerceService $WoocommerceService
@@ -37,7 +37,7 @@ class SynchProductController extends AbstractController
         parent::__construct();
 
         $this->ProductService = $ProductService;
-        $this->ReviewModel = $ReviewModel;
+        $this->ProductReviewsService = $ProductReviewsService;
         $this->WoocommerceModel = $WoocommerceModel;
         $this->PriceFormulaService = $PriceFormulaService;
         $this->WoocommerceService = $WoocommerceService;
@@ -371,9 +371,10 @@ class SynchProductController extends AbstractController
 
     }
 
-    public function update_reviews_event()
+    public function update_reviews_event(): void
     {
-        if (!get_setting('load_review') || !get_setting('review_status') || $this->is_process_running('a2wl_update_reviews_event')) {
+        if (!get_setting('load_review') || !get_setting('review_status')
+            || $this->is_process_running('a2wl_update_reviews_event')) {
             return;
         }
 
@@ -381,11 +382,7 @@ class SynchProductController extends AbstractController
 
         a2wl_init_error_handler();
         try {
-
-            $posts_by_time = $this->WoocommerceModel->get_sorted_products_ids("_a2w_reviews_last_update", 20);
-            foreach ($posts_by_time as $post_id) {
-                $this->ReviewModel->load($post_id);
-            }
+            $this->ProductReviewsService->loadReviewsForOldestUpdatedProducts();
         } catch (Throwable $e) {
             a2wl_print_throwable($e);
         }

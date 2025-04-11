@@ -25,7 +25,7 @@ class AttachmentController {
 
     function get_attachment_url($url, $id) {
         // if not an attached return to default function
-        if (!get_post_meta($id, '_wp_a2w_attached_file', true)) {
+        if (!get_post_meta($id, Attachment::KEY_ATTACHED_FILE, true)) {
             return $url;
         }
 
@@ -53,7 +53,7 @@ class AttachmentController {
 
     function calculate_image_srcset($sources, $size_array, $image_src, $image_meta, $attachment_id) {
         // if not an attached return to default function
-        if (!$sources || !get_post_meta($attachment_id, '_wp_a2w_attached_file', true)) {
+        if (!$sources || !get_post_meta($attachment_id, Attachment::KEY_ATTACHED_FILE, true)) {
             return $sources;
         }
         

@@ -10,10 +10,14 @@
 
 namespace AliNext_Lite;;
 
+use DOMDocument;
+use Exception;
 use function WP_Error;
 
 class Attachment
 {
+
+    public const KEY_ATTACHED_FILE = '_wp_a2w_attached_file';
 
     private $utils;
     private $use_external_image_urls = false;
@@ -68,9 +72,21 @@ class Attachment
 
         if ($check_duplicate) {
             if ($use_external_image_urls) {
-                $old_attachment_id = $wpdb->get_var($wpdb->prepare("SELECT ID FROM $wpdb->posts p INNER JOIN $wpdb->postmeta pm on (p.ID = pm.post_id) WHERE p.post_parent=%d and pm.meta_key='_a2w_external_image_url' AND pm.meta_value=%s LIMIT 1", $post_id, $image_path));
+                $query = "SELECT ID FROM $wpdb->posts p INNER JOIN $wpdb->postmeta pm ON (p.ID = pm.post_id) " .
+                         "WHERE p.post_parent=%d AND pm.meta_key='_a2w_external_image_url' AND pm.meta_value=%s " .
+                         "LIMIT 1";
+                $old_attachment_id = $wpdb->get_var(
+                    $wpdb->prepare($query, $post_id, $image_path)
+                );
             } else {
-                $old_attachment_id = $wpdb->get_var($wpdb->prepare("SELECT ID FROM $wpdb->posts p INNER JOIN $wpdb->postmeta pm on (p.ID = pm.post_id) LEFT JOIN $wpdb->postmeta pm1 ON (p.ID = pm1.post_id and pm1.meta_key='_wp_a2w_attached_file' and pm1.meta_value='1') WHERE p.post_parent=%d and pm.meta_key='_a2w_external_image_url' AND pm.meta_value=%s AND pm1.meta_id is null LIMIT 1", $post_id, $image_path));
+                $query = "SELECT ID FROM $wpdb->posts p INNER JOIN $wpdb->postmeta pm ON (p.ID = pm.post_id) " .
+                        "LEFT JOIN $wpdb->postmeta pm1 ON (p.ID = pm1.post_id AND pm1.meta_key=%s AND pm1.meta_value='1') " .
+                        "WHERE p.post_parent=%d AND pm.meta_key='_a2w_external_image_url' " .
+                        "AND pm.meta_value=%s AND pm1.meta_id is null LIMIT 1";
+
+                $old_attachment_id = $wpdb->get_var(
+                    $wpdb->prepare($query, self::KEY_ATTACHED_FILE, $post_id, $image_path)
+                );
             }
 
             if ($old_attachment_id) {
@@ -298,7 +314,7 @@ class Attachment
 
     private function set_attachment_metadata($attach_id, $image_url)
     {
-        update_post_meta($attach_id, '_wp_a2w_attached_file', 1);
+        update_post_meta($attach_id, self::KEY_ATTACHED_FILE, 1);
 
         $pi = pathinfo($image_url);
 
@@ -385,8 +401,18 @@ class Attachment
     public static function find_products_with_external_images()
     {
         global $wpdb;
-        $result_ids = array();
-        $tmp_product_ids = $wpdb->get_results("select distinct if(p.post_parent = 0, p.id, p.post_parent) as id from $wpdb->posts p, (select distinct p1.post_parent as id from $wpdb->posts p1 LEFT join $wpdb->postmeta pm1 on(p1.id = pm1.post_id) where p1.post_type = 'attachment' and pm1.meta_key='_wp_a2w_attached_file' and pm1.meta_value='1') pp WHERE p.ID = pp.id", ARRAY_N);
+
+        $result_ids = [];
+        $query = "SELECT DISTINCT IF(p.post_parent = 0, p.id, p.post_parent) AS id FROM $wpdb->posts p, " .
+                 "(SELECT DISTINCT p1.post_parent AS id FROM $wpdb->posts p1 " .
+                     "LEFT JOIN $wpdb->postmeta pm1 ON (p1.id = pm1.post_id) " .
+                    "WHERE p1.post_type = 'attachment' AND pm1.meta_key=%s " .
+                    "AND pm1.meta_value='1') pp " .
+                "WHERE p.ID = pp.id";
+        $tmp_product_ids = $wpdb->get_results(
+            $wpdb->prepare($query, self::KEY_ATTACHED_FILE),
+            ARRAY_N
+        );
         foreach ($tmp_product_ids as $row) {
             $result_ids[] = $row[0];
         }
@@ -396,37 +422,48 @@ class Attachment
     public static function calc_total_external_images()
     {
         global $wpdb;
-        $cnt = $wpdb->get_var("select count(id) from (select distinct p1.id as id from $wpdb->posts p1 LEFT join $wpdb->postmeta pm1 on(p1.id = pm1.post_id) where p1.post_type = 'attachment' and pm1.meta_key='_wp_a2w_attached_file' and pm1.meta_value='1') as pp");
-        $cnt += $wpdb->get_var("select count(ID) from $wpdb->posts where post_type = 'product' AND post_content LIKE '%.alicdn.com%'");
+
+        $query = "SELECT count(id) FROM (SELECT DISTINCT p1.id AS id FROM $wpdb->posts p1 " .
+                 "LEFT JOIN $wpdb->postmeta pm1 ON (p1.id = pm1.post_id) WHERE p1.post_type = 'attachment' " .
+                 "AND pm1.meta_key=%s AND pm1.meta_value='1') AS pp";
+
+        $cnt = $wpdb->get_var($wpdb->prepare($query, self::KEY_ATTACHED_FILE));
+
+        $query = "SELECT count(ID) FROM $wpdb->posts WHERE post_type = 'product' AND post_content LIKE '%.alicdn.com%'";
+        $cnt += $wpdb->get_var($query);
 
         return $cnt;
     }
 
-    public static function find_external_images($page_size = 1000, $post_id = false)
+    public static function find_external_images(int $page_size = 1000, $post_id = false): array
     {
         global $wpdb;
-        $result_ids = array();
 
+        $result_ids = [];
+        //1. find external images in the attachments
         $post_filter = $post_id && intval($post_id) > 0 ? " AND p1.post_parent=" . intval($post_id) . " " : "";
-        $sql = "SELECT distinct p1.id as id from $wpdb->posts p1 " .
-            "LEFT join $wpdb->postmeta pm1 ON(p1.id = pm1.post_id) " .
-            "WHERE p1.post_type = 'attachment' AND pm1.meta_key='_wp_a2w_attached_file' AND pm1.meta_value='1' " .
+        $sql = "SELECT DISTINCT p1.id AS id FROM $wpdb->posts p1 " .
+            "LEFT JOIN $wpdb->postmeta pm1 ON(p1.id = pm1.post_id) " .
+            "WHERE p1.post_type = 'attachment' AND pm1.meta_key=%s AND pm1.meta_value='1' " .
             $post_filter . " LIMIT %d";
 
         $tmp_product_ids = $wpdb->get_results(
             $wpdb->prepare(
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
                 $sql,
+                self::KEY_ATTACHED_FILE,
                 $page_size
             ),
             ARRAY_N
         );
+
         foreach ($tmp_product_ids as $row) {
             $result_ids[] = $row[0];
         }
 
         $posts_limit = $page_size - count($result_ids);
         if ($posts_limit > 0) {
+            //2. find products with external images in the product description
             $post_filter = $post_id && intval($post_id) > 0 ? " AND ID=" . intval($post_id) . " " : "";
             $sql = "SELECT ID FROM $wpdb->posts " .
             "WHERE post_type = 'product' AND post_content LIKE %s $post_filter" . " " .
@@ -438,15 +475,21 @@ class Attachment
                     '%' . 'alicdn.com' . '%',
                     $posts_limit
                 ),
-                ARRAY_N);
+                ARRAY_N
+            );
+
             foreach ($tmp_product_ids as $row) {
                 $result_ids[] = $row[0];
             }
         }
+
         return $result_ids;
     }
 
-    public function load_external_image($post_id)
+    /**
+     * @throws Exception
+     */
+    public function load_external_image($post_id): void
     {
         global $wpdb;
 
@@ -454,7 +497,8 @@ class Attachment
             $post_id = intval($post_id);
             $post = get_post($post_id);
             if ($post->post_type === 'attachment') {
-                $tmp = get_post_meta($post_id, '_wp_a2w_attached_file', true);
+                //load external images for attachments
+                $tmp = get_post_meta($post_id, self::KEY_ATTACHED_FILE, true);
                 if ($tmp && intval($tmp) === 1) {
 
                     $new_image_id = $this->create_attachment($post->post_parent, $post->guid, array('inner_post_id' => $post_id, 'title' => $post->post_title, 'alt' => $post->post_title));
@@ -530,32 +574,36 @@ class Attachment
                     }
                 }
             } else if ($post->post_content && class_exists('DOMDocument')) {
+                //load external images from the product description
                 if (function_exists('libxml_use_internal_errors')) {
                     libxml_use_internal_errors(true);
                 }
-                $dom = new \DOMDocument();
+                $dom = new DOMDocument();
                 @$dom->loadHTML($post->post_content);
                 $dom->formatOutput = true;
 
                 $elements = $dom->getElementsByTagName('img');
-                $replace_map = array();
+                $replace_map = [];
                 for ($i = $elements->length; --$i >= 0;) {
                     $e = $elements->item($i);
-                    $old_url = strval($e->getAttribute('src'));
-                    $tmp = wp_parse_url($old_url);
-                    $old_url = $tmp['scheme'] . "://" . $tmp['host'] . $tmp['path'];
+                    $old_url = $e->getAttribute('src');
 
-                    if (strpos($old_url, '.alicdn.com') !== false) {
-                        $attachment_id = $this->create_attachment($post_id, $e->getAttribute('src'), array('inner_post_id' => $post_id, 'title' => $post->post_title, 'alt' => $post->post_title));
+                    if (str_contains($old_url, '.alicdn.com')) {
+                        $attachment_id = $this->create_attachment(
+                            $post_id,
+                            $e->getAttribute('src'),
+                            ['inner_post_id' => $post_id, 'title' => $post->post_title, 'alt' => $post->post_title]
+                        );
                         $new_url = wp_get_attachment_url($attachment_id);
-
                         $replace_map[$old_url] = $new_url;
-                        //$post->post_content = str_replace($old_url, $new_url, $post->post_content);
-                        //wp_update_post( array('ID' => $post_id,'post_content' => $post->post_content) );
                     }
                 }
-                $post->post_content = str_replace(array_keys($replace_map), array_values($replace_map), $post->post_content);
-                wp_update_post(array('ID' => $post_id, 'post_content' => $post->post_content));
+                $post->post_content = str_replace(
+                    array_keys($replace_map),
+                    array_values($replace_map),
+                    $post->post_content
+                );
+                wp_update_post(['ID' => $post_id, 'post_content' => $post->post_content]);
             }
         } else {
             throw new Exception("load_external_image: waiting for ID...");

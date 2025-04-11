@@ -178,6 +178,9 @@ class SettingPageController extends AbstractAdminPage
             }
 
             set_setting('auto_update', isset($_POST['a2wl_auto_update']));
+            if (A2WL()->isAnPlugin() && !empty($_POST['a2wl_auto_update'])) {
+                $this->saveAutoUpdateMaxQuota();
+            }
             set_setting('on_not_available_product', isset($_POST['a2wl_on_not_available_product']) ? wp_unslash($_POST['a2wl_on_not_available_product']) : 'trash');
             set_setting('on_not_available_variation', isset($_POST['a2wl_on_not_available_variation']) ? wp_unslash($_POST['a2wl_on_not_available_variation']) : 'trash');
             set_setting('on_new_variation_appearance', isset($_POST['a2wl_on_new_variation_appearance']) ? wp_unslash($_POST['a2wl_on_new_variation_appearance']) : 'add');
@@ -214,6 +217,25 @@ class SettingPageController extends AbstractAdminPage
         $this->model_put("languages", $language_model->get_languages());
 
         return "settings/common.php";
+    }
+
+    private function saveAutoUpdateMaxQuota(): void
+    {
+        $range = [
+            'options' => [
+                'min_range' => 25,
+                'max_range' => 100
+            ]
+        ];
+
+        $autoUpdateMaxQuota = filter_input(
+            INPUT_POST, 'a2wl_auto_update_max_quota',
+            FILTER_VALIDATE_INT, $range
+        );
+
+        if ($autoUpdateMaxQuota !== false) {
+            set_setting(Settings::SETTING_AUTO_UPDATE_MAX_QUOTA, $autoUpdateMaxQuota);
+        }
     }
 
     private function videoSettingsHandle(): string
@@ -295,18 +317,30 @@ class SettingPageController extends AbstractAdminPage
         $token = AliexpressToken::getInstance();
 
         if (isset($_POST['setting_form'])) {
-            $account->set_account_type(isset($_POST['a2wl_account_type']) && in_array($_POST['a2wl_account_type'], array('aliexpress', 'admitad', 'epn')) ? $_POST['a2wl_account_type'] : 'aliexpress');
+            $accountType = 'aliexpress';
+
+            $accountTypeCheck = isset($_POST['a2wl_account_type']) &&
+                in_array($_POST['a2wl_account_type'], ['aliexpress', 'admitad', 'epn']);
+
+            if ($accountTypeCheck) {
+                $accountType = $_POST['a2wl_account_type'];
+            }
+
+            $account->set_account_type($accountType);
             $account->use_custom_account(isset($_POST['a2wl_use_custom_account']));
             if ($account->custom_account && isset($_POST['a2wl_account_type'])) {
                 if ($_POST['a2wl_account_type'] == 'aliexpress') {
-                    $account->save_aliexpress_account(isset($_POST['a2wl_appkey']) ? $_POST['a2wl_appkey'] : '', isset($_POST['a2wl_secretkey']) ? $_POST['a2wl_secretkey'] : '', isset($_POST['a2wl_trackingid']) ? $_POST['a2wl_trackingid'] : '');
+                    //todo: add $_POST fields check
+                    $account->save_aliexpress_account(
+                        $_POST['a2wl_appkey'], $_POST['a2wl_secretkey'], $_POST['a2wl_trackingid']
+                    );
                 } else if ($_POST['a2wl_account_type'] == 'admitad') {
                     $account->save_admitad_account(
                         $_POST['a2wl_admitad_cashback_url'] ?? '',
                         $_POST['a2wl_admitad_account_name'] ?? '',
                     );
                 } else if ($_POST['a2wl_account_type'] == 'epn') {
-                    $account->save_epn_account(isset($_POST['a2wl_epn_cashback_url']) ? $_POST['a2wl_epn_cashback_url'] : '');
+                    $account->save_epn_account($_POST['a2wl_epn_cashback_url'] ?? '');
                 }
             }
         }

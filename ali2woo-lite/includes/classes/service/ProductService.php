@@ -17,11 +17,14 @@ class ProductService
     protected AliexpressHelper $AliexpressHelper;
     protected Woocommerce $WoocommerceModel;
     protected PriceFormulaService $PriceFormulaService;
+    protected PurchaseCodeInfoService $PurchaseCodeInfoService;
+    protected SynchronizePurchaseCodeInfoService $SynchronizePurchaseCodeInfoService;
 
     public function __construct(
         Aliexpress $AliexpressModel, ProductShippingDataRepository $ProductShippingDataRepository,
         Synchronize $SynchronizeModel, AliexpressHelper $AliexpressHelper, Woocommerce $WoocommerceModel,
-        PriceFormulaService $PriceFormulaService
+        PriceFormulaService $PriceFormulaService, PurchaseCodeInfoService $PurchaseCodeInfoService,
+        SynchronizePurchaseCodeInfoService $SynchronizePurchaseCodeInfoService
     ) {
         $this->AliexpressModel = $AliexpressModel;
         $this->ProductShippingDataRepository = $ProductShippingDataRepository;
@@ -29,6 +32,8 @@ class ProductService
         $this->AliexpressHelper = $AliexpressHelper;
         $this->WoocommerceModel = $WoocommerceModel;
         $this->PriceFormulaService = $PriceFormulaService;
+        $this->PurchaseCodeInfoService = $PurchaseCodeInfoService;
+        $this->SynchronizePurchaseCodeInfoService = $SynchronizePurchaseCodeInfoService;
     }
 
     /**
@@ -44,11 +49,24 @@ class ProductService
         $productCount = $this->SynchronizeModel->get_product_cnt();
         $params['pc'] = $productCount;
 
+        $isManualUpdate = isset($params['manual_update']) && $params['manual_update'];
+
+        $this->SynchronizePurchaseCodeInfoService->runSyncPurchaseCodeInfoProcess();
+
+        if (!$isManualUpdate) {
+            $allowAutoUpdate = $this->PurchaseCodeInfoService->checkAutoUpdateMaxQuota();
+
+            if (!$allowAutoUpdate) {
+                $errorMessage = _x('You have reached max autoupdate quota', 'error', 'ali2woo');
+                return ResultBuilder::buildError($errorMessage);
+            }
+        }
+
         $result = $this->AliexpressModel->sync_products($productIds, $params);
 
-        $sync_default_shipping_cost = isset($params['manual_update']) && $params['manual_update']
+        $sync_default_shipping_cost = $isManualUpdate
             && a2wl_check_defined('A2WL_SYNC_PRODUCT_SHIPPING')
-            &&  get_setting('add_shipping_to_price');
+            && get_setting('add_shipping_to_price');
 
         if ($sync_default_shipping_cost) {
             /*
@@ -208,18 +226,21 @@ class ProductService
         }
 
         $country = ProductShippingData::meta_key($country_from, $country_to);
-        if (empty($product[ImportedProductService::FIELD_SHIPPING_INFO][$country])) {
-            $externalProductId = $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID];
-            $shippingItems = $this->AliexpressModel
-                ->loadShippingItems(
-                    $externalProductId, 1, $country_to, $country_from,
-                    $externalSkuId, $extraData
-                );
-            $product[ImportedProductService::FIELD_SHIPPING_INFO][$country] = $shippingItems;
-        } else {
-            a2wl_error_log(sprintf( 'Shipping data is loaded from cache. WC Product ID: %d, Country code: %s',
-                $product['post_id'], $country
-            ));
+
+        if (Account::getInstance()->get_purchase_code()) {
+            if (empty($product[ImportedProductService::FIELD_SHIPPING_INFO][$country])) {
+                $externalProductId = $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID];
+                $shippingItems = $this->AliexpressModel
+                    ->loadShippingItems(
+                        $externalProductId, 1, $country_to, $country_from,
+                        $externalSkuId, $extraData
+                    );
+                $product[ImportedProductService::FIELD_SHIPPING_INFO][$country] = $shippingItems;
+            } else {
+                a2wl_info_log(sprintf('Shipping data is loaded from cache. WC Product ID: %d, Country code: %s',
+                    $product['post_id'], $country
+                ));
+            }
         }
 
         $items = $product[ImportedProductService::FIELD_SHIPPING_INFO][$country] ?? [];

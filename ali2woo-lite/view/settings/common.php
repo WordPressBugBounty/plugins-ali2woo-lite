@@ -1,5 +1,6 @@
 <?php
 use AliNext_Lite\AbstractController;
+use AliNext_Lite\Settings;
 use function AliNext_Lite\get_setting;
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
 ?>
@@ -425,7 +426,7 @@ use function AliNext_Lite\get_setting;
                 <div class="info-box" data-toggle="tooltip" data-title="<?php _ex('Adds the Middle name field to WooCommerce checkout page and then uses it during an order-fulfillment process on AliExpress.', 'setting description', 'ali2woo'); ?>"></div>
             </div>
             <div class="field__input-wrap">
-                    <input type="checkbox" class="field__input form-control" id="a2wl_order_third_name" name="a2wl_order_third_name" value="yes" <?php if ($a2wl_order_third_name): ?>checked<?php endif;?>/>
+                <input type="checkbox" class="field__input form-control" id="a2wl_order_third_name" name="a2wl_order_third_name" value="yes" <?php if ($a2wl_order_third_name): ?>checked<?php endif;?>/>
             </div>
         </div>
     </div>
@@ -435,8 +436,9 @@ use function AliNext_Lite\get_setting;
     <div class="panel-heading">
         <h3 class="display-inline"><?php _ex('Schedule settings', 'Setting title', 'ali2woo'); ?></h3>
     </div>
-    <div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSOIN</a></div>
+    <div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>
     <div class="panel-body _a2wfv">
+
         <?php $a2wl_auto_update = get_setting('auto_update');?>
         <div class="field field_inline">
             <div class="field__label">
@@ -451,11 +453,43 @@ use function AliNext_Lite\get_setting;
                 </div>
             </div>
         </div>
+        <?php if (A2WL()->isAnPlugin()): ?>
+        <div class="field field_inline">
+            <div class="field__label">
+                <label for="a2wl_auto_update_max_quota">
+                    <strong><?php esc_html_e('Max Auto-Update Quota', 'ali2woo');?></strong>
+                </label>
+                <div class="info-box"
+                     data-toggle="tooltip"
+                     data-title="<?php esc_html_e('This setting allows you to define the maximum percentage of your daily operation limit that can be allocated to the plugin`s auto-update processes.', 'ali2woo');?>"
+                ></div>
+            </div>
+            <div class="field__input-wrap">
+                <?php $autoUpdateMaxQuota = get_setting(Settings::SETTING_AUTO_UPDATE_MAX_QUOTA);?>
+                <select class="field__input form-control small-input"
+                        name="a2wl_auto_update_max_quota"
+                        id="a2wl_auto_update_max_quota" <?php if (!$a2wl_auto_update): ?>disabled<?php endif;?>>
 
+                    <option value="25" <?php if ($autoUpdateMaxQuota === 25): ?>selected="selected"<?php endif;?>>
+                        <?php esc_html_e('Small portion - 25%', 'ali2woo');?>
+                    </option>
+                    <option value="50" <?php if ($autoUpdateMaxQuota === 50): ?>selected="selected"<?php endif;?>>
+                        <?php esc_html_e('Half - 50%', 'ali2woo');?>
+                    </option>
+                    <option value="75" <?php if ($autoUpdateMaxQuota === 75): ?>selected="selected"<?php endif;?>>
+                        <?php esc_html_e('Default - 75%', 'ali2woo');?>
+                    </option>
+                    <option value="100" <?php if ($autoUpdateMaxQuota === 100): ?>selected="selected"<?php endif;?>>
+                        <?php esc_html_e('All - 100%', 'ali2woo');?>
+                    </option>
+                </select>
+            </div>
+        </div>
+        <?php endif; ?>
         <div class="field field_inline">
             <div class="field__label">
                 <label for="a2wl_on_not_available_product">
-                    <strong><?php  esc_html_e('When product is no longer available', 'ali2woo');?></strong>
+                    <strong><?php esc_html_e('When product is no longer available', 'ali2woo');?></strong>
                 </label>
                 <div class="info-box" data-toggle="tooltip" data-title="<?php  esc_html_e('Choose an action when one of your products is no longer available from Aliexpress. Applies to all existing products.', 'ali2woo');?>"></div>
             </div>
@@ -472,7 +506,7 @@ use function AliNext_Lite\get_setting;
         <div class="field field_inline">
             <div class="field__label">
                 <label for="a2wl_on_not_available_variation">
-                    <strong><?php  esc_html_e('When variant is no longer available', 'ali2woo');?></strong>
+                    <strong><?php esc_html_e('When variant is no longer available', 'ali2woo');?></strong>
                 </label>
                 <div class="info-box" data-toggle="tooltip" data-title="<?php  esc_html_e('Choose an action when one of the product’s variants is no longer available from Aliexpress.', 'ali2woo');?>"></div>
             </div>
@@ -490,9 +524,9 @@ use function AliNext_Lite\get_setting;
         <div class="field field_inline">
             <div class="field__label">
                 <label for="a2wl_on_new_variation_appearance">
-                    <strong><?php  esc_html_e('When a new variant has appeared', 'ali2woo');?></strong>
+                    <strong><?php esc_html_e('When a new variant has appeared', 'ali2woo');?></strong>
                 </label>
-                <div class="info-box" data-toggle="tooltip" data-title="<?php  esc_html_e('Choose an action when new of the product’s variants is an appearance on Aliexpress.', 'ali2woo');?>"></div>
+                <div class="info-box" data-toggle="tooltip" data-title="<?php esc_html_e('Choose an action when new of the product’s variants is an appearance on Aliexpress.', 'ali2woo');?>"></div>
             </div>
             <div class="field__input-wrap">
                     <?php $on_new_variation_appearance = get_setting('on_new_variation_appearance');?>
@@ -506,15 +540,15 @@ use function AliNext_Lite\get_setting;
         <div class="field field_inline">
             <div class="field__label">
                 <label for="a2wl_on_price_changes">
-                    <strong><?php  esc_html_e('When the price changes', 'ali2woo');?></strong>
+                    <strong><?php esc_html_e('When the price changes', 'ali2woo');?></strong>
                 </label>
                 <div class="info-box" data-toggle="tooltip" data-title="<?php  esc_html_e('Choose an action when the price of your product changes.', 'ali2woo');?>"></div>
             </div>
             <div class="field__input-wrap">
                     <?php $on_price_changes = get_setting('on_price_changes');?>
                     <select class="field__input form-control small-input" name="a2wl_on_price_changes" id="a2wl_on_price_changes" <?php if (!$a2wl_auto_update): ?>disabled<?php endif;?>>
-                        <option value="nothing" <?php if ($on_price_changes == "nothing"): ?>selected="selected"<?php endif;?>><?php  esc_html_e('Do Nothing', 'ali2woo');?></option>
-                        <option value="update" <?php if ($on_price_changes == "update"): ?>selected="selected"<?php endif;?>><?php  esc_html_e('Update price', 'ali2woo');?></option>
+                        <option value="nothing" <?php if ($on_price_changes == "nothing"): ?>selected="selected"<?php endif;?>><?php esc_html_e('Do Nothing', 'ali2woo');?></option>
+                        <option value="update" <?php if ($on_price_changes == "update"): ?>selected="selected"<?php endif;?>><?php esc_html_e('Update price', 'ali2woo');?></option>
                     </select>
             </div>
         </div>
@@ -522,15 +556,15 @@ use function AliNext_Lite\get_setting;
         <div class="field field_inline">
             <div class="field__label"> 
                 <label for="a2wl_on_stock_changes">
-                    <strong><?php  esc_html_e('When inventory changes', 'ali2woo');?></strong>
+                    <strong><?php esc_html_e('When inventory changes', 'ali2woo');?></strong>
                 </label>
                 <div class="info-box" data-toggle="tooltip" data-title="<?php  esc_html_e('Choose an action when the inventory level of a particular product changes.', 'ali2woo');?>"></div>
             </div>
             <div class="field__input-wrap">
                     <?php $on_stock_changes = get_setting('on_stock_changes');?>
                     <select class="field__input form-control small-input" name="a2wl_on_stock_changes" id="a2wl_on_stock_changes" <?php if (!$a2wl_auto_update): ?>disabled<?php endif;?>>
-                        <option value="nothing" <?php if ($on_stock_changes == "nothing"): ?>selected="selected"<?php endif;?>><?php  esc_html_e('Do Nothing', 'ali2woo');?></option>
-                        <option value="update" <?php if ($on_stock_changes == "update"): ?>selected="selected"<?php endif;?>><?php  esc_html_e('Update automatically', 'ali2woo');?></option>
+                        <option value="nothing" <?php if ($on_stock_changes == "nothing"): ?>selected="selected"<?php endif;?>><?php esc_html_e('Do Nothing', 'ali2woo');?></option>
+                        <option value="update" <?php if ($on_stock_changes == "update"): ?>selected="selected"<?php endif;?>><?php esc_html_e('Update automatically', 'ali2woo');?></option>
                     </select>
             </div>
         </div>
@@ -545,7 +579,7 @@ use function AliNext_Lite\get_setting;
             </div>
             <div class="field__input-wrap">
                     <?php $a2wl_untrash_product = get_setting('untrash_product');?>
-                    <input type="checkbox" class="field__input form-control" id="a2wl_untrash_product" name="a2wl_untrash_product" value="yes" <?php if ($a2wl_untrash_product): ?>checked<?php endif;?>/>
+                    <input type="checkbox" class="field__input form-control" id="a2wl_untrash_product" name="a2wl_untrash_product" value="yes" <?php if ($a2wl_untrash_product): ?>checked<?php endif;?> <?php if (!$a2wl_auto_update): ?>disabled<?php endif;?>/>
             </div>
         </div>
 
@@ -558,7 +592,7 @@ use function AliNext_Lite\get_setting;
             </div>
             <div class="field__input-wrap">
                     <?php $a2wl_email_alerts = get_setting('email_alerts');?>
-                    <input type="checkbox" class="field__input form-control" id="a2wl_email_alerts" name="a2wl_email_alerts" value="yes" <?php if ($a2wl_email_alerts): ?>checked<?php endif;?>/>
+                    <input type="checkbox" class="field__input form-control" id="a2wl_email_alerts" name="a2wl_email_alerts" value="yes" <?php if ($a2wl_email_alerts): ?>checked<?php endif;?> <?php if (!$a2wl_auto_update): ?>disabled<?php endif;?>/>
             </div>
         </div>
 
@@ -580,7 +614,7 @@ use function AliNext_Lite\get_setting;
 <div class="container-fluid">
     <div class="row pt20 border-top">
         <div class="col-sm-12">
-            <input class="btn btn-success js-main-submit" type="submit" value="<?php  esc_html_e('Save settings', 'ali2woo');?>"/>
+            <input class="btn btn-success js-main-submit" type="submit" value="<?php esc_html_e('Save settings', 'ali2woo');?>"/>
         </div>
     </div>
 </div>
@@ -606,32 +640,29 @@ function a2wl_isInt(value) {
 
     if($.fn.tooltip) { $('[data-toggle="tooltip"]').tooltip({"placement": "top"}); }
 
-    jQuery("#a2wl_auto_update").change(function () {
+    jQuery("#a2wl_auto_update").on('change', function () {
+        <?php if (A2WL()->isAnPlugin()): ?>
+        jQuery("#a2wl_auto_update_max_quota").prop('disabled', !jQuery(this).is(':checked'));
+        <?php endif; ?>
         jQuery("#a2wl_on_not_available_product").prop('disabled', !jQuery(this).is(':checked'));
         jQuery("#a2wl_on_not_available_variation").prop('disabled', !jQuery(this).is(':checked'));
         jQuery("#a2wl_on_new_variation_appearance").prop('disabled', !jQuery(this).is(':checked'));
         jQuery("#a2wl_on_price_changes").prop('disabled', !jQuery(this).is(':checked'));
         jQuery("#a2wl_on_stock_changes").prop('disabled', !jQuery(this).is(':checked'));
+        jQuery("#a2wl_untrash_product").prop('disabled', !jQuery(this).is(':checked'));
         jQuery("#a2wl_email_alerts").prop('disabled', !jQuery(this).is(':checked'));
-
-        return true;
     });
 
-    jQuery("#a2wl_email_alerts").change(function () {
-
+    jQuery("#a2wl_email_alerts").on('change', function () {
         jQuery("#a2wl_email_alerts_email").prop('disabled', !jQuery(this).is(':checked'));
-
-        return true;
     });
 
-    jQuery("#a2wl_use_random_stock").change(function () {
+    jQuery("#a2wl_use_random_stock").on('change', function () {
         jQuery("#a2wl_use_random_stock_block").toggle();
-        return true;
     });
 
-    jQuery("#a2wl_remove_ship_from").change(function () {
+    jQuery("#a2wl_remove_ship_from").on('change', function () {
         jQuery("#a2wl_remove_ship_from_block").toggle();
-        return true;
     });
 
     var a2wl_import_product_images_limit_keyup_timer = false;

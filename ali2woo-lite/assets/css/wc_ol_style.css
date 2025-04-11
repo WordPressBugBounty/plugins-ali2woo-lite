@@ -338,12 +338,6 @@
     z-index: 10001;
 }
 
-.post-type-shop_order .modal-shipping .country-select-to{
-    display: none;
-}
-
-
-
 .modal-overlay.modal-fulfillment .modal-body {
     min-height: 140px;
 }

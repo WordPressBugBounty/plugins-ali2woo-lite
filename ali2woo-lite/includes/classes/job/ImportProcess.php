@@ -51,7 +51,7 @@ class ImportProcess extends BaseJob implements ImportJobInterface
                     }
                 }
             } else {
-                /** @var $woocommerce_model  Woocommerce */ 
+                /** @var $woocommerce_model Woocommerce */
                 $woocommerce_model = A2WL()->getDI()->get('AliNext_Lite\Woocommerce');
                 $product_import_model = new ProductImport();
 

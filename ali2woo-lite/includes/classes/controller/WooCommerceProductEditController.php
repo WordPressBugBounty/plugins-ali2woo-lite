@@ -57,7 +57,7 @@ class WooCommerceProductEditController extends AbstractController
             $lang_data = [
                 /* translators: %d is replaced with "digit" */
                 'process_loading_d_of_d_erros_d' => esc_html_x(
-                    'Process loading $d of $d. Errors: $d.',
+                    'Process loading %d of %d. Errors: %d.',
                     'Status',
                     'ali2woo'
                 ),

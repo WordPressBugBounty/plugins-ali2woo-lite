@@ -7,7 +7,7 @@ License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Stable tag: trunk
 Requires PHP: 8.0
-WC tested up to: 9.7
+WC tested up to: 9.8
 WC requires at least: 5.0
 
 This AliExpress Dropshipping Plugin for WooCommerce: Import products with reviews from AliExpress and fulfill orders automatically!
@@ -308,6 +308,15 @@ In case you have any questions or need technical assistance, get in touch with u
 9. Import product video from AliExpress
 
 == Changelog ==
+= 3.5.6 - 2025.11.04 =
+* Fix some php warnings
+* Fix some deprecated messages
+* Fix chrome extension connection bug
+* Fix external images not loading bug (on product editing page)
+* Add A2W_FIX_PRODUCT_VISIBILITY constant
+* Fix aliexpress category loader feature
+* Add compatibility with WooCommerce 9.8.*
+
 = 3.5.5 - 2025.24.03 = 
 * Improved the attribute renaming feature in the Import List. Changes are now preserved after reloading the Import List
 * Resolved several issues with the product import functionality that arose from recent refactoring.

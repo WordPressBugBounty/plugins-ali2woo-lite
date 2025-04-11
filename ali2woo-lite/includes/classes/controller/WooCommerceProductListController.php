@@ -16,8 +16,8 @@ use Throwable;
 class WooCommerceProductListController extends AbstractController
 {
     protected ProductService $ProductService;
+    protected ProductReviewsService $ProductReviewsService;
     protected WoocommerceService $WoocommerceService;
-    protected Review $ReviewModel;
     protected Woocommerce $WoocommerceModel;
     protected PriceFormulaService $PriceFormulaService;
 
@@ -26,16 +26,16 @@ class WooCommerceProductListController extends AbstractController
 
     public function __construct(
         ProductService $ProductService,
+        ProductReviewsService $ProductReviewsService,
         WoocommerceService $WoocommerceService,
-        Review $ReviewModel,
         Woocommerce $WoocommerceModel,
         PriceFormulaService $PriceFormulaService
     ) {
         parent::__construct();
 
         $this->ProductService = $ProductService;
+        $this->ProductReviewsService = $ProductReviewsService;
         $this->WoocommerceService = $WoocommerceService;
-        $this->ReviewModel = $ReviewModel;
         $this->WoocommerceModel = $WoocommerceModel;
         $this->PriceFormulaService = $PriceFormulaService;
 
@@ -351,22 +351,8 @@ class WooCommerceProductListController extends AbstractController
 
         a2wl_init_error_handler();
         try {
-            $ids = isset($_POST['ids']) ? (is_array($_POST['ids']) ? $_POST['ids'] : array($_POST['ids'])) : array();
-
-            $error = 0;
-            foreach ($ids as $post_id) {
-                $external_id = $this->WoocommerceModel->get_product_external_id($post_id);
-                if ($external_id) {
-                    try {
-                        $this->ReviewModel->load($post_id, true);
-                    } catch (Throwable $e) {
-                        a2wl_print_throwable($e);
-                        $error++;
-                    }
-                } else {
-                    $error++;
-                }
-            }
+            $ids = isset($_POST['ids']) ? (is_array($_POST['ids']) ? $_POST['ids'] : [$_POST['ids']]) : [];
+            $error = $this->ProductReviewsService->loadReviewsForProductIds($ids);
 
             $result = [
                 "state" => "ok",

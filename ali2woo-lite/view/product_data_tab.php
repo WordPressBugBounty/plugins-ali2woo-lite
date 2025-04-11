@@ -343,15 +343,15 @@ use AliNext_Lite\Attachment;
     // load external images
     $images_ids = Attachment::find_external_images(1000, $post_id);
     ?>
-    <?php if($images_ids):?>
+    <?php if ($images_ids) : ?>
         <div class="options_group">
             <p id="a2wl_product_external_images" class="form-field">
                 <label>External images</label>
-                <button type="button" class="load-images button button-primary" data-images="<?php echo implode(',',$images_ids); ?>">Load external images</button>
+                <button type="button" class="load-images button button-primary" data-images="<?php echo implode(',', $images_ids); ?>">Load external images</button>
                 <span class="description progress"></span>
             </p>
         </div>
-    <?php endif;?>
+    <?php endif; ?>
 </div>
 
 <div class="a2wl_product_tab variations" style="display:none">

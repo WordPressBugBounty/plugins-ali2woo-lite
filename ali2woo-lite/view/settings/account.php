@@ -53,7 +53,7 @@ use AliNext_Lite\AbstractController;
                             <div class="info-box" data-toggle="tooltip" data-title="<?php echo esc_html_x('When you create the App, the AliExpress open platform will generate an appKey', 'setting description', 'ali2woo'); ?>"></div>
                         </div>
                         <div class="field__input-wrap">
-                            <input type="text" class="field__input form-control small-input" id="a2wl_appkey" name="a2wl_appkey" value="<?php echo isset($account->account_data['aliexpress']['appkey']) ? $account->account_data['aliexpress']['appkey'] : ''; ?>"/>
+                            <input type="text" class="field__input form-control small-input" id="a2wl_appkey" name="a2wl_appkey" value="<?php echo $account->account_data['aliexpress']['appkey'] ?? ''; ?>"/>
                         </div>
                     </div>
                 </div>

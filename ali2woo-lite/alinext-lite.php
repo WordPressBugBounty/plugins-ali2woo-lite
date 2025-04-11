@@ -5,7 +5,7 @@ Plugin URI: https://ali2woo.com/pricing/?utm_source=lite&utm_medium=plugin&utm_c
 Description: Aliexpress Dropshipping for Woocommerce (AliNext Lite version)
 Text Domain: ali2woo
 Domain Path: /languages
-Version: 3.5.5
+Version: 3.5.6
 Author: Dropshipping Guru
 Author URI: https://ali2woo.com/dropshipping-plugin/?utm_source=lite&utm_medium=author&utm_campaign=alinext-lite
 License: GPLv3
@@ -93,15 +93,21 @@ if (!class_exists('A2WL_Main')) {
             include_once $this->plugin_path() . "/includes/libs/json_api/json_api.php";
             Json_Api_Configurator::init('a2wl_dashboard');
 
-            // Need to activate cron healthcheck
-            new ImportProcess();
-            new ApplyPricingRulesProcess();
-
             add_action('admin_menu', array($this, 'admin_menu'));
 
             add_action('admin_enqueue_scripts', array($this, 'admin_assets'));
 
             add_action('wp_enqueue_scripts', array($this, 'assets'));
+
+            add_action('plugins_loaded', [$this, 'registerJobs']);
+        }
+
+        public function registerJobs(): void
+        {
+            $this->getDI()->get('register_jobs');
+            //todo: move jobs to container
+            new ImportProcess();
+            new ApplyPricingRulesProcess();
         }
 
         /**
@@ -165,6 +171,16 @@ if (!class_exists('A2WL_Main')) {
         {
             $activationError = $this->getWoocommerceNoInstalledErrorText();
             echo "<div class='error'><p>{$activationError}</p></div>";
+        }
+
+        public function isAnPlugin(): bool
+        {
+            return str_contains($this->plugin_name, 'alinext-lite');
+        }
+
+        public function isFreePlugin(): bool
+        {
+            return str_contains($this->plugin_name, '-lite');
         }
 
         /**

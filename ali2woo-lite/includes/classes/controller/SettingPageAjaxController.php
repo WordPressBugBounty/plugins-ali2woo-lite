@@ -19,13 +19,18 @@ class SettingPageAjaxController extends AbstractController
 {
     public const FREE_TARIFF_CODE = 'free';
 
-    private ProductShippingDataRepository $ProductShippingDataRepository;
+    protected ProductShippingDataRepository $ProductShippingDataRepository;
+    protected PurchaseCodeInfoService $PurchaseCodeInfoService;
 
-    public function __construct(ProductShippingDataRepository $ProductShippingDataRepository)
+    public function __construct(
+        ProductShippingDataRepository $ProductShippingDataRepository,
+        PurchaseCodeInfoService $PurchaseCodeInfoService
+    )
     {
         parent::__construct();
 
         $this->ProductShippingDataRepository = $ProductShippingDataRepository;
+        $this->PurchaseCodeInfoService = $PurchaseCodeInfoService;
 
         add_action('wp_ajax_a2wl_update_price_rules', [$this, 'ajax_update_price_rules']);
 
@@ -426,30 +431,36 @@ class SettingPageAjaxController extends AbstractController
             wp_die();
         }
 
-        $result = SystemInfo::server_ping();
-        if ($result['state'] !== 'error') {
-            $isFreeTariff = empty($result['tariff_code']) || $result['tariff_code'] === self::FREE_TARIFF_CODE;
-            $result['tariff_name'] = $isFreeTariff ? 'Free' : ucfirst($result['tariff_code']);
+        try {
+            $PurchaseCodeInfo = $this->PurchaseCodeInfoService->getFromApi();
+        } catch (PlatformException $PlatformException) {
+            $result = ResultBuilder::buildError($PlatformException->getMessage());
 
-            if ($isFreeTariff){
-                //fix how we display limits in lite version
-                $result['limits']['reviews'] = 0;
-                $result['limits']['shipping'] = 0;
-            }
-
-            $valid_to = !empty($result['valid_to']) ? strtotime($result['valid_to']) : false;
-            $tariff_to = !empty($result['tariff_to']) ? strtotime($result['tariff_to']) : false;
-
-            $supported_until = ($valid_to && $tariff_to && $tariff_to > $valid_to) ? $tariff_to : $valid_to;
-
-            if ($supported_until && $supported_until < time()) {
-                $result['supported_until'] = "Support expired on " . gmdate("F j, Y", $supported_until);
-            } else if ($supported_until) {
-                $result['supported_until'] = gmdate("F j, Y", $supported_until);
-            } else {
-                $result['supported_until'] = "";
-            }
+            echo wp_json_encode($result);
+            wp_die();
         }
+
+        $isFreeTariff = $PurchaseCodeInfo->isTariffCodeFree();
+        $supported_until = $PurchaseCodeInfo->getSupportedUntilStamp();
+
+        $result = ResultBuilder::buildOk($PurchaseCodeInfo->toArray());
+
+        $result['tariff_name'] = $isFreeTariff ? 'Free' : ucfirst($PurchaseCodeInfo->getTariffCode());
+
+        if ($isFreeTariff){
+            //fix how we display limits in lite version
+            $result['limits']['reviews'] = 0;
+            $result['limits']['shipping'] = 0;
+        }
+
+        if ($supported_until && $supported_until < time()) {
+            $result['supported_until'] = "Support expired on " . gmdate("F j, Y", $supported_until);
+        } else if ($supported_until) {
+            $result['supported_until'] = gmdate("F j, Y", $supported_until);
+        } else {
+            $result['supported_until'] = "";
+        }
+
 
         echo wp_json_encode($result);
         wp_die();

@@ -25,6 +25,7 @@ use AliNext_Lite\OrderFulfillmentController;
 use AliNext_Lite\OrderFulfillmentService;
 use AliNext_Lite\Override;
 use AliNext_Lite\PermanentAlertService;
+use AliNext_Lite\PlatformClient;
 use AliNext_Lite\PriceFormulaFactory;
 use AliNext_Lite\PriceFormulaRepository;
 use AliNext_Lite\PriceFormulaService;
@@ -37,6 +38,7 @@ use AliNext_Lite\ProductChange;
 use AliNext_Lite\ProductDataTabController;
 use AliNext_Lite\ProductImport;
 use AliNext_Lite\ProductInfoWidgetController;
+use AliNext_Lite\ProductReviewsService;
 use AliNext_Lite\ProductService;
 use AliNext_Lite\ProductShippingDataFactory;
 use AliNext_Lite\ProductShippingDataRepository;
@@ -45,6 +47,10 @@ use AliNext_Lite\ProductVideoController;
 
 use AliNext_Lite\PromoService;
 
+
+use AliNext_Lite\PurchaseCodeInfoFactory;
+use AliNext_Lite\PurchaseCodeInfoRepository;
+use AliNext_Lite\PurchaseCodeInfoService;
 use AliNext_Lite\Review;
 use AliNext_Lite\SearchPageController;
 use AliNext_Lite\SearchStoreProductsPageController;
@@ -53,12 +59,15 @@ use AliNext_Lite\SplitProductService;
 use AliNext_Lite\SynchProductController;
 use AliNext_Lite\Synchronize;
 use AliNext_Lite\SynchronizePluginDataController;
+use AliNext_Lite\SynchronizePurchaseCodeInfoProcess;
+use AliNext_Lite\SynchronizePurchaseCodeInfoService;
 use AliNext_Lite\TipOfDayAjaxController;
 use AliNext_Lite\TipOfDayFactory;
 use AliNext_Lite\TipOfDayRepository;
 use AliNext_Lite\TipOfDayService;
 use AliNext_Lite\VideoShortcodeService;
 use AliNext_Lite\Woocommerce;
+use AliNext_Lite\WoocommerceCategoryService;
 use AliNext_Lite\WooCommerceProductListController;
 use AliNext_Lite\WoocommerceService;
 use function DI\create;
@@ -87,6 +96,7 @@ return [
         ),
     'AliNext_Lite\TipOfDayFactory' => create(TipOfDayFactory::class),
     'AliNext_Lite\ProductShippingDataFactory' => create(ProductShippingDataFactory::class),
+    'AliNext_Lite\PurchaseCodeInfoFactory' => create(PurchaseCodeInfoFactory::class),
 
     /* repository */
     'AliNext_Lite\PriceFormulaRepository' => create(PriceFormulaRepository::class)
@@ -104,6 +114,10 @@ return [
     'AliNext_Lite\ProductShippingDataRepository' => create(ProductShippingDataRepository::class)
         ->constructor(
             get(ProductShippingDataFactory::class)
+        ),
+    'AliNext_Lite\PurchaseCodeInfoRepository' => create(PurchaseCodeInfoRepository::class)
+        ->constructor(
+            get(PurchaseCodeInfoFactory::class)
         ),
 
     /* models */
@@ -134,9 +148,27 @@ return [
         ),
 
     /* services */
+    'AliNext_Lite\WoocommerceCategoryService' => create(WoocommerceCategoryService::class)
+        ->constructor(
+            get(Aliexpress::class),
+            get(Woocommerce::class),
+        ),
+    'AliNext_Lite\PurchaseCodeInfoService' => create(PurchaseCodeInfoService::class)
+        ->constructor(
+            get(PurchaseCodeInfoFactory::class),
+            get(PlatformClient::class),
+            get(PurchaseCodeInfoRepository::class),
+        ),
+    'AliNext_Lite\SynchronizePurchaseCodeInfoService' => create(SynchronizePurchaseCodeInfoService::class)
+        ->constructor(
+            get(SynchronizePurchaseCodeInfoProcess::class)
+        ),
     'AliNext_Lite\ImportedProductService' => create(ImportedProductService::class),
     'AliNext_Lite\BackgroundProcessService' => create(BackgroundProcessService::class)
-        ->constructor(get(ApplyPricingRulesProcess::class), get(ImportProcess::class)),
+        ->constructor(
+            get(ApplyPricingRulesProcess::class),
+            get(ImportProcess::class)
+        ),
     'AliNext_Lite\PermanentAlertService' => create(PermanentAlertService::class)
         ->constructor(get(BackgroundProcessService::class)),
     'AliNext_Lite\ImportListService' => create(ImportListService::class)
@@ -194,6 +226,15 @@ return [
             get(AliexpressHelper::class),
             get(Woocommerce::class),
             get(PriceFormulaService::class),
+            get(PurchaseCodeInfoService::class),
+            get(SynchronizePurchaseCodeInfoService::class),
+        ),
+    'AliNext_Lite\ProductReviewsService' => create(ProductReviewsService::class)
+        ->constructor(
+            get(Review::class),
+            get(Woocommerce::class),
+            get(PurchaseCodeInfoService::class),
+            get(SynchronizePurchaseCodeInfoService::class),
         ),
     'AliNext_Lite\WoocommerceService' => create(WoocommerceService::class)
         ->constructor(
@@ -210,13 +251,15 @@ return [
     /* controllers */
     'AliNext_Lite\ImportAjaxController' => create(ImportAjaxController::class)
         ->constructor(
-            get(ProductImport::class), get(Woocommerce::class), get(Review::class),
+            get(ProductImport::class), get(Woocommerce::class),
+            get(ProductReviewsService::class),
             get(Override::class), get(Aliexpress::class), get(SplitProductService::class),
             get(ProductShippingDataService::class), get(ImportListService::class),
             get(ProductService::class),
             get(PriceFormulaService::class),
             get(ImportedProductServiceFactory::class),
             get(WoocommerceService::class),
+            get(WoocommerceCategoryService::class),
         ),
 
     'AliNext_Lite\PriceFormulaSetAjaxController' => create(PriceFormulaSetAjaxController::class)
@@ -256,7 +299,7 @@ return [
     'AliNext_Lite\SynchProductController' => create(SynchProductController::class)
         ->constructor(
             get(ProductService::class),
-            get(Review::class),
+            get(ProductReviewsService::class),
             get(Woocommerce::class),
             get(PriceFormulaService::class),
             get(WoocommerceService::class),
@@ -275,12 +318,13 @@ return [
     'AliNext_Lite\SettingPageAjaxController' => create(SettingPageAjaxController::class)
         ->constructor(
             get(ProductShippingDataRepository::class),
+            get(PurchaseCodeInfoService::class),
         ),
     'AliNext_Lite\WooCommerceProductListController' => create(WooCommerceProductListController::class)
         ->constructor(
             get(ProductService::class),
+            get(ProductReviewsService::class),
             get(WoocommerceService::class),
-            get(Review::class),
             get(Woocommerce::class),
             get(PriceFormulaService::class),
         ),
@@ -321,4 +365,14 @@ return [
             get(Aliexpress::class),
             get(PriceFormulaService::class)
         ),
+
+    /* jobs */
+    'AliNext_Lite\SynchronizePurchaseCodeInfoProcess' => create(SynchronizePurchaseCodeInfoProcess::class)
+        ->constructor(
+            get(PurchaseCodeInfoService::class)
+        ),
+
+    'register_jobs' => [
+        get(SynchronizePurchaseCodeInfoProcess::class),
+    ]
 ];

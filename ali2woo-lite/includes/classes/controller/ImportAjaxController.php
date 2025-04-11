@@ -18,7 +18,7 @@ class ImportAjaxController extends AbstractController
 {
     protected ProductImport $ProductImportModel;
     protected Woocommerce $WoocommerceModel;
-    protected Review $ReviewModel;
+    protected ProductReviewsService $ProductReviewsService;
     protected Override $OverrideModel;
     protected Aliexpress $AliexpressModel;
     protected SplitProductService $SplitProductService;
@@ -30,19 +30,21 @@ class ImportAjaxController extends AbstractController
     protected PriceFormulaService $PriceFormulaService;
     protected ImportedProductServiceFactory $ImportedProductServiceFactory;
     protected WoocommerceService $WoocommerceService;
+    protected WoocommerceCategoryService $WoocommerceCategoryService;
 
     public function __construct(
-        ProductImport $ProductImportModel, Woocommerce $WoocommerceModel, Review $ReviewModel,
+        ProductImport $ProductImportModel, Woocommerce $WoocommerceModel, ProductReviewsService $ProductReviewsService,
         Override $OverrideModel, Aliexpress $AliexpressModel, SplitProductService $SplitProductService,
         ProductShippingDataService $ProductShippingDataService, ImportListService $ImportListService,
         ProductService $ProductService, PriceFormulaService $PriceFormulaService,
-        ImportedProductServiceFactory $ImportedProductServiceFactory, WoocommerceService $WoocommerceService
+        ImportedProductServiceFactory $ImportedProductServiceFactory, WoocommerceService $WoocommerceService,
+        WoocommerceCategoryService $WoocommerceCategoryService
     ) {
         parent::__construct();
 
         $this->ProductImportModel = $ProductImportModel;
         $this->WoocommerceModel = $WoocommerceModel;
-        $this->ReviewModel = $ReviewModel;
+        $this->ProductReviewsService = $ProductReviewsService;
         $this->OverrideModel = $OverrideModel;
         $this->AliexpressModel = $AliexpressModel;
         $this->SplitProductService = $SplitProductService;
@@ -52,6 +54,7 @@ class ImportAjaxController extends AbstractController
         $this->PriceFormulaService = $PriceFormulaService;
         $this->ImportedProductServiceFactory = $ImportedProductServiceFactory;
         $this->WoocommerceService = $WoocommerceService;
+        $this->WoocommerceCategoryService = $WoocommerceCategoryService;
 
         add_filter('a2wl_woocommerce_after_add_product', array($this, 'woocommerce_after_add_product'), 30, 4);
         add_action('wp_ajax_a2wl_push_product', [$this, 'ajax_push_product']);
@@ -102,7 +105,6 @@ class ImportAjaxController extends AbstractController
 
         $product_import_model = $this->ProductImportModel;
         $woocommerce_model = $this->WoocommerceModel;
-        $reviews_model = $this->ReviewModel;
 
         $background_import = get_setting('background_import', true);
 
@@ -172,7 +174,7 @@ class ImportAjaxController extends AbstractController
                         }
 
                         if ($result['state'] !== 'error' && get_setting('load_review')) {
-                            $reviews_model->load($product_id, true);
+                            $this->ProductReviewsService->loadReviewsForProductIds([$product_id]);
                             //make sure that post comment status is 'open'
                             wp_update_post(array('ID' => $product_id, 'comment_status' => 'open'));
                         }
@@ -493,15 +495,14 @@ class ImportAjaxController extends AbstractController
 
             if ($Product = $ProductImportModel->get_product($id)) {
                 $aliexpressCategoryId = $Product['category_id'];
-               // a2wl_error_log('load aliexpress categories for product ' . $id);
-               // a2wl_error_log('aliexpress category id: ' . $aliexpressCategoryId);
-               // a2wl_error_log('default categories ids: ' . print_r($defaultCategoryIds, true));
                 if ($aliexpressCategoryId) {
                     a2wl_init_error_handler();
                     try {
-                        $insertedCategoryIds = $this->loadAliexpressCategoryToWoocommerce($aliexpressCategoryId);
+                        $insertedCategoryIds = $this->WoocommerceCategoryService->loadAliexpressCategory(
+                            $aliexpressCategoryId
+                        );
                         restore_error_handler();
-                    } catch (BackendException $Exception) {
+                    } catch (ApiException $Exception) {
 
                         echo wp_json_encode(
                             ResultBuilder::buildError(
@@ -512,16 +513,14 @@ class ImportAjaxController extends AbstractController
                         wp_die();
                     }
 
-                   if (empty($insertedCategoryIds)) {
+                    if (empty($insertedCategoryIds)) {
                        $selectedCategoryIds = $defaultCategoryIds;
                    } else {
-                       //todo: now we sent last category as selected product for the product
+                       //todo: now we sent last category as selected category for the product
                        $selectedCategoryIds = [end($insertedCategoryIds)];
                        //but we can put product to parent categories as well for example:
                        //$selectedCategoryIds = $insertedCategoryIds;
                    }
-
-                   // a2wl_error_log('selected category id: ' .  print_r($selectedCategoryIds, true));
 
                    if ($selectedCategoryIds) {
                        $Product['categories'] = $selectedCategoryIds;
@@ -1008,6 +1007,22 @@ class ImportAjaxController extends AbstractController
             wp_die();
         }
 
+        if (A2WL()->isFreePlugin()) {
+            $errorText = '<div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>';
+            $result = ResultBuilder::buildError($errorText);
+
+            echo wp_json_encode($result);
+            wp_die();
+        }
+
+        if (!Account::getInstance()->get_purchase_code()) {
+            $errorText = _x('Input your purchase code in the plugin settings', 'error', 'ali2woo');
+            $result = ResultBuilder::buildError($errorText);
+
+            echo wp_json_encode($result);
+            wp_die();
+        }
+
         if (isset($_POST['id'])) {
             $page = $_POST['page'] ?? 'a2wl_dashboard';
 
@@ -1040,7 +1055,10 @@ class ImportAjaxController extends AbstractController
 
         $WC_ProductOrVariation = wc_get_product($wcProductId);
         if (!$WC_ProductOrVariation) {
-            echo wp_json_encode(ResultBuilder::buildError("Bad product ID"));
+            $errorText = _x('Bad product ID', 'error', 'ali2woo');
+            $result = ResultBuilder::buildError($errorText);
+
+            echo wp_json_encode($result);
             wp_die();
         }
 
@@ -1052,7 +1070,7 @@ class ImportAjaxController extends AbstractController
         }
 
         if ($externalSkuId && !$wcVariationId) {
-            $errorText = esc_html__('No such a product with this variation key', 'ali2woo');
+            $errorText = _x('No such a product with this variation key', 'error', 'ali2woo');
             $result = ResultBuilder::buildError($errorText);
 
             echo wp_json_encode($result);
@@ -1062,7 +1080,9 @@ class ImportAjaxController extends AbstractController
         if ($wcVariationId) {
             $WC_ProductOrVariation = wc_get_product($wcVariationId);
             if (!$WC_ProductOrVariation) {
-                echo wp_json_encode(ResultBuilder::buildError("Bad product variation ID"));
+                $errorText = _x('Bad product variation ID', 'error', 'ali2woo');
+
+                echo wp_json_encode(ResultBuilder::buildError($errorText));
                 wp_die();
             }
         }
@@ -1070,20 +1090,12 @@ class ImportAjaxController extends AbstractController
         try {
             $importedProduct = $this->WoocommerceService->getProductWithVariations($wcProductId);
         } catch (RepositoryException|ServiceException $Exception) {
-            $errorText = esc_html__(
-                'This WooCommerce product does not have imported data from AliExpress', 'ali2woo'
-            );
+            $errorText = _x('Product does`t have imported data from AliExpress', 'error', 'ali2woo');
             $result = ResultBuilder::buildError($errorText);
 
             echo wp_json_encode($result);
             wp_die();
         }
-
-        //todo: Here we take product countries to pass as parameters
-        //need to move this logic to WoocommerceService::updateProductShippingInfo()
-       /* $product_country_from = !empty($importedProduct[ImportedProductService::FIELD_COUNTRY_FROM]) ?
-            $importedProduct[ImportedProductService::FIELD_COUNTRY_FROM] :
-            'CN';*/
 
         $product_country_to = !empty($importedProduct[ImportedProductService::FIELD_COUNTRY_TO])
             ? $importedProduct[ImportedProductService::FIELD_COUNTRY_TO]
@@ -1133,6 +1145,7 @@ class ImportAjaxController extends AbstractController
                     'calc_price' => $variation['calc_price'],
                     'calc_regular_price' => $variation['calc_regular_price'],
                     'title' => $variation['title'],
+                    'ship_from' => $variation[ImportedProductService::FIELD_COUNTRY_CODE],
                 ];
             }
         }
@@ -1246,6 +1259,7 @@ class ImportAjaxController extends AbstractController
                     'calc_price' => $variation['calc_price'],
                     'calc_regular_price' => $variation['calc_regular_price'],
                     'title' => $variation['title'],
+                    'ship_from' => $variation[ImportedProductService::FIELD_COUNTRY_CODE],
                 ];
             }
         }
@@ -1266,7 +1280,8 @@ class ImportAjaxController extends AbstractController
      * Load shipping info in the ImportList
      * @return void
      */
-    private function ajax_load_shipping_info_for_import(): void{
+    private function ajax_load_shipping_info_for_import(): void
+    {
         $externalSkuId = $_POST['variation_key'] ? sanitize_text_field($_POST['variation_key']) : null;
         $externalProductId = $_POST['id'] ? sanitize_text_field($_POST['id']) : null;
 
@@ -1315,11 +1330,14 @@ class ImportAjaxController extends AbstractController
         $variationList = [];
         if (isset($importedProduct['sku_products']['variations'])) {
             foreach ($importedProduct['sku_products']['variations'] as $variation) {
+                $shipFrom = $variation[ImportedProductService::FIELD_COUNTRY_CODE] ?? 'CN';
+                $title = str_replace($shipFrom, '', implode(" ", $variation['attributes_names']));
                 $variationList[] = [
                     'id' => $variation[ImportedProductService::FIELD_EXTERNAL_SKU_ID],
                     'calc_price' => $variation['calc_price'],
                     'calc_regular_price' => $variation['calc_regular_price'],
-                    'title' => implode(" ", $variation['attributes_names']),
+                    'title' => $title,
+                    'ship_from' => $shipFrom,
                 ];
             }
         }
@@ -1429,34 +1447,5 @@ class ImportAjaxController extends AbstractController
                 wp_defer_comment_counting(false);
             });
         }
-    }
-
-    /**
-     * @throws BackendException
-     */
-    private function loadAliexpressCategoryToWoocommerce(int $aliexpressCategoryId): array
-    {
-        $productCategoryInfo = $this->AliexpressModel->loadCategory($aliexpressCategoryId);
-
-        if ($productCategoryInfo['state'] != 'ok') {
-            throw new BackendException(
-                $productCategoryInfo['message'],
-                $productCategoryInfo['error_code']
-            );
-        }
-
-        $insertedCategories = [];
-
-        $newCategoryId = 0;
-        foreach ($productCategoryInfo['categories'] as $aliexpressCategory) {
-            $newCategoryId = $this->WoocommerceModel->addCategory(
-                $aliexpressCategory['name'],
-                $newCategoryId
-            );
-
-            $insertedCategories[] = $newCategoryId;
-        }
-
-        return $insertedCategories;
     }
 }

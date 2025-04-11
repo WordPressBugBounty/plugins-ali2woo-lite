@@ -955,7 +955,17 @@ class Woocommerce
             $wc_product->update_meta_data('_a2w_last_update', time());
         }
 
-        $wc_product->save();
+        if (a2wl_check_defined('A2WL_FIX_PRODUCT_VISIBILITY')) {
+            //todo: this is just a workaround for product visibility,
+            //later we need to refactor add_product function
+            //in order to use wc functions instead direct queries
+            $wc_product->set_catalog_visibility('catalog');
+            $wc_product->save();
+            $wc_product->set_catalog_visibility('visible');
+            $wc_product->save();
+        } else {
+            $wc_product->save();
+        }
 
         if ($productDeleted) {
             $wc_product->delete();
@@ -1163,7 +1173,6 @@ class Woocommerce
 
     public function addCategory(string $categoryName, int $parentCategoryId = 0, string $categorySlug = ''): ?int
     {
-        $categoryName = sanitize_text_field($categoryName);
 
         $termData = term_exists(
             $categoryName,
@@ -2468,14 +2477,18 @@ class Woocommerce
         return get_option('woocommerce_manage_stock', 'no');
     }
 
+    /**
+     * @param int $postId
+     * @return array
+     */
     public function getProductVariations(int $postId): array
     {
         global $wpdb;
 
-        $query = $wpdb->prepare(
-            "SELECT ID, post_excerpt FROM $wpdb->posts WHERE post_parent = %d and post_type = %s",
-            $postId,
-            'product_variation');
+        $query =
+            "SELECT ID, post_excerpt FROM $wpdb->posts WHERE `post_parent` = %d AND `post_type` = 'product_variation'";
+
+        $query = $wpdb->prepare($query, $postId);
         $variations = $wpdb->get_results($query);
 
         if (!$variations) {
@@ -2489,11 +2502,18 @@ class Woocommerce
         foreach ($variations as $variation) {
             $variation_id = $variation->ID;
 
+            $countryCode = get_post_meta($variation_id, ImportedProductService::KEY_COUNTRY_CODE, true);
+            if (!$countryCode) {
+                $countryCode = 'CN';
+            }
+
             $var = [
                 'id' => get_post_meta($variation_id, "external_variation_id", true),
                 'attributes' => [],
-                'title' => $variation->post_excerpt,
+                ImportedProductService::FIELD_COUNTRY_CODE => $countryCode,
             ];
+
+            $var['title'] = $this->generateVariationTitle($variation, $countryCode);
 
             $price = get_post_meta($variation_id, "_aliexpress_price", true);
             $regular_price = get_post_meta($variation_id, "_aliexpress_regular_price", true);
@@ -2623,6 +2643,26 @@ class Woocommerce
             }
         }
         return $res;
+    }
+
+    private function generateVariationTitle(object $variation, string $countryCode): string
+    {
+        $titleParts = [];
+        if ($variation->post_excerpt) {
+            $attributes = explode(',', $variation->post_excerpt);
+            foreach ($attributes as $attribute) {
+                $parts = explode(':', trim($attribute));
+                if (count($parts) === 2) {
+                    $value = trim($parts[1]);
+                    if (strtolower($value) === strtolower($countryCode)) {
+                        continue;
+                    }
+                    $titleParts[] = $value;
+                }
+            }
+        }
+
+        return implode(', ', $titleParts);
     }
 
     private function switchOrderStatus($order, $aliexpressOrdersCount, $trackingCodesCount, $deliveredOrdersCount, $shippedOrdersCount): void

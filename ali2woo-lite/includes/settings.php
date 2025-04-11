@@ -9,6 +9,9 @@ namespace AliNext_Lite;;
 
 class Settings
 {
+    public const DEFAULT_AUTO_UPDATE_MAX_QUOTA = '75';
+
+
     public const SETTING_SYSTEM_MESSAGE = 'system_message';
     public const SETTING_TIP_OF_DAY = 'tip_of_day';
     public const SETTING_TIP_OF_DAY_LAST_DATE = 'tip_of_day_last_date';
@@ -17,6 +20,11 @@ class Settings
     public const SETTING_VIDEO_TAB_PRIORITY = 'video_tab_priority';
     public const SETTING_MAKE_VIDEO_FULL_TAB_WIDTH = 'make_video_full_tab_width';
     public const SETTING_ADD_VIDEO_TO_DESCRIPTION = 'add_video_to_description';
+
+    /**
+     * Value in percents from 25 to 100
+     */
+    public const SETTING_AUTO_UPDATE_MAX_QUOTA = 'auto_update_max_quota';
 
     private $settings;
     private $auto_commit = true;
@@ -86,6 +94,7 @@ class Settings
         self::SETTING_ADD_VIDEO_TO_DESCRIPTION => 'none', //none, before, after
 
         'auto_update' => false,
+        self::SETTING_AUTO_UPDATE_MAX_QUOTA => self::DEFAULT_AUTO_UPDATE_MAX_QUOTA,
         'on_not_available_product' => 'trash', // nothing, trash, zero
         'on_not_available_variation' => 'trash', // nothing, trash, zero
         'on_new_variation_appearance' => 'add', // nothing, add

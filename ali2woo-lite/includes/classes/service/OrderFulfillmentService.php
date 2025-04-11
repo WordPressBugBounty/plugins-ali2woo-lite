@@ -358,7 +358,11 @@ class OrderFulfillmentService
                     }
                 }
 
-                $total_cost = $aliexpress_price * $item->get_quantity() + ($current_shipping_cost ?: 0);
+                $total_cost = floatval($aliexpress_price) * $item->get_quantity();
+
+                if (intval($current_shipping_cost) > 0) {
+                    $total_cost += intval($current_shipping_cost);
+                }
 
 
                 $order_data['items'][] = [
@@ -370,7 +374,7 @@ class OrderFulfillmentService
                     'url' => $item_original_url,
                     'sku' => $WC_Product->get_sku(),
                     'attributes' => implode(' / ', $attributes),
-                    'cost' => $aliexpress_price,
+                    'cost' => floatval($aliexpress_price),
                     'quantity' => $item->get_quantity(),
                     'shipping_items' => $shippingItems,
                     'current_shipping' => $current_shipping_company,

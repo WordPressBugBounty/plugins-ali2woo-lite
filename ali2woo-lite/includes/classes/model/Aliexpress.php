@@ -681,22 +681,32 @@ class Aliexpress
         return $result;
     }
 
+    /**
+     * @throws ApiException
+     * @return array|AliexpressCategoryDto[]
+     */
     public function loadCategory(int $categoryId): array
     {
-        try {
-            $result = $this->connector->loadCategory($categoryId);
-            if ($result['state'] !== 'ok') {
-                return $result;
-            }
-
-            return $result;
-
-        } catch (Throwable $e) {
-            a2wl_print_throwable($e);
-            $result = ResultBuilder::buildError($e->getMessage());
+        $result = $this->connector->loadCategory($categoryId);
+        if ($result['state'] !== 'ok') {
+            $errorMessage = 'Aliexpress::loadCategory error: ' . $result['message'] ?? '';
+            throw new ApiException($errorMessage, $result['error_code'] ?? 500);
         }
 
-        return $result;
+        if (!isset($result['categories'])) {
+            $errorMessage = 'Aliexpress::loadCategory error (bad response format)';
+            throw new ApiException($errorMessage, 500);
+        }
+
+        $categories = $result['categories'];
+
+        return array_map(function($item) {
+            return new AliexpressCategoryDto(
+                $item['id'],
+                $item['parent_id'],
+                sanitize_text_field($item['name'])
+            );
+        }, $categories);
     }
 
     private function buildLogisticsAddressFromUserInfo(array $userInfo): array

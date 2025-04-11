@@ -22,6 +22,59 @@ const a2wAjaxApi = (function ($) {
     };
 })(jQuery, ajaxurl);
 
+const a2wVariationSelect2Helper = function (variations, selectedVariationKey) {
+
+    let groupedOptions = { results: [] };
+    let selectedOption = '';
+    let shipFromCode = 'CN';
+    let groups = {};
+
+    jQuery.each(variations, function (i, data) {
+        let curShipFromCode = (data.ship_from || 'CN');
+        let groupName = 'Ship From: ' + curShipFromCode;
+
+        if (!groups[groupName]) {
+            groups[groupName] = {
+                text: groupName,
+                children: []
+            };
+        }
+
+        let option = {
+            id: data.id,
+            text: data.title
+        };
+
+        if (data.id.toString() === selectedVariationKey.toString()) {
+            option.selected = true
+            selectedOption = option;
+            shipFromCode = curShipFromCode;
+        }
+
+        groups[groupName].children.push(option);
+    });
+
+    groupedOptions.results = Object.values(groups);
+
+    function getOptions() {
+        return groupedOptions.results;
+    }
+
+    function getSelectedOption() {
+        return selectedOption;
+    }
+
+    function getShipFromCode() {
+        return shipFromCode;
+    }
+
+    return {
+        getOptions: getOptions,
+        getSelectedOption: getSelectedOption,
+        getShipFromCode: getShipFromCode,
+    };
+}
+
 var waitForFinalEvent = (function () {
     var timers = {};
     return function (callback, ms, uniqueId) {
@@ -185,7 +238,7 @@ function fill_modal_shipping_info(
     country_to, items, page = 'a2wl_dashboard',
     default_method = '', onSelectCallback = null, errorMessage = ''
 ) {
-    const tmp_data = {
+        let savedData = {
         product_id,
         variations,
         variation_key,
@@ -204,58 +257,117 @@ function fill_modal_shipping_info(
 
         return;
     }
-    jQuery(".modal-shipping").data(tmp_data);
 
     const variationSelectNode = jQuery('#a2wl-modal-variation-select');
+    const shippingFromFixedBlock = jQuery('.shipping-from-fixed');
+    const countryToSelectNode = jQuery('#a2wl-modal-country-select');
 
     if (Array.isArray(variations) && variations.length) {
         variationSelectNode.empty();
-        jQuery.each(variations, function (i, data) {
-            let isSelected = false;
-            if (data.id.toString() === variation_key.toString()) {
-                isSelected = true
-            }
-            let newOption = new Option(data.title, data.id, isSelected, isSelected);
-            variationSelectNode.append(newOption);
+
+        let variationsHelper = a2wVariationSelect2Helper(variations, variation_key);
+
+        variationSelectNode.select2({
+            data: variationsHelper.getOptions(),
+            placeholder: "Select an variation",
+            allowClear: true
         });
-        variationSelectNode.parent(".country-select").show();
+
+        country_from = variationsHelper.getShipFromCode();
+
+       variationSelectNode.parent(".header-item").removeClass('hide');
     } else {
-        variationSelectNode.parent(".country-select").hide()
+        variationSelectNode.parent(".header-item").addClass('hide');
     }
 
-    if (!variation_key) {
-        variationSelectNode.val(null);
-    }
+    savedData.country_from = country_from;
+    jQuery(".modal-shipping").data(savedData);
 
-    jQuery('#a2wl-modal-country-from-select').html('');
+    let countryFromLabel = country_from_list[country_from];
+    shippingFromFixedBlock.children('.location').text(countryFromLabel);
+    shippingFromFixedBlock.removeClass('hide');
 
-    if (typeof country_from_list === 'object' && Object.keys(country_from_list).length > 0) {
-        jQuery(".modal-shipping").addClass('with-country-from');
+    countryToSelectNode.val(country_to);
+    countryToSelectNode.parent(".header-item").removeClass('hide');
+    countryToSelectNode.trigger('change');
 
-        Object.keys(country_from_list).forEach(function(key, index) {
-            jQuery('#a2wl-modal-country-from-select').append('<option value="'+key+'">'+this[key]+'</option>')
-        }, country_from_list);
+    const min_shipping_price = find_min_shipping_price(savedData.shipping, default_method);
 
-        jQuery('#a2wl-modal-country-from-select').val(country_from).trigger('change');
-    }
-    else {
-        jQuery(".modal-shipping").removeClass('with-country-from')
-    }
+    const createShippingRow = (item, productId, isChecked) =>
+        `<tr>
+            <td>
+                <input type="radio" class="select_method" value="${item.serviceName}" name="p-${productId}" id="${productId}-${item.serviceName}" ${isChecked ? 'checked="checked"' : ''}>
+            </td>
+            <td>
+                <label for="${productId}-${item.serviceName}">${item.company}</label>
+            </td>
+            <td>
+                <label for="${productId}-${item.serviceName}">${item.time} days</label>
+            </td>
+            <td>
+                <label for="${productId}-${item.serviceName}">${item.freightAmount.formatedAmount}</label>
+            </td>
+        </tr>`.toString()
+    ;
 
-    jQuery('#a2wl-modal-country-select').val(country_to).trigger('change');
+    const shippingRows = savedData.shipping.map(item => {
+        const isChecked = min_shipping_price && item.serviceName === min_shipping_price.serviceName;
+        return createShippingRow(item, product_id, isChecked);
+    }).join('');
 
-    const min_shipping_price = find_min_shipping_price(tmp_data.shipping, default_method);
+    const html =
+        `<table class="shipping-table">
+            <thead>
+            <tr>
+                <th></th>
+                <th><strong>Shipping Method</strong></th>
+                <th><strong>Delivery Time</strong></th>
+                <th><strong>Cost</strong></th>
+            </tr>
+            </thead>
+            <tbody>
+            ${shippingRows}
+            </tbody>
+        </table>`.toString()
+    ;
 
-    let html = '<table class="shipping-table"><thead><tr><th></th><th><strong>Shipping Method</strong></th><th><strong>Estimated Delivery Time</strong></th><th><strong>Shipping Cost</strong></th></tr></thead><tbody>';
-    jQuery.each(tmp_data.shipping, function (i, item) {
-        html += '<tr><td><input type="radio" class="select_method" value="' + item.serviceName + '" name="p-' + product_id + '" id="' + product_id + '-' + item.serviceName + '" ' + (min_shipping_price && item.serviceName == min_shipping_price.serviceName ? 'checked="checked"' : '') + '></td><td><label for="' + product_id + '-' + item.serviceName + '">' + item.company + '</label></td><td><label for="' + product_id + '-' + item.serviceName + '">' + item.time + '</label></td><td><label for="' + product_id + '-' + item.serviceName + '">' + (item.freightAmount.formatedAmount) + '</label></td></tr>';
-    });
-    html += '</tbody></table>';
     jQuery('.modal-shipping .shipping-method').html(html);
-    if (tmp_data.shipping && tmp_data.shipping.length > 0) {
+    if (savedData.shipping && savedData.shipping.length > 0) {
         jQuery(".modal-shipping .select_method:checked").trigger('change');
     }
+}
 
+function a2wl_prepare_variations_for_select2(variations, selectedVariationKey) {
+    let groupedOptions = { results: [] };
+
+    let groups = {};
+
+    jQuery.each(variations, function (i, data) {
+        let groupName = 'Ship From: ' + (data.ship_from || 'CN');
+
+        if (!groups[groupName]) {
+            groups[groupName] = {
+                text: groupName,
+                children: []
+            };
+        }
+
+        let option = {
+            id: data.id,
+            text: data.title
+        };
+
+        let isSelected = false;
+        if (data.id.toString() === selectedVariationKey.toString()) {
+            option.isSelected = true
+        }
+
+        groups[groupName].children.push(option);
+    });
+
+    groupedOptions.results = Object.values(groups);
+
+    return groupedOptions;
 }
 
 function a2wl_load_shipping_info(
@@ -499,12 +611,12 @@ var Utils = new Utils();
         $(".country_list").select2({
             placeholder: "Select a country",
             allowClear: true,
-            width: '130px',
+            width: '200px',
         });
         $(".variation_list").select2({
             placeholder: "Select a variation",
             allowClear: true,
-            width: '130px',
+            width: '200px',
         });
         $("#a2wl_category").select2();
 
@@ -1011,10 +1123,10 @@ var Utils = new Utils();
 
                     a2wl_load_shipping_info(
                         product_id, variationKey, country_from, country_to, 'fulfillment',
-                        function (state, items, default_method, shipping_cost, variations) {
+                        function (state, items, default_method, shipping_cost, variations, errorMessage) {
                             fill_modal_shipping_info(
                                 product_id, variations, variationKey, country_from_list, country_from, country_to,
-                                items, 'fulfillment', shipping_method, onSelectCallback
+                                items, 'fulfillment', shipping_method, onSelectCallback, errorMessage
                             );
                     });
                 } else {
@@ -1133,14 +1245,12 @@ var Utils = new Utils();
             const variation_key = $(this).parents(".product").attr('data-variation_key');
             const country_from_list = product_data.country_from_list;
 
-            let onLoadShippingInfoCallback = function (state, items, default_method, shipping_cost, variations) {
-                if (state !== 'error') {
+            let onLoadShippingInfoCallback = function (state, items, default_method, shipping_cost, variations, errorMessage) {
                     fill_modal_shipping_info(
                         product_id, variations, variation_key, country_from_list, product_data.country_from || "",
                         product_data.country_to || "", items, 'import',
-                        product_data.default_method || default_method, onSelectCallback
+                        product_data.default_method || default_method, onSelectCallback, errorMessage
                     );
-                }
             }
 
             a2wl_load_shipping_info(
@@ -1173,15 +1283,15 @@ var Utils = new Utils();
             let previousValues = {};
             let currentValues = {};
 
-            if (variationSelectNode.children('option').length) {
+            if (variationSelectNode.children('optgroup').length) {
                 previousValues.variation_key = shipping_data.variation_key || null;
                 currentValues.variation_key = variationSelectNode.val();
             }
 
-            if (countryFromSelectNode.children('option').length) {
+            /*if (countryFromSelectNode.children('option').length) {
                 previousValues.country_from = shipping_data.country_from || null;
                 currentValues.country_from = countryFromSelectNode.val();
-            }
+            }*/
 
             if (countrySelectNode.children('option').length) {
                 previousValues.country_to = shipping_data.country_to || null;
@@ -1481,9 +1591,20 @@ var Utils = new Utils();
             $(".modal-search").addClass('opened');
         });
 
-        $(".modal-close, .modal-btn-close").on("click", function () {
+        $(".modal-close, .modal-btn-close").on("click", function (event) {
+            event.preventDefault();
+
             $(this).closest('.modal-overlay').removeClass('opened');
-            return false;
+            let isModalShipping = $(this).closest('.modal-overlay').hasClass('modal-shipping');
+            if (isModalShipping) {
+                const variationSelectNode = jQuery('#a2wl-modal-variation-select');
+                const shippingFromFixedBlock = jQuery('.shipping-from-fixed');
+                const countryToSelectNode = jQuery('#a2wl-modal-country-select');
+
+                variationSelectNode.parent('header-item').addClass('hide');
+                shippingFromFixedBlock.parent('header-item').addClass('hide');
+                countryToSelectNode.parent('header-item').addClass('hide');
+            }
         });
 
         $("#search-trigger").on("click", function () {
@@ -2583,29 +2704,41 @@ var Utils = new Utils();
         });
 
         if ($("#a2wl_product_external_images .load-images").length > 0) {
-            var imageIds = $("#a2wl_product_external_images .load-images").data('images').split(','); 
-            $("#a2wl_product_external_images .load-images").text(a2wl_sprintf(a2wl_external_images_data.lang.load_button_text, imageIds.length));
+            let dataImages = $("#a2wl_product_external_images .load-images").data('images').toString()
+            let imageIds = dataImages.split(',');
+            $("#a2wl_product_external_images .load-images").text(
+                a2wl_sprintf(a2wl_external_images_data.lang.load_button_text, imageIds.length)
+            );
         }
 
-        $('#a2wl_product_external_images .load-images').click(function () {
-            var imageIds = $(this).data('images').split(','); 
-            images_to_load = [];
-            jQuery.each(imageIds, function (i, id) {
+        $('#a2wl_product_external_images .load-images').on('click', function () {
+            let dataImages = $(this).data('images').toString()
+            let imageIds = dataImages.split(',');
+            let images_to_load = [];
+            $.each(imageIds, function (i, id) {
                 images_to_load.push({ 'action': 'a2wl_load_external_image', 'id': id });
             });
 
             $(this).attr('disabled', 'disabled');
-            $("#a2wl_product_external_images .progress").html(a2wl_sprintf(a2wl_external_images_data.lang.process_loading_d_of_d_erros_d, 0, imageIds.length, 0));
+            $("#a2wl_product_external_images .progress").html(
+                a2wl_sprintf(a2wl_external_images_data.lang.process_loading_d_of_d_erros_d, 0, imageIds.length, 0)
+            );
 
-            var on_load = function (state) {
-                $("#a2wl_product_external_images .progress").html(a2wl_sprintf(a2wl_external_images_data.lang.process_loading_d_of_d_erros_d, state.import_cnt, state.num_to_import, state.import_error_cnt));
+            const on_load = function (state) {
+                $("#a2wl_product_external_images .progress").html(
+                    a2wl_sprintf(
+                        a2wl_external_images_data.lang.process_loading_d_of_d_erros_d,
+                        state.import_cnt, state.num_to_import,
+                        state.import_error_cnt
+                    )
+                );
 
                 if ((state.import_cnt + state.import_error_cnt) === state.num_to_import) {
                     location.reload();
                 }
             };
 
-            var state = { num_to_import: images_to_load.length, import_cnt: 0, import_error_cnt: 0 };
+            let state = {num_to_import: images_to_load.length, import_cnt: 0, import_error_cnt: 0};
             a2wl_load_external_image(images_to_load, state, on_load);
         });
 
