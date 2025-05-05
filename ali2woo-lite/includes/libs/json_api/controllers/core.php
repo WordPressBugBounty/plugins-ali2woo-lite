@@ -109,9 +109,19 @@ class JSON_API_Core_Controller
             $imported = !!$this->WoocommerceModel->get_product_id_by_external_id($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]) || !!$this->ProductImportModel->get_product($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]);
             // $post_id = $wpdb->get_var($wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_a2w_external_id' AND meta_value='%s' LIMIT 1", $product['id']));
             if (get_setting('allow_product_duplication') || !$imported) {
-                $params = (a2wl_check_defined('A2WL_CHROME_EXT_IMPORT') && !empty($_POST['apd']))
-                ? array('data' => array('apd' => json_decode(stripslashes($_POST['apd']))))
-                : array();
+
+                if (a2wl_check_defined('A2WL_CHROME_EXT_IMPORT') && !empty($_POST['apd'])) {
+                    $apd = trim($_POST['apd']);
+
+                    if (!empty($apd)) {
+                        $decodedData = json_decode(stripslashes($apd));
+                        $params = ['data' => ['apd' => $decodedData]];
+                    } else {
+                        $params = [];
+                    }
+                } else {
+                    $params = [];
+                }
 
                 $result = $this->AliexpressModel->load_product(
                     $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID], $params

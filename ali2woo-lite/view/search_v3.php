@@ -13,6 +13,9 @@ use AliNext_Lite\TipOfDay;
  * @var array $categories
  * @var bool $adv_search
  * @var array $countries
+ * @var array $hotCountries
+ * @var array $sellerOnlineHours
+ * @var array $sellerLevels
  * @var array $filterSortOptions
  * @var null|TipOfDay $TipOfDay
  */
@@ -71,71 +74,140 @@ use AliNext_Lite\TipOfDay;
                     </div>
                     <div class="search-panel-buttons">
                         <button class="btn btn-info no-outline" id="a2wl-do-filter" type="button"><?php _ex('Search', 'Button', 'ali2woo');?></button>
+                        <?php if (A2WL()->isAnPlugin()) : ?>
                         <button class="btn btn-link no-outline" id="search-trigger" type="button"><?php _ex('Advance', 'Button', 'ali2woo');?></button>
+                        <?php endif; ?>
                     </div>
                 </div>
-                <div class="search-panel-advanced" <?php if ($adv_search): ?>style="display: block;"<?php endif;?>>
-                    <?php /*
-                    <div class="search-panel-row">
+                <div class="search-panel-row">
+                    <span class="country-select-title">
+                                <?php _ex('Shipping country', 'search page', 'ali2woo');?>
+                                </span>
+                    <div class="country-select">
+                        <select name="a2wl_shipTo" class="form-control country_list">
+                            <option value="">N/A</option>
+                            <?php foreach ($countries as $code => $name): ?>
+                                <option value="<?php echo $code; ?>"
+                                    <?php if (isset($filter['shipTo']) && $filter['shipTo'] == $code): ?>
+                                        selected="selected"
+                                    <?php endif;?>
+                                >
+                                    <?php echo $name; ?>
+                                </option>
+                            <?php endforeach;?>
+                        </select>
+                    </div>
+                </div>
+                <?php if (A2WL()->isAnPlugin()) : ?>
+                <div class="search-panel-row search-panel-advanced" <?php if ($adv_search): ?>style="display: block;"<?php endif;?>>
+                    <div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">START FREE TRIAL</a></div>
+                    <label class="filters">Additional filters (select one only)</label>
+                    <div class="_a2wfv">
+                        <div class="search-panel-col">
+                            <span class="country-select-title">
+                            <?php _ex('Shipping from country', 'search page', 'ali2woo');?>
+                            </span>
+                            <div class="country-select">
+                                <select name="a2wl_shipFrom" class="form-control country_list" <?php if (!isset($filter['shipFrom'])): ?> disabled <?php endif?>>
+                                    <option value="">N/A</option>
+                                    <?php foreach ($countries as $code => $name): ?>
+                                        <option value="<?php echo $code; ?>"
+                                            <?php if (isset($filter['shipFrom']) && $filter['shipFrom'] == $code): ?>
+                                                selected="selected"
+                                            <?php endif;?>
+                                        >
+                                            <?php echo $name; ?>
+                                        </option>
+                                    <?php endforeach;?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="search-panel-col">
+                            <span class="country-select-title">
+                            <?php _ex('Product hot area', 'search page', 'ali2woo');?>
+                            </span>
+                            <div class="country-select">
+                                <select name="a2wl_hotArea" class="form-control country_list" <?php if (!isset($filter['hotArea'])): ?> disabled <?php endif?>>
+                                    <option value="">N/A</option>
+                                    <?php foreach ($hotCountries as $code => $name): ?>
+                                        <option value="<?php echo $code; ?>"
+                                            <?php if (isset($filter['hotArea']) && $filter['hotArea'] == $code): ?>
+                                                selected="selected"
+                                            <?php endif;?>
+                                        >
+                                            <?php echo $name; ?>
+                                        </option>
+                                    <?php endforeach;?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="search-panel-col">
+                            <span class="country-select-title">
+                            <?php _ex('Seller Online', 'search page', 'ali2woo');?>
+                            </span>
+                            <div class="country-select">
+                                <select name="a2wl_sellerOnline" class="form-control seller_online" <?php if (!isset($filter['sellerOnline'])): ?> disabled <?php endif?>>
+                                    <option value="">N/A</option>
+                                    <?php foreach ($sellerOnlineHours as $hours => $name): ?>
+                                        <option value="<?php echo $hours; ?>"
+                                            <?php if (isset($filter['sellerOnline']) && $filter['sellerOnline'] == $hours): ?>
+                                                selected="selected"
+                                            <?php endif;?>
+                                        >
+                                            <?php echo $name; ?>
+                                        </option>
+                                    <?php endforeach;?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="search-panel-col">
+                            <span class="country-select-title">
+                            <?php _ex('Seller Level', 'search page', 'ali2woo');?>
+                            </span>
+                            <div class="country-select">
+                                <select name="a2wl_sellerLevel" class="form-control seller_level" <?php if (!isset($filter['sellerLevel'])): ?> disabled <?php endif?>>
+                                    <option value="">N/A</option>
+                                    <?php foreach ($sellerLevels as $level => $name): ?>
+                                        <option value="<?php echo $level; ?>"
+                                            <?php if (isset($filter['sellerLevel']) && $filter['sellerLevel'] == $level): ?>
+                                                selected="selected"
+                                            <?php endif;?>
+                                        >
+                                            <?php echo $name; ?>
+                                        </option>
+                                    <?php endforeach;?>
+                                </select>
+                            </div>
+                        </div>
 
                         <div class="search-panel-col">
-                            <label><?php  esc_html_e('Price', 'ali2woo');?></label>
-                            <div class="container-flex flex-wrap container-flex_fill container-flex_p20">
-                                <div class="opt">
-                                    <input type="text" class="form-control" name="a2wl_min_price" placeholder="<?php  esc_html_e('Price from', 'ali2woo');?>" value="<?php echo esc_attr($filter['min_price'] ?? ""); ?>">
-                                </div>
-                                <div class="opt">
-                                    <input type="text" class="form-control" name="a2wl_max_price" placeholder="<?php  esc_html_e('Price to', 'ali2woo');?>" value="<?php echo esc_attr($filter['max_price'] ?? ""); ?>">
-                                </div>
+                            <span class="field-title">
+                             <?php _ex("Free shipping", 'page search', 'ali2woo');?>
+                            </span>
+                            <div class="pt10">
+                                <input type="checkbox" class="form-control" id="a2wl_freeshipping" name="a2wl_freeshipping"
+                                       value="1"
+                                       <?php if (isset($filter['freeshipping'])): ?>checked <?php else: ?> disabled<?php endif;?>
+                                />
                             </div>
                         </div>
-
-
-                        <div class="search-panel-col size-2-3">
-                            <label><?php  esc_html_e("Special filters", 'ali2woo');?></label>
-                            <div class="container-flex flex-wrap">
-                                <div class="opt">
-                                    <div class="label">
-                                        <input type="checkbox" class="form-control" id="a2wl_freeshipping" name="a2wl_freeshipping" value="1" <?php if (isset($filter['freeshipping'])): ?>checked<?php endif;?>/>
-                                        <label for="a2wl_freeshipping"><?php  esc_html_e("Free shipping", 'ali2woo');?></label>
-                                    </div>
-                                </div>
-                                <div class="opt">
-                                    <div class="label label_h32">
-                                        <input type="checkbox" class="form-control" id="a2wl_return" name="a2wl_return" value="1" <?php if (isset($filter['return'])): ?>checked<?php endif;?>/>
-                                        <label for="a2wl_return"><?php  esc_html_e("Free return", 'ali2woo');?></label>
-                                    </div>
-                                </div>
-                                <div class="opt">
-                                    <div class="label label_h32">
-                                        <input type="checkbox" class="form-control" id="a2wl_popular" name="a2wl_popular" value="1" <?php if (isset($filter['popular'])): ?>checked<?php endif;?>/>
-                                        <label for="a2wl_popular"><?php  esc_html_e("Popular products", 'ali2woo');?></label>
-                                    </div>
-                                </div>
+                        <div class="search-panel-col">
+                            <span class="field-title">
+                             <?php _ex("Choice products", 'page search', 'ali2woo');?>
+                            </span>
+                            <div class="pt10">
+                                <input type="checkbox" class="form-control" id="a2wl_freeshipping" name="a2wl_freeshipping"
+                                       value="choice"
+                                       <?php if (isset($filter['itemTag']) && $filter['itemTag'] == "choice"): ?>checked <?php else: ?> disabled<?php endif;?>
+                                />
                             </div>
-
                         </div>
-
                     </div>
-                             */?>
-                    <div class="search-panel__row">
-                        <span class="country-select-title">
-                        <?php esc_html_e('Filter products by shipping-to country.', 'ali2woo');?>
-                        </span>
-                        <div class="country-select">
-                            <select name="a2wl_shipTo" class="form-control country_list">
-                                <option value="">N/A</option>
-                                <?php foreach ($countries as $code => $name): ?>
-                                    <option value="<?php echo $code; ?>"<?php if (isset($filter['shipTo']) && $filter['shipTo'] == $code): ?> selected="selected"<?php endif;?>>
-                                        <?php echo $name; ?>
-                                    </option>
-                                <?php endforeach;?>
-                            </select>
-                        </div>
+                    <div class="pt10 _a2wfv" style="clear: both;">
+                        <a class="reset-search-filters" href="#"><?php _ex('Reset filters', 'Button', 'ali2woo');?></a>
                     </div>
                 </div>
-
-                
+                <?php endif; ?>
             </div>
 
             <div class="modal-overlay modal-search">
@@ -262,7 +334,7 @@ use AliNext_Lite\TipOfDay;
                                         <?php if (!empty($product['local_regular_price'])): ?><span class="product-card__discount"><?php echo $out_curr; ?><?php echo $product['local_regular_price']; ?></span><?php endif;?>
                                     </h4>
                                 </div>
-                                
+                                <?php /*
                                 <span class="product-card__subtitle">
                                     <div>
                                         <div class="product-card-shipping-info"<?php if (isset($product[ImportedProductService::FIELD_COUNTRY_TO])): ?> data-country="<?php echo $product[ImportedProductService::FIELD_COUNTRY_TO] ?>"<?php endif;?>>
@@ -271,7 +343,7 @@ use AliNext_Lite\TipOfDay;
                                         </div>
                                     </div>
                                 </span>
-                                
+                                */ ?>
                                 <div class="product-card__meta-wrapper">
                                     <div class="product-card__rating">
                                         <?php for ($i = 0; $i < round($product['evaluateScore']); $i++): ?>

@@ -566,7 +566,7 @@ class OrderFulfillmentController extends AbstractController
         $is_wpml = $this->isWpml();
 
         try {
-            $orders_data =  $this->OrderFulfillmentService->getFulfillmentOrdersData($orders, $is_wpml);
+            $orders_data = $this->OrderFulfillmentService->getFulfillmentOrdersData($orders, $is_wpml);
         } catch (RepositoryException|ServiceException $Exception) {
             $this->model_put("text", $Exception->getMessage());
             $this->include_view("order-fulfillment/error_container.php");

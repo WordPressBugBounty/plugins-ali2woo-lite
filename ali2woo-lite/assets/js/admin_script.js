@@ -22,6 +22,63 @@ const a2wAjaxApi = (function ($) {
     };
 })(jQuery, ajaxurl);
 
+const a2wProductSearchModule = (function($) {
+    function init() {
+        $("#search-trigger").on("click", function () {
+            $(".search-panel-advanced").slideToggle("fast", function () {
+                if ($(this).is(":visible")) {
+                    $("#search-trigger").html(a2wl_common_data.lang.simple);
+                } else {
+                    $("#search-trigger").html(a2wl_common_data.lang.advance);
+                }
+            });
+        });
+
+        $('.search-panel-advanced input, .search-panel-advanced select').on('change', function() {
+            $('.search-panel-advanced input[type]').not(this).prop('disabled', true);
+            $('.search-panel-advanced select').not(this).prop('disabled', true);
+
+            $(this).prop('disabled', false);
+        });
+
+        $('.search-panel-advanced  .reset-search-filters').on('click', function(event) {
+            event.preventDefault();
+            resetFilters();
+        });
+
+        if (!findFirstEnabledFilter()) {
+            resetFilters();
+        }
+    }
+
+    function resetFilters() {
+        $('.search-panel-advanced input').prop('disabled', false);
+
+        $('.search-panel-advanced input[type="radio"], .search-panel-advanced input[type="checkbox"]')
+            .prop('checked', false);
+
+        $('.search-panel-advanced select').each(function () {
+            $(this).prop('disabled', false);
+            $(this).val(null).trigger('change.select2');
+        });
+    }
+
+    function findFirstEnabledFilter() {
+        const firstEnabledFilter = $('.search-panel-advanced input[type], .search-panel-advanced select')
+            .filter(function() {
+                return !$(this).prop('disabled');
+            })
+            .first();
+
+        return firstEnabledFilter.length > 0 ? firstEnabledFilter : null;
+    }
+
+    return {
+        init: init,
+    }
+
+})(jQuery);
+
 const a2wVariationSelect2Helper = function (variations, selectedVariationKey) {
 
     let groupedOptions = { results: [] };
@@ -606,10 +663,18 @@ var Utils = new Utils();
             );
         });
 
-
-
         $(".country_list").select2({
             placeholder: "Select a country",
+            allowClear: true,
+            width: '200px',
+        });
+        $(".seller_online").select2({
+            placeholder: "Select hours",
+            allowClear: true,
+            width: '200px',
+        });
+        $(".seller_level").select2({
+            placeholder: "Select level",
             allowClear: true,
             width: '200px',
         });
@@ -618,7 +683,13 @@ var Utils = new Utils();
             allowClear: true,
             width: '200px',
         });
-        $("#a2wl_category").select2();
+        $("#a2wl_category").select2({
+            width: '300px',
+        });
+
+        $("#a2wl_aliexpress_region").select2({
+            width: '300px',
+        });
 
         $("img.lazy").lazyload && $("img.lazy").lazyload({ effect: "fadeIn" });
 
@@ -1607,18 +1678,10 @@ var Utils = new Utils();
             }
         });
 
-        $("#search-trigger").on("click", function () {
-            $(".search-panel-advanced").slideToggle("fast", function () {
-                if ($(this).is(":visible")) {
-                    $("#search-trigger").html(a2wl_common_data.lang.simple);
-                } else {
-                    $("#search-trigger").html(a2wl_common_data.lang.advance);
-                }
-            });
-        });
+        a2wProductSearchModule.init();
 
-        $(document).mouseup(function (e) {
-            var div = $(".country-select__list-wrap, .dropdown-menu");
+        $(document).on('mouseup', function (e) {
+            let div = $(".country-select__list-wrap, .dropdown-menu");
             if (!div.is(e.target) && div.has(e.target).length === 0) {
                 div.hide();
             }
@@ -1876,6 +1939,31 @@ var Utils = new Utils();
                     }
                 });
             }
+        });
+
+        $('.a2wl-content .permanent-alert a.push-process').on('click', function(event) {
+            event.preventDefault();
+
+            let process = $(this).attr('data-process');
+            let data = {
+                'action': 'a2wl_push_process_action',
+                'process': process,
+                'ali2woo_nonce': a2wl_admin_script.nonce_action,
+            };
+            $.post(a2wl_admin_script.ajaxurl, data).done(function (response) {
+                let json = JSON.parse(response);
+                if (json.state === 'error') {
+                    if (json.message) {
+                        alert(json.message);
+                    } else {
+                        alert('Some error occurs, check browser console log for details.')
+                        console.log(json);
+                    }
+                } else {
+                    alert(json.message);
+                    location.reload();
+                }
+            });
         });
 
         $('.a2wl-product-import-list [rel="images"] .image').on('click', '.cancel-image-action a', function () {

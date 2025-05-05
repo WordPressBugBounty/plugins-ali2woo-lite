@@ -1,7 +1,9 @@
 <?php
 
+use AliNext_Lite\AddProductToImportListProcess;
 use AliNext_Lite\Aliexpress;
 use AliNext_Lite\AliexpressHelper;
+use AliNext_Lite\AliexpressRegionRepository;
 use AliNext_Lite\ApplyPricingRulesProcess;
 use AliNext_Lite\Attachment;
 use AliNext_Lite\BackgroundProcessFactory;
@@ -20,6 +22,7 @@ use AliNext_Lite\ImportListService;
 use AliNext_Lite\ImportPageController;
 use AliNext_Lite\ImportProcess;
 use AliNext_Lite\JSON_API_Core_Controller;
+use AliNext_Lite\LocalService;
 use AliNext_Lite\MigrateService;
 use AliNext_Lite\OrderFulfillmentController;
 use AliNext_Lite\OrderFulfillmentService;
@@ -55,6 +58,7 @@ use AliNext_Lite\Review;
 use AliNext_Lite\SearchPageController;
 use AliNext_Lite\SearchStoreProductsPageController;
 use AliNext_Lite\SettingPageAjaxController;
+use AliNext_Lite\SettingPageController;
 use AliNext_Lite\SplitProductService;
 use AliNext_Lite\SynchProductController;
 use AliNext_Lite\Synchronize;
@@ -84,7 +88,10 @@ return [
 
     /* factories */
     'AliNext_Lite\ImportedProductServiceFactory' => create(ImportedProductServiceFactory::class),
-    'AliNext_Lite\BackgroundProcessFactory' => create(BackgroundProcessFactory::class),
+    'AliNext_Lite\BackgroundProcessFactory' => create(BackgroundProcessFactory::class)
+        ->constructor(
+            get(AddProductToImportListProcess::class),
+        ),
     'AliNext_Lite\ExternalOrderFactory' => create(ExternalOrderFactory::class)
         ->constructor(
             get(AliexpressHelper::class),
@@ -99,6 +106,7 @@ return [
     'AliNext_Lite\PurchaseCodeInfoFactory' => create(PurchaseCodeInfoFactory::class),
 
     /* repository */
+    'AliNext_Lite\AliexpressRegionRepository' => create(AliexpressRegionRepository::class),
     'AliNext_Lite\PriceFormulaRepository' => create(PriceFormulaRepository::class)
         ->constructor(
             get(PriceFormulaFactory::class)
@@ -167,15 +175,14 @@ return [
     'AliNext_Lite\BackgroundProcessService' => create(BackgroundProcessService::class)
         ->constructor(
             get(ApplyPricingRulesProcess::class),
-            get(ImportProcess::class)
+            get(ImportProcess::class),
+            get(AddProductToImportListProcess::class),
         ),
     'AliNext_Lite\PermanentAlertService' => create(PermanentAlertService::class)
         ->constructor(get(BackgroundProcessService::class)),
     'AliNext_Lite\ImportListService' => create(ImportListService::class)
         ->constructor(
-            get(ProductImport::class),
-            get(PriceFormulaService::class),
-            get(ProductService::class),
+            get(AddProductToImportListProcess::class),
         ),
     'AliNext_Lite\OrderFulfillmentService' => create(OrderFulfillmentService::class)
         ->constructor(
@@ -249,6 +256,12 @@ return [
     'AliNext_Lite\PromoService' => create(PromoService::class),
     
     /* controllers */
+    'AliNext_Lite\SettingPageController' => create(SettingPageController::class)
+        ->constructor(
+            get(LocalService::class),
+            get(AliexpressRegionRepository::class),
+        ),
+
     'AliNext_Lite\ImportAjaxController' => create(ImportAjaxController::class)
         ->constructor(
             get(ProductImport::class), get(Woocommerce::class),
@@ -319,6 +332,7 @@ return [
         ->constructor(
             get(ProductShippingDataRepository::class),
             get(PurchaseCodeInfoService::class),
+            get(BackgroundProcessFactory::class),
         ),
     'AliNext_Lite\WooCommerceProductListController' => create(WooCommerceProductListController::class)
         ->constructor(
@@ -371,8 +385,15 @@ return [
         ->constructor(
             get(PurchaseCodeInfoService::class)
         ),
+    'AliNext_Lite\AddProductToImportListProcess' => create(AddProductToImportListProcess::class)
+        ->constructor(
+            get(Aliexpress::class),
+            get(PriceFormulaService::class),
+            get(ProductImport::class),
+        ),
 
     'register_jobs' => [
         get(SynchronizePurchaseCodeInfoProcess::class),
+        get(AddProductToImportListProcess::class),
     ]
 ];

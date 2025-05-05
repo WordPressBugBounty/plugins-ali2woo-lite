@@ -15,11 +15,13 @@ class BackgroundProcessService
     protected array $BackgroundProcesses;
     public function __construct(
         ApplyPricingRulesProcess $ApplyPricingRulesProcess,
-        ImportProcess $importProcess
+        ImportProcess $importProcess,
+        AddProductToImportListProcess $AddProductToImportListProcess
     ) {
         $this->BackgroundProcesses = [
             $ApplyPricingRulesProcess,
-            $importProcess
+            $importProcess,
+            $AddProductToImportListProcess,
         ];
     }
 

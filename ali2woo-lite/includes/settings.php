@@ -12,6 +12,7 @@ class Settings
     public const DEFAULT_AUTO_UPDATE_MAX_QUOTA = '75';
 
 
+    public const SETTING_ALIEXPRESS_REGION = 'aliexpress_region';
     public const SETTING_SYSTEM_MESSAGE = 'system_message';
     public const SETTING_TIP_OF_DAY = 'tip_of_day';
     public const SETTING_TIP_OF_DAY_LAST_DATE = 'tip_of_day_last_date';
@@ -87,6 +88,7 @@ class Settings
         'remove_ship_from' => false,
         'default_ship_from' => 'CN',
 
+        self::SETTING_ALIEXPRESS_REGION => 'US',
         self::SETTING_IMPORT_VIDEO => true,
         self::SETTING_SHOW_PRODUCT_VIDEO_TAB => false,
         self::SETTING_VIDEO_TAB_PRIORITY => 50,

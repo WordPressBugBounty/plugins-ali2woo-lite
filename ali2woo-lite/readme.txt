@@ -308,6 +308,13 @@ In case you have any questions or need technical assistance, get in touch with u
 9. Import product video from AliExpress
 
 == Changelog ==
+= 3.5.7 - 2025.05.05 =
+* Increase category width on the search page
+* Fix incorrectly call of _load_textdomain_just_in_time
+* Fix fatal error in Utils::buildImageIdFromPath
+* Fix getFulfillmentOrdersData shipping error breaks popup
+* Fix minor bugs
+
 = 3.5.6 - 2025.11.04 =
 * Fix some php warnings
 * Fix some deprecated messages

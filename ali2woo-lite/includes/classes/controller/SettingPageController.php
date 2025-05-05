@@ -15,13 +15,20 @@ class SettingPageController extends AbstractAdminPage
     public const FIELD_FIELD_NO_AVATAR_PHOTO = 'a2wl_review_noavatar_photo';
     public const SETTING_VIDEO = 'video';
 
-    public function __construct()
-    {
+    protected LocalService $LocalService;
+    protected AliexpressRegionRepository $AliexpressRegionRepository;
+
+    public function __construct(
+        LocalService $LocalService, AliexpressRegionRepository $AliexpressRegionRepository
+    ) {
         parent::__construct(
             esc_html__('Settings', 'ali2woo'),
             esc_html__('Settings', 'ali2woo'),
             'import', 'a2wl_setting', 30
         );
+
+        $this->LocalService = $LocalService;
+        $this->AliexpressRegionRepository = $AliexpressRegionRepository;
 
         add_filter('a2wl_setting_view', [$this, 'setting_view']);
         add_filter('a2wl_configure_lang_data', array($this, 'configure_lang_data'));
@@ -131,6 +138,10 @@ class SettingPageController extends AbstractAdminPage
             set_setting('item_purchase_code', isset($_POST['a2wl_item_purchase_code']) ? wp_unslash($_POST['a2wl_item_purchase_code']) : '');
 
             set_setting('import_language', isset($_POST['a2w_import_language']) ? wp_unslash($_POST['a2w_import_language']) : 'en');
+            set_setting(
+                SETTINGS::SETTING_ALIEXPRESS_REGION,
+                isset($_POST['a2wl_aliexpress_region']) ? wp_unslash($_POST['a2wl_aliexpress_region']) : 'US'
+            );
 
             if (isset($_POST['a2w_local_currency'])) {
                 $currency = isset($_POST['a2w_local_currency']) ? wp_unslash($_POST['a2w_local_currency']) : 'USD';
@@ -208,6 +219,9 @@ class SettingPageController extends AbstractAdminPage
         $localizator = AliexpressLocalizator::getInstance();
         $countryModel = new Country();
         $language_model = new Language();
+
+        $this->model_put("aliexpressRegion", $this->AliexpressRegionRepository->get());
+        $this->model_put("aliexpressRegions", $this->AliexpressRegionRepository->getAllWithLabels());
         $this->model_put("upgradeTariffUrl", $this->buildUpgradeTariffUrl());
         $this->model_put("shipping_options", Utils::get_aliexpress_shipping_options());
         $this->model_put("currencies", $localizator->getCurrencies(false));
@@ -705,7 +719,28 @@ class SettingPageController extends AbstractAdminPage
             }
         }
 
+        $processorCores = $this->LocalService->getNumberOfProcessorCores();
+        $systemAverageLoadStatus = true;
+        $systemAverageLoad = $this->LocalService->getSystemLoadAverage();
+        foreach ($systemAverageLoad as $systemLoad) {
+            if ($systemLoad > $processorCores)   {
+                $systemAverageLoadStatus = false;
+                break;
+            }
+        }
+
+        $memoryUsage = $this->LocalService->getMemoryUsageInBytes();
+
+        $this->model_put("processorCores", $processorCores);
+        $this->model_put(
+            'systemLoadAverage', implode(', ', $systemAverageLoad)
+        );
+        $this->model_put("systemAverageLoadStatus", $systemAverageLoadStatus);
+        $this->model_put("memoryUsage", size_format($memoryUsage));
+
         $this->model_put("server_ip", $server_ip);
+
+
 
         return "settings/system_info.php";
     }

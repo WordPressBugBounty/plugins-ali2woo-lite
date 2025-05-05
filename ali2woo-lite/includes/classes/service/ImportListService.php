@@ -10,18 +10,12 @@ namespace AliNext_Lite;;
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
 class ImportListService
 {
-    protected ProductImport $ProductImportModel;
-    protected PriceFormulaService $PriceFormulaService;
-    protected ProductService $ProductService;
+    protected AddProductToImportListProcess $AddProductToImportListProcess;
 
     public function __construct(
-        ProductImport $ProductImportModel,
-        PriceFormulaService $PriceFormulaService,
-        ProductService $ProductService
+        AddProductToImportListProcess $AddProductToImportListProcess,
     ) {
-        $this->ProductImportModel = $ProductImportModel;
-        $this->PriceFormulaService = $PriceFormulaService;
-        $this->ProductService = $ProductService;
+        $this->AddProductToImportListProcess = $AddProductToImportListProcess;
     }
 
     /**
@@ -38,9 +32,7 @@ class ImportListService
             );
         }
 
-        $products = a2wl_get_transient('a2wl_search_result');
-        $idsCount = 0;
-        $processErrorsIds = [];
+        $externalProductIds = [];
 
         while ($row = fgetcsv($f, 1024, ';', '"', "\\")) {
             $id_or_url = urldecode(trim($row[0]));
@@ -56,49 +48,20 @@ class ImportListService
                 continue;
             }
 
-            $idsCount++;
-
-            $product = [];
-
-            if ($products && is_array($products)) {
-                foreach ($products as $p) {
-                    if ($p['id'] == $id) {
-                        $product = $p;
-                        break;
-                    }
-                }
-            }
-
-            global $wpdb;
-
-            $post_id = $wpdb->get_var(
-                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-                $wpdb->prepare(
-                        "SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_a2w_external_id' AND meta_value=%s LIMIT 1",
-                        $id
-                    )
-            );
-            if (get_setting('allow_product_duplication') || !$post_id) {
-                $res = $this->ProductService->loadProductWithShippingInfo($id);
-                if ($res['state'] !== 'error') {
-                    $product = array_replace_recursive($product, $res['product']);
-
-                    if ($product) {
-                        $product = $this->PriceFormulaService->applyFormula($product);
-
-                        $this->ProductImportModel->add_product($product);
-                    } else {
-                        $processErrorsIds[] = $id;
-                    }
-                } else {
-                    $processErrorsIds[] = $id;
-                }
-            }
+            $externalProductIds[] = $id;
         }
         // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
         fclose($f);
 
-        return new ProductsFromFileResult($idsCount, $processErrorsIds);
+        foreach ($externalProductIds as $externalProductId) {
+            $this->AddProductToImportListProcess->pushToQueue(
+                $externalProductId,
+            );
+        }
+
+        $this->AddProductToImportListProcess->dispatch();
+
+        return new ProductsFromFileResult(count($externalProductIds), []);
     }
 
     public function getCountryFromList(array $importedProduct): array

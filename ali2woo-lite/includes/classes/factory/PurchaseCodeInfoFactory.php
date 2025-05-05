@@ -26,7 +26,7 @@ class PurchaseCodeInfoFactory
                 ->setSyncProduct($data[PurchaseCodeInfo::FIELD_LIMITS][PurchaseCodeInfoLimits::FIELD_SYNC_PRODUCT]);
         }
 
-        if (!empty($data[PurchaseCodeInfo::FIELD_COUNT])) {
+        if (isset($data[PurchaseCodeInfo::FIELD_COUNT])) {
             $count = (new PurchaseCodeInfoCount())
                 ->setProduct($data[PurchaseCodeInfo::FIELD_COUNT][PurchaseCodeInfoLimits::FIELD_PRODUCT] ?? null)
                 ->setCategory($data[PurchaseCodeInfo::FIELD_COUNT][PurchaseCodeInfoLimits::FIELD_CATEGORY] ?? null)

@@ -26,7 +26,7 @@ class PermanentAlertService
         foreach ($this->BackgroundProcessService->getAll() as $BackgroundProcess) {
             if ($BackgroundProcess->isQueued()) {
                 $count = $BackgroundProcess->getSize();
-                $helpButtonText = esc_html__('Cancel it?', 'ali2woo');
+                $helpButtonText = esc_html__('Cancel it', 'ali2woo');
                 $helpButtonHtml = sprintf(
                 /* translators: %s is replaced with a process name */
                     '<a class="cancel-process" data-process="%s" href="#">%s</a>',
@@ -34,11 +34,20 @@ class PermanentAlertService
                     $helpButtonText
                 );
 
+                $pushButtonText = esc_html__('Push manually', 'ali2woo');
+                $pushButtonHtml = sprintf(
+                /* translators: %s is replaced with a process name */
+                    '<a class="push-process" data-process="%s" href="#">%s</a>',
+                    $BackgroundProcess->getName(),
+                    $pushButtonText
+                );
+
                 $content = sprintf(
                     /* translators: %s is replaced with a process name, %d is replaced count of tasks of given process, %s is replaced with cancel button html */
-                    'Currently, you have an active and running <strong>%s</strong> process with %d task(s) remaining. %s',
+                    'Currently, you have an active and running <strong>%s</strong> process with %d task(s) remaining. Actions: %s | %s',
                     $BackgroundProcess->getTitle(),
                     $count,
+                    $pushButtonHtml,
                     $helpButtonHtml
                 );
 

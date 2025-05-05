@@ -21,7 +21,7 @@ abstract class AbstractConnector {
     }
 
     abstract public function load_product($product_id, $params = []);
-    abstract public function load_products($filter, $page = 1, $per_page = 20, $params = []);
+    abstract public function load_products(array $filter, $page = 1, $per_page = 20, $params = []);
     abstract public function load_store_products($filter, $page = 1, $per_page = 20, $params = []);
     abstract public function load_reviews($product_id, $page, $page_size = 20, $params = []);
     abstract public function check_affiliate($product_id): array;

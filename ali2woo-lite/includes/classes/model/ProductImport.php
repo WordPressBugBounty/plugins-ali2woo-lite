@@ -8,8 +8,6 @@
 
 namespace AliNext_Lite;;
 
-use mysql_xdevapi\Exception;
-
 class ProductImport {
 
     private $order;

@@ -302,6 +302,9 @@ class Utils
 
         if ($product_images) {
             foreach ($product['images'] as $img) {
+                if (!is_string($img)) {
+                    continue;
+                }
                 $img_id = self::buildImageIdFromPath($img);
                 if (!isset($tmp_all_images[$img_id])) {
                     $tmp_all_images[$img_id] = [
@@ -315,6 +318,9 @@ class Utils
         if (!empty($product['sku_products']['variations'])) {
             foreach ($product['sku_products']['variations'] as $var) {
                 if (isset($var['image'])) {
+                    if (!is_string($var['image'])) {
+                        continue;
+                    }
                     $img_id = self::buildImageIdFromPath($var['image']);
                     if (!isset($tmp_all_images[$img_id])) {
                         $tmp_all_images[$img_id] = [
@@ -331,6 +337,9 @@ class Utils
             $desc_images = $connector::get_images_from_description($product);
             foreach ($desc_images as $img_id => $img) {
                 if (!isset($tmp_all_images[$img_id])) {
+                    if (!is_string($img)) {
+                        continue;
+                    }
                     $tmp_all_images[$img_id] = [
                         'image' => $img,
                         'type' => 'description'
@@ -356,6 +365,9 @@ class Utils
                     if ($has_variation) {
                         if (get_setting('use_external_image_urls')) {
                             if (!empty($attr_value['thumb'])) {
+                                if (!is_string($attr_value['thumb'])) {
+                                    continue;
+                                }
                                 $img_id = self::buildImageIdFromPath($attr_value['thumb']);
                                 if (!isset($tmp_all_images[$img_id])) {
                                     $tmp_all_images[$img_id] = [
@@ -364,6 +376,9 @@ class Utils
                                     ];
                                 }
                             } else if (!empty($attr_value['image'])) {
+                                if (!is_string($attr_value['thumb'])) {
+                                    continue;
+                                }
                                 $img_id = self::buildImageIdFromPath($attr_value['image']);
                                 if (!isset($tmp_all_images[$img_id])) {
                                     $tmp_all_images[$img_id] = [
@@ -374,6 +389,9 @@ class Utils
                             }
                         } else {
                             if (!empty($attr_value['image'])) {
+                                if (!is_string($attr_value['image'])) {
+                                    continue;
+                                }
                                 $img_id = self::buildImageIdFromPath($attr_value['image']);
                                 if (!isset($tmp_all_images[$img_id])) {
                                     $tmp_all_images[$img_id] = [
@@ -382,6 +400,9 @@ class Utils
                                     ];
                                 }
                             } else if (!empty($attr_value['thumb'])) {
+                                if (!is_string($attr_value['thumb'])) {
+                                    continue;
+                                }
                                 $img_id = self::buildImageIdFromPath($attr_value['thumb']);
                                 if (!isset($tmp_all_images[$img_id])) {
                                     $tmp_all_images[$img_id] = [

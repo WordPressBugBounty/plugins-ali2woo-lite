@@ -31,6 +31,17 @@ class Country
         return self::$countries;
     }
 
+    public static function getHotCountryLabels(): array
+    {
+        return [
+            'BR' => 'Brasil',
+            'US' => 'United States',
+            'UK' => 'United Kingdom',
+            'FR' => 'France',
+            'AU' => 'Australia',
+        ];
+    }
+
     public static function get_country($code): ?string
     {
         $countries = self::get_countries();

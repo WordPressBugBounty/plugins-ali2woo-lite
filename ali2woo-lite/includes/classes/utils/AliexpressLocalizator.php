@@ -15,9 +15,13 @@ class AliexpressLocalizator {
     public $currency;
     public $all_currencies = array();
 
+    protected AliexpressRegionRepository $AliexpressRegionRepository;
+
     protected function __construct() {
         $this->language = strtolower(get_setting('import_language'));
         $this->currency = strtoupper(get_setting('local_currency'));
+
+        $this->AliexpressRegionRepository = A2WL()->getDI()->get('AliNext_Lite\AliexpressRegionRepository');
 
         $currencies_file = A2WL()->plugin_path() . '/assets/data/currencies.json';  
         if(file_exists ($currencies_file)){
@@ -250,23 +254,18 @@ class AliexpressLocalizator {
         return $result;
     }
 
-    public function build_params($skip_lang = false) {
-        if($skip_lang){
-            $region_str = "";
-            if(a2wl_check_defined('A2WL_API_REGION')){
-                $region_str = "&region=".A2WL_API_REGION;
-            }
+    public function build_params($skip_lang = false): string
+    {
+        if ($skip_lang) {
+            $region_str = "&region=" . $this->AliexpressRegionRepository->get();
 
             return '&curr=' . $this->currency . $region_str ;
-        }else{
-            $region_str = "";
-            if(a2wl_check_defined('A2WL_API_REGION')){
-                $region_str = "&region=".A2WL_API_REGION;
-            }
+        } else {
+            $region_str = "&region=" . $this->AliexpressRegionRepository->get();
 
             $lang_code_str = "";
-            if(a2wl_check_defined('A2WL_API_LANG_CODE')){
-                $lang_code_str = "&lang_code=".A2WL_API_LANG_CODE;
+            if (a2wl_check_defined('A2WL_API_LANG_CODE')) {
+                $lang_code_str = "&lang_code=" . A2WL_API_LANG_CODE;
             }
 
             return '&lang=' . $this->language . '&curr=' . $this->currency . $lang_code_str . $region_str;

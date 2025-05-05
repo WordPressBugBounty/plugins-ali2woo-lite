@@ -43,13 +43,13 @@ class SearchPageController extends AbstractAdminPage
         return $lang_data;
     }
 
-    public function render($params = array())
+    public function render($params = []): void
     {
         if (!current_user_can('manage_options')) {
             wp_die($this->getErrorTextNoPermissions());
         }
 
-        $filter = array();
+        $filter = [];
         if (!empty($_GET['a2wl_search'])) {
             check_admin_referer(self::PAGE_NONCE_ACTION, self::NONCE);
             $filter = array_merge($filter, $_GET);
@@ -61,7 +61,12 @@ class SearchPageController extends AbstractAdminPage
             }
         }
 
-        $adv_search_field = array('min_price', 'max_price', 'min_feedback', 'max_feedback', 'volume_from', 'volume_to');
+        $adv_search_field = [
+            'min_price', 'max_price', 'min_feedback',
+            'max_feedback', 'volume_from', 'volume_to',
+            'shipTo', 'shipFrom', 'freeshipping', 'hotArea',
+            'sellerOnline', 'sellerLevel', 'itemTag'
+        ];
         $adv_search = false;
         foreach ($filter as $key => $val) {
             $new_key = preg_replace('/a2wl_/', '', $key, 1);
@@ -76,6 +81,10 @@ class SearchPageController extends AbstractAdminPage
             $filter['sort'] = "volumeDown";
         }
 
+        if (!isset($filter['shipTo'])) {
+            $filter['shipTo'] = "US";
+        }
+
         $page = isset($_GET['cur_page']) && intval($_GET['cur_page']) ? intval($_GET['cur_page']) : 1;
         $per_page = 20;
         if (a2wl_check_defined('A2WL_PRODUCT_SEARCH_LIMIT')) {
@@ -86,15 +95,20 @@ class SearchPageController extends AbstractAdminPage
             check_admin_referer(self::PAGE_NONCE_ACTION, self::NONCE);
             $load_products_result = $this->AliexpressModel->load_products($filter, $page, $per_page);
         } else {
-            $load_products_result = ResultBuilder::buildError(esc_html__('Please enter some search keywords or select item from category list!', 'ali2woo'));
+            $load_products_result = ResultBuilder::buildError(
+                esc_html__('Please enter some search keywords or select item from category list!', 'ali2woo')
+            );
         }
 
         if ($load_products_result['state'] == 'error' || $load_products_result['state'] == 'warn') {
-            add_settings_error('a2wl_products_list', esc_attr('settings_updated'), $load_products_result['message'], 'error');
+            add_settings_error(
+                'a2wl_products_list', esc_attr('settings_updated'),
+                $load_products_result['message'], 'error'
+            );
         }
 
         if ($load_products_result['state'] != 'error') {
-            $pages_list = array();
+            $pages_list = [];
             $links = 4;
             $last = ceil($load_products_result['total'] / $per_page);
             $load_products_result['total_pages'] = $last;
@@ -130,13 +144,26 @@ class SearchPageController extends AbstractAdminPage
         $TipOfDayService = A2WL()->getDI()->get('AliNext_Lite\TipOfDayService');
 
         $page = esc_attr(((isset($_GET['page'])) ? $_GET['page'] : ''));
-        $curPage = esc_attr(((isset($_GET['cur_page'])) ? $_GET['cur_page'] : ''));;
+        $curPage = esc_attr(((isset($_GET['cur_page'])) ? $_GET['cur_page'] : ''));
+
+        $sellerOnlineHours = [
+            '48' => _x('Last 48 hours', 'search page', 'ali2woo'),
+            '72' => _x('Last 72 hours', 'search page', 'ali2woo'),
+        ];
+
+        $sellerLevels = [
+            'gold' => _x('Gold', 'search page', 'ali2woo'),
+            'silver' => _x('Silver', 'search page', 'ali2woo'),
+        ];
 
         $this->model_put('filter', $filter);
         $this->model_put('filterSortOptions', $filterSortOptions);
         $this->model_put('adv_search', $adv_search);
         $this->model_put('categories', $this->get_categories());
+        $this->model_put('hotCountries', $this->CountryModel->getHotCountryLabels());
         $this->model_put('countries', $this->CountryModel->get_countries());
+        $this->model_put('sellerOnlineHours', $sellerOnlineHours);
+        $this->model_put('sellerLevels', $sellerLevels);
         $this->model_put('locale', $localizator->getLangCode());
         $this->model_put('currency', $localizator->currency);
         $this->model_put('chrome_ext_import', a2wl_check_defined('A2WL_CHROME_EXT_IMPORT'));

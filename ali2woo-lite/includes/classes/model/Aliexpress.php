@@ -34,7 +34,7 @@ class Aliexpress
         $this->AliexpressHelper = $AliexpressHelper;
     }
 
-    public function load_products($filter, $page = 1, $per_page = 20, $params = [])
+    public function load_products(array $filter, $page = 1, $per_page = 20, $params = [])
     {
         /** @var wpdb $wpdb */
         global $wpdb;

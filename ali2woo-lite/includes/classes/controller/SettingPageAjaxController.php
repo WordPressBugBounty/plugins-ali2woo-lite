@@ -21,16 +21,18 @@ class SettingPageAjaxController extends AbstractController
 
     protected ProductShippingDataRepository $ProductShippingDataRepository;
     protected PurchaseCodeInfoService $PurchaseCodeInfoService;
+    protected BackgroundProcessFactory $BackgroundProcessFactory;
 
     public function __construct(
         ProductShippingDataRepository $ProductShippingDataRepository,
-        PurchaseCodeInfoService $PurchaseCodeInfoService
-    )
-    {
+        PurchaseCodeInfoService $PurchaseCodeInfoService,
+        BackgroundProcessFactory $BackgroundProcessFactory
+    ) {
         parent::__construct();
 
         $this->ProductShippingDataRepository = $ProductShippingDataRepository;
         $this->PurchaseCodeInfoService = $PurchaseCodeInfoService;
+        $this->BackgroundProcessFactory = $BackgroundProcessFactory;
 
         add_action('wp_ajax_a2wl_update_price_rules', [$this, 'ajax_update_price_rules']);
 
@@ -52,6 +54,7 @@ class SettingPageAjaxController extends AbstractController
         add_action('wp_ajax_a2wl_save_access_token', [$this, 'ajax_save_access_token']);
         add_action('wp_ajax_a2wl_delete_access_token', [$this, 'ajax_delete_access_token']);
         add_action('wp_ajax_a2wl_import_cancel_process_action', [$this, 'ajax_import_cancel_process_action']);
+        add_action('wp_ajax_a2wl_push_process_action', [$this, 'ajax_push_process_action']);
     }
 
     public function ajax_update_phrase_rules(): void
@@ -109,13 +112,48 @@ class SettingPageAjaxController extends AbstractController
                 throw new Exception(esc_html__('Invalid process', 'ali2woo'));
             }
             $processCode = trim($_POST['process']);
-            /** @var BackgroundProcessFactory $BackgroundProcessFactory */
-            $BackgroundProcessFactory = A2WL()->getDI()->get('AliNext_Lite\BackgroundProcessFactory');
-            $BackgroundProcess = $BackgroundProcessFactory->createProcessByCode($processCode);
+
+            $BackgroundProcess = $this->BackgroundProcessFactory->createProcessByCode($processCode);
             if ($BackgroundProcess->isCancelled()) {
                 throw new Exception(esc_html__('The process is already cancelled.', 'ali2woo'));
             }
             $BackgroundProcess->cancel();
+
+            restore_error_handler();
+        } catch (Throwable $Exception) {
+            a2wl_print_throwable($Exception);
+            $result = ResultBuilder::buildError($Exception->getMessage());
+        }
+
+        echo wp_json_encode($result);
+        wp_die();
+    }
+
+    public function ajax_push_process_action(): void
+    {
+        check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
+
+        if (!current_user_can('manage_options')) {
+            $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
+            echo wp_json_encode($result);
+            wp_die();
+        }
+
+        a2wl_init_error_handler();
+        $result = ResultBuilder::buildWarn(
+            esc_html__('Process is pushed manually! Please wait for a few seconds.', 'ali2woo')
+        );
+        try {
+            if (!isset($_POST['process']) || !$_POST['process']) {
+                throw new Exception(esc_html__('Invalid process', 'ali2woo'));
+            }
+            $processCode = trim($_POST['process']);
+
+            $BackgroundProcess = $this->BackgroundProcessFactory->createProcessByCode($processCode);
+            if ($BackgroundProcess->isCancelled()) {
+                throw new Exception(esc_html__('The process is already cancelled.', 'ali2woo'));
+            }
+            $BackgroundProcess->dispatch();
 
             restore_error_handler();
         } catch (Throwable $Exception) {

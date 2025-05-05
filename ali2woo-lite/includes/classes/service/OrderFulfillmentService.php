@@ -282,8 +282,17 @@ class OrderFulfillmentService
 
                 $countryFromCode = $this->WoocommerceService->getShippingFromByProduct($WC_Product);
 
-                $importedProduct = $this->WoocommerceService
-                    ->updateProductShippingItems($WC_Product, $shipping_to_country, $countryFromCode, $quantity);
+                try {
+                    $importedProduct = $this->WoocommerceService
+                        ->updateProductShippingItems($WC_Product, $shipping_to_country, $countryFromCode, $quantity);
+                } catch (RepositoryException|ServiceException $Exception) {
+                    $errorMessage = sprintf(
+                        'OrderFulfillmentService::getFulfillmentOrderData: %s order id: %d',
+                        $Exception->getMessage(),
+                        $order->get_id());
+                    a2wl_error_log($errorMessage);
+                    $importedProduct = $this->WoocommerceService->getProductWithVariations($product_id);
+                }
 
                 $shippingItems = $this->ProductService->getShippingItems(
                     $importedProduct, $shipping_to_country, $countryFromCode

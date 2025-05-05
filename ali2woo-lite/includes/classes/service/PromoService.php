@@ -35,8 +35,8 @@ class PromoService
             'local_regular_price' => "24.00",
             'currency' => 'USD',
             'evaluateScore' => 4.8,
-            'purchases' => 3245,
-            'button_cta' => 'Get full version'
+            'purchases' => 5785,
+            'button_cta' => 'Start Your Free Trial'
         ];
     }
 

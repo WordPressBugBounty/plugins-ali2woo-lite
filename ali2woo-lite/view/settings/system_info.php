@@ -3,6 +3,14 @@
 use AliNext_Lite\AbstractController;
 use AliNext_Lite\ImportProcess;
 use function AliNext_Lite\get_setting;
+
+/**
+ * @var int $processorCores
+ * @var string $systemLoadAverage
+ * @var bool $systemAverageLoadStatus
+ * @var string $memoryUsage
+ */
+
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
 $write_info_log = get_setting('write_info_log');
 $pc_info = AliNext_Lite\SystemInfo::server_ping();
@@ -87,7 +95,7 @@ $pc_info = AliNext_Lite\SystemInfo::server_ping();
                 <div class="field field_inline">
                     <div class="field__label">
                         <label>
-                            <strong><?php  esc_html_e('Php max memory limit', 'ali2woo'); ?></strong>
+                            <strong><?php _ex('Php max memory limit', 'setting', 'ali2woo'); ?></strong>
                         </label>
                         <div class="info-box" data-toggle="tooltip" data-title="<?php _ex('Php memory limit', 'setting description', 'ali2woo'); ?>"></div>
                     </div>
@@ -107,6 +115,66 @@ $pc_info = AliNext_Lite\SystemInfo::server_ping();
                             <?php else: ?>
                                 <span class="ok">Ok (<?php echo $formatMemoryLimit; ?>)</span>
                             <?php endif;?>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field field_inline">
+                    <div class="field__label">
+                        <label>
+                            <strong><?php _ex('Memory usage', 'setting',  'ali2woo'); ?></strong>
+                        </label>
+                        <div
+                                class="info-box"
+                                data-toggle="tooltip"
+                                data-title="<?php _ex('Current memory usage', 'setting description', 'ali2woo'); ?>">
+
+                        </div>
+                    </div>
+                    <div class="field__input-wrap">
+                        <div class="form-group input-block no-margin clearfix">
+                            <span class="ok"><?php echo $memoryUsage; ?></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field field_inline">
+                    <div class="field__label">
+                        <label>
+                            <strong><?php _ex('Processor cores', 'setting',  'ali2woo'); ?></strong>
+                        </label>
+                        <div
+                                class="info-box"
+                                data-toggle="tooltip"
+                                data-title="<?php _ex('Number of processor cores', 'setting description', 'ali2woo'); ?>">
+
+                        </div>
+                    </div>
+                    <div class="field__input-wrap">
+                        <div class="form-group input-block no-margin clearfix">
+                            <span class="ok"><?php echo $processorCores; ?></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field field_inline">
+                    <div class="field__label">
+                        <label>
+                            <strong><?php _ex('System load average', 'setting',  'ali2woo'); ?></strong>
+                        </label>
+                        <div
+                                class="info-box"
+                                data-toggle="tooltip"
+                                data-title="<?php _ex('The load average indicates how many processes are actively competing for CPU time (over the last 1, 5 and 15 minutes, respectively). Generally, a load average equal to the number of processors is considered optimal.', 'setting description', 'ali2woo'); ?>">
+
+                        </div>
+                    </div>
+                    <div class="field__input-wrap">
+                        <div class="form-group input-block no-margin clearfix">
+                            <?php $systemAverageLoadClass = $systemAverageLoadStatus ? 'ok' : 'error'; ?>
+                            <span class="<?php echo $systemAverageLoadClass; ?>">
+                                <?php echo $systemLoadAverage; ?>
+                            </span>
                         </div>
                     </div>
                 </div>

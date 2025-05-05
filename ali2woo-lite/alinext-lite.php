@@ -5,13 +5,13 @@ Plugin URI: https://ali2woo.com/pricing/?utm_source=lite&utm_medium=plugin&utm_c
 Description: Aliexpress Dropshipping for Woocommerce (AliNext Lite version)
 Text Domain: ali2woo
 Domain Path: /languages
-Version: 3.5.6
+Version: 3.5.7
 Author: Dropshipping Guru
 Author URI: https://ali2woo.com/dropshipping-plugin/?utm_source=lite&utm_medium=author&utm_campaign=alinext-lite
 License: GPLv3
 Requires at least: 5.9
 Tested up to: 6.8
-WC tested up to: 9.7
+WC tested up to: 9.8
 WC requires at least: 5.0
 Requires PHP: 8.0
 Requires Plugins: woocommerce
@@ -255,7 +255,10 @@ $alinext_lite = A2WL();
 do_action('a2wl_init');
 
 if (is_admin()) {
-    do_action('a2wl_admin_init');
+    add_action('init', function()
+    {
+        do_action('a2wl_admin_init');
+    });
 } else {
     do_action('a2wl_frontend_init');
 }

@@ -3,6 +3,12 @@ use AliNext_Lite\AbstractController;
 use AliNext_Lite\Settings;
 use function AliNext_Lite\get_setting;
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
+
+/**
+ * @var array $languages
+ * @var array $aliexpressRegions
+ * @var string $aliexpressRegion
+ */
 ?>
 
 <form method="post">
@@ -43,7 +49,6 @@ use function AliNext_Lite\get_setting;
                 </div>
             </div>
         </div>
-
     </div>
 </div>
 
@@ -53,6 +58,28 @@ use function AliNext_Lite\get_setting;
         <h3 class="display-inline"><?php _ex('Import Settings', 'Setting title', 'ali2woo'); ?></h3>
     </div>
     <div class="panel-body">
+
+        <?php if (A2WL()->isAnPlugin()): ?>
+            <div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">START FREE TRIAL</a></div>
+            <div class="field field_inline _a2wfv">
+                <div class="field__label">
+                    <label>
+                        <strong><?php _ex('Aliexpress region', 'Setting title', 'ali2woo'); ?></strong>
+                    </label>
+                    <div class="info-box"
+                         data-toggle="tooltip"
+                         data-title="<?php _ex("This feature enables you to select the AliExpress region for your website. It automatically adjusts the imported prices, stock levels, and shipping information based on the chosen region.", 'setting description', 'ali2woo'); ?>"
+                    ></div>
+                </div>
+                <div class="field__input-wrap">
+                    <select name="a2wl_aliexpress_region" id="a2wl_aliexpress_region" class="field__input form-control small-input">
+                        <?php foreach ($aliexpressRegions as $regionCode => $text): ?>
+                            <option value="<?php echo $regionCode; ?>" <?php if ($aliexpressRegion == $regionCode): ?>selected="selected"<?php endif;?>><?php echo $text; ?></option>
+                        <?php endforeach;?>
+                    </select>
+                </div>
+            </div>
+        <?php endif; ?>
 
         <div class="field field_inline">
             <div class="field__label">
@@ -436,7 +463,7 @@ use function AliNext_Lite\get_setting;
     <div class="panel-heading">
         <h3 class="display-inline"><?php _ex('Schedule settings', 'Setting title', 'ali2woo'); ?></h3>
     </div>
-    <div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>
+    <div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">START FREE TRIAL</a></div>
     <div class="panel-body _a2wfv">
 
         <?php $a2wl_auto_update = get_setting('auto_update');?>

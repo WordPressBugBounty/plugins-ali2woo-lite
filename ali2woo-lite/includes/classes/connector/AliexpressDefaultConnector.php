@@ -56,7 +56,7 @@ class AliexpressDefaultConnector extends AbstractConnector
         return $result;
     }
 
-    public function load_products($filter, $page = 1, $per_page = 20, $params = [])
+    public function load_products(array $filter, $page = 1, $per_page = 20, $params = [])
     {
         $request_url = RequestHelper::build_request(
             'get_products',

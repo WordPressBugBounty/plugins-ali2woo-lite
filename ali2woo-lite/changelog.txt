@@ -361,3 +361,10 @@
 * Fix aliexpress category loader feature
 * Add compatibility with WooCommerce 9.8.*
 
+3.5.7
+* Increase category width on the search page
+* Fix incorrectly call of _load_textdomain_just_in_time
+* Fix fatal error in Utils::buildImageIdFromPath
+* Fix getFulfillmentOrdersData shipping error breaks popup
+* Fix minor bugs
+

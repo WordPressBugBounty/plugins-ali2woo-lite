@@ -245,7 +245,10 @@ class SynchProductController extends AbstractController
                         delete_transient('_a2w_daily_limits_warning');
                     } else {
                         // update daily limit warning
-                        if ($result['error_code'] == 5001 && isset($result['time_left'])) {
+                        $limitIsReached = isset($result['error_code']) &&
+                            $result['error_code'] == 5001 &&
+                            isset($result['time_left']);
+                        if ($limitIsReached) {
                             set_transient(
                                 '_a2w_daily_limits_warning',
                                 [
