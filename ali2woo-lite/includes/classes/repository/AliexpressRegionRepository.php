@@ -31,10 +31,13 @@ class AliexpressRegionRepository
         return [
             'US' => 'United States',
             'UK' => 'United Kingdom',
+            'AE' => 'United Arab Emirates',
+            'SA' => 'Saudi Arabia',
             'AU' => 'Australia',
             'CA' => 'Canada',
             'FR' => 'France',
             'BR' => 'Brazil',
+            'HR' => 'Croatia',
             'PT' => 'Portugal',
             'DE' => 'Germany',
             'IT' => 'Italy',

@@ -233,7 +233,18 @@ class SynchProductController extends AbstractController
                                     $product = $this->PriceFormulaService->applyFormula($product);
                                     $this->WoocommerceModel->upd_product($product['post_id'], $product);
                                     if ($result['state'] !== 'ok') {
-                                        a2wl_error_log("update_products_event: " . $result['message']);
+                                        $errorLogMessage = sprintf(
+                                            "Automatically synced product (ID: %d) at %s - failed: %s!",
+                                            $product['post_id'], date("j, Y, g:i a"), $result['error']
+                                        );
+                                        a2wl_error_log($errorLogMessage);
+                                    } else {
+                                        $infoLogMessage = sprintf(
+                                            "Automatically synced product (ID: %d) at %s - success!",
+                                            $product['post_id'],
+                                            date("j, Y, g:i a")
+                                        );
+                                        a2wl_info_log($infoLogMessage);
                                     }
                                     unset($tmp_product_map[$product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]]);
                                 } catch (Throwable $e) {

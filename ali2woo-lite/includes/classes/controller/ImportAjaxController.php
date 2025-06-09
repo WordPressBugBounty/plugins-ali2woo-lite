@@ -1008,7 +1008,7 @@ class ImportAjaxController extends AbstractController
         }
 
         if (A2WL()->isFreePlugin()) {
-            $errorText = '<div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">START FREE TRIAL</a></div>';
+            $errorText = '<div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>';
             $result = ResultBuilder::buildError($errorText);
 
             echo wp_json_encode($result);

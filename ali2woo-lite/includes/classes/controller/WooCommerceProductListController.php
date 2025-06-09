@@ -231,7 +231,7 @@ class WooCommerceProductListController extends AbstractController
         $time_value = get_post_meta($post_id, '_a2w_last_update', true);
         $time_value = $time_value ? gmdate("Y-m-d H:i:s", $time_value) : 'not updated';
 
-        $product_url = get_post_meta($post_id, '_product_url', true);
+        $product_url = get_post_meta($post_id, '_a2w_product_url', true);
         if (!$product_url) {
             $product_url = get_post_meta($post_id, '_a2w_original_product_url', true);
         }
@@ -316,15 +316,34 @@ class WooCommerceProductListController extends AbstractController
                 if ($res['state'] === 'error') {
                     $result = $res;
 
+                    $errorLogMessage = sprintf(
+                        "Manually synced product(s) at %s - failed: %s!",
+                        date("j, Y, g:i a"), $result['error'] ?? ''
+                    );
+                    a2wl_error_log($errorLogMessage);
+
                     // update daily limit warning
                     if ($result['error_code'] == 5001 && isset($result['time_left'])) {
-                        set_transient('_a2w_daily_limits_warning', array('limit' => $result['call_limit'], 'until' => time() + $result['time_left']), time() + $result['time_left']);
+                        set_transient(
+                                '_a2w_daily_limits_warning',
+                                array(
+                                        'limit' => $result['call_limit'],
+                                    'until' => time() + $result['time_left']),
+                                time() + $result['time_left']
+                        );
                     }
                 } else {
                     foreach ($res['products'] as $product) {
                         $product = array_replace_recursive($products[strval($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID])], $product);
                         $product = $this->PriceFormulaService->applyFormula($product);
                         $this->WoocommerceModel->upd_product($product['post_id'], $product, array('manual_update' => 1));
+
+                        $infoLogMessage = sprintf(
+                                "Manually synced product (ID: %d) at %s - success!",
+                                $product['post_id'],
+                            date("j, Y, g:i a")
+                        );
+                        a2wl_info_log($infoLogMessage);
                     }
 
                     delete_transient('_a2w_daily_limits_warning');

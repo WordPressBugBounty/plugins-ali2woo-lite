@@ -59,7 +59,7 @@ $a2w_local_currency = strtoupper(get_setting('local_currency'));
     </div>
 
     <div class="panel panel-default mt20">
-        <div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">START FREE TRIAL</a></div>
+        <div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>
         <div class="panel-body _a2wfv"">
             <div class="field field_inline">
                         <div class="field__label">

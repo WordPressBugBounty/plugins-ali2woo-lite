@@ -33,10 +33,10 @@ class PromoService
                 '</ul>',
             'local_price' => "12.00",
             'local_regular_price' => "24.00",
-            'currency' => 'USD',
+            'currency' => 'EUR',
             'evaluateScore' => 4.8,
-            'purchases' => 5785,
-            'button_cta' => 'Start Your Free Trial'
+            'purchases' => 8742,
+            'button_cta' => 'Get Full Version'
         ];
     }
 

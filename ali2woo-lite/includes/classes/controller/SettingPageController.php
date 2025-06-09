@@ -344,17 +344,32 @@ class SettingPageController extends AbstractAdminPage
             $account->use_custom_account(isset($_POST['a2wl_use_custom_account']));
             if ($account->custom_account && isset($_POST['a2wl_account_type'])) {
                 if ($_POST['a2wl_account_type'] == 'aliexpress') {
-                    //todo: add $_POST fields check
-                    $account->save_aliexpress_account(
-                        $_POST['a2wl_appkey'], $_POST['a2wl_secretkey'], $_POST['a2wl_trackingid']
-                    );
+                    $appkey = isset($_POST['a2wl_appkey']) ?
+                        trim(sanitize_text_field($_POST['a2wl_appkey'])) : null;
+                    $secretkey = isset($_POST['a2wl_secretkey']) ?
+                        trim(sanitize_text_field($_POST['a2wl_secretkey'])) : null;
+                    $trackingid = isset($_POST['a2wl_trackingid']) ?
+                        trim(sanitize_text_field($_POST['a2wl_trackingid'])) : null;
+
+                    $appkey = $this->isNoWhiteSpace($appkey) ? $appkey : null;
+                    $secretkey = $this->isNoWhiteSpace($secretkey) ? $secretkey : null;
+                    $trackingid = $this->isNoWhiteSpace($trackingid) ? $trackingid : null;
+                    $account->save_aliexpress_account($appkey, $secretkey, $trackingid);
                 } else if ($_POST['a2wl_account_type'] == 'admitad') {
-                    $account->save_admitad_account(
-                        $_POST['a2wl_admitad_cashback_url'] ?? '',
-                        $_POST['a2wl_admitad_account_name'] ?? '',
-                    );
+                    $cashback_url = isset($_POST['a2wl_admitad_cashback_url']) ?
+                        trim(sanitize_text_field($_POST['a2wl_admitad_cashback_url'])) : '';
+                    $account_name = isset($_POST['a2wl_admitad_account_name']) ?
+                        trim(sanitize_text_field($_POST['a2wl_admitad_account_name'])) : '';
+
+                    $cashback_url = $this->isNoWhiteSpace($cashback_url) ? $cashback_url : '';
+                    $account_name = $this->isNoWhiteSpace($account_name) ? $account_name : '';
+                    $account->save_admitad_account($cashback_url, $account_name);
                 } else if ($_POST['a2wl_account_type'] == 'epn') {
-                    $account->save_epn_account($_POST['a2wl_epn_cashback_url'] ?? '');
+                    $cashback_url = isset($_POST['a2wl_epn_cashback_url']) ?
+                        trim(sanitize_text_field($_POST['a2wl_epn_cashback_url'])) : '';
+
+                    $cashback_url = $this->isNoWhiteSpace($cashback_url) ? $cashback_url : '';
+                    $account->save_epn_account($cashback_url);
                 }
             }
         }
@@ -364,6 +379,11 @@ class SettingPageController extends AbstractAdminPage
         $this->model_put("tokens", $token->tokens());
 
         return "settings/account.php";
+    }
+
+    function isNoWhiteSpace(string $value): bool
+    {
+        return preg_match('/^\S+$/', $value);
     }
 
     private function price_formula(): string

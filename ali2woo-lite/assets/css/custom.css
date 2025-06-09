@@ -324,6 +324,11 @@
     opacity: 1;
 }
 
+.a2wl-content .form-control-feedback.a2wl-visible-switch {
+    cursor: pointer;
+    pointer-events: auto;
+}
+
 /* dropdown */
 .a2wl-content .btn-group,
 .a2wl-content .input-group-btn{

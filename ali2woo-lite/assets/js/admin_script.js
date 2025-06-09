@@ -327,7 +327,8 @@ function fill_modal_shipping_info(
         variationSelectNode.select2({
             data: variationsHelper.getOptions(),
             placeholder: "Select an variation",
-            allowClear: true
+            allowClear: true,
+            width: '200px',
         });
 
         country_from = variationsHelper.getShipFromCode();
@@ -614,7 +615,7 @@ var Utils = new Utils();
 
 (function ($, window, document, undefined) {
     $(function () {
-        if (a2wl_chrome_extension_loaded === false) {
+        if (a2wl_chrome_extension_loaded === false && localStorage.getItem('a2wChromeNotifyClosed') !== 'true') {
             $("#chrome-notify").show();
         }
 
@@ -1316,13 +1317,22 @@ var Utils = new Utils();
             const variation_key = $(this).parents(".product").attr('data-variation_key');
             const country_from_list = product_data.country_from_list;
 
+            const modalBodyNode = $('.modal-shipping .modal-body');
+            const modalCardNode = modalBodyNode.find('.modal-card');
+            modalCardNode.hide();
             let onLoadShippingInfoCallback = function (state, items, default_method, shipping_cost, variations, errorMessage) {
-                    fill_modal_shipping_info(
-                        product_id, variations, variation_key, country_from_list, product_data.country_from || "",
-                        product_data.country_to || "", items, 'import',
-                        product_data.default_method || default_method, onSelectCallback, errorMessage
-                    );
+                fill_modal_shipping_info(
+                    product_id, variations, variation_key, country_from_list, product_data.country_from || "",
+                    product_data.country_to || "", items, 'import',
+                    product_data.default_method || default_method, onSelectCallback, errorMessage
+                );
+                modalBodyNode.find('.a2wl-load-container').remove();
+                modalCardNode.show();
             }
+
+            modalBodyNode.append(
+                '<div class="a2wl-load-container"><div class="a2wl-load-speeding-wheel"></div></div>'
+            );
 
             a2wl_load_shipping_info(
                 product_id, variation_key, product_data.country_from || '',

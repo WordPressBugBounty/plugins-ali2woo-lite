@@ -326,6 +326,13 @@ class Woocommerce
                 $product_id = wp_insert_post($post);
             }
 
+            if (a2wl_check_defined('A2WL_ON_UPDATE_LOG_AFFILIATE_URL')) {
+                $infoLogMessage = sprintf(
+                    '(new import) Product (ID: %d) affiliate url: %s', $product_id, $product['affiliate_url']
+                );
+                a2wl_info_log($infoLogMessage);
+            }
+
             if (!empty($product['dimensions'])){
                 if (!empty($product['dimensions']['weight'])){
                     update_post_meta($product_id, '_weight', $product['dimensions']['weight']);
@@ -639,6 +646,13 @@ class Woocommerce
                 $wc_product->set_product_url($product['affiliate_url']);
             }
             $wc_product->update_meta_data('_a2w_product_url', $product['affiliate_url']);
+
+            if (a2wl_check_defined('A2WL_ON_UPDATE_LOG_AFFILIATE_URL')) {
+                $infoLogMessage = sprintf(
+                    'Product (ID: %d) affiliate url: %s', $product_id, $product['affiliate_url']
+                );
+                a2wl_info_log($infoLogMessage);
+            }
         }
 
         if (!empty($product['url'])) {
@@ -978,17 +992,13 @@ class Woocommerce
         return apply_filters('a2wl_woocommerce_after_upd_product', $result, $product_id, $product, $params);
     }
 
-    public function build_description($product_id, $product)
+    public function build_description(int $product_id, array $product): string
     {
-        $html = $product['description'];
+        // Ensure proper UTF-8 encoding before processing
+        $html = mb_convert_encoding($product['description'], 'UTF-8', 'auto');
 
-        if (function_exists('mb_convert_encoding')) {
-            $html = htmlspecialchars($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        } else {
-            $html = htmlspecialchars_decode(
-                utf8_decode(htmlentities($html, ENT_COMPAT, 'UTF-8', false))
-            );
-        }
+        // Convert special characters safely
+        $html = htmlspecialchars($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
         if (empty(trim($html))) {
             return trim($html);
@@ -997,30 +1007,27 @@ class Woocommerce
         if (function_exists('libxml_use_internal_errors')) {
             libxml_use_internal_errors(true);
         }
+
         if ($html && class_exists('DOMDocument')) {
             $dom = new \DOMDocument();
-            @$dom->loadHTML($html);
+
+            // Properly load HTML with UTF-8 handling
+            @$dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'), LIBXML_HTML_NODEFDTD);
             $dom->formatOutput = true;
 
+            // Handle images within description
             $elements = $dom->getElementsByTagName('img');
             for ($i = $elements->length; --$i >= 0;) {
                 $e = $elements->item($i);
-
-                if (isset($product['tmp_move_images'])) {
-                    foreach ($product['tmp_move_images'] as $img_id => $source) {
-                        if (isset($tmp_all_images[$img_id]) && !in_array($img_id, $product['skip_images'])) {
-                            $image_to_load[$img_id] = $tmp_all_images[$img_id]['image'];
-                        }
-                    }
-                }
 
                 $img_id = Utils::buildImageIdFromPath($e->getAttribute('src'));
                 if (in_array($img_id, $product['skip_images']) || isset($product['tmp_move_images'][$img_id])) {
                     $e->parentNode->removeChild($e);
                 } else if (!get_setting('use_external_image_urls')) {
-                    $tmp_title = isset($product['title']) && $product['title'] ? $product['title'] : "Product " . $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID];
+                    $tmp_title = isset($product['title']) && $product['title'] ? $product['title'] :
+                        "Product " . $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID];
 
-                    // if it has edited image, then user initial url
+                    // Preserve edited image URL correctly
                     $clear_image_url = !empty($product['tmp_edit_images'][$img_id]) ?
                         $e->getAttribute('src') :
                         Utils::clear_image_url($e->getAttribute('src'));
@@ -1044,9 +1051,11 @@ class Woocommerce
             $html = $dom->saveHTML();
         }
 
+        // Remove unwanted HTML elements
         $html = preg_replace('~<(?:!DOCTYPE|/?(?:html|body))[^>]*>\s*~i', '', $html);
 
-        return html_entity_decode(trim($html), ENT_COMPAT, 'UTF-8');
+        // Decode HTML entities correctly without affecting special characters
+        return html_entity_decode(trim($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 
     public function set_images($product, $product_id, $thumb_url, $images, $update, $title = '', $params = [])

@@ -389,34 +389,45 @@ class Aliexpress
             }
         }
 
-        if ($this->account->custom_account && isset($result['products'])) {
-            $tmp_urls = array();
+        if (isset($result['products'])) {
+            if ($this->account->custom_account) {
+                $tmp_urls = array();
 
-            foreach ($result['products'] as $product) {
-                if (!empty($product['url'])) {
-                    $tmp_urls[] = $product['url'];
-                }
-            }
-
-            try {
-                $promotionUrls = $this->get_affiliate_urls($tmp_urls);
-                if (!empty($promotionUrls) && is_array($promotionUrls)) {
-                    foreach ($result["products"] as &$product) {
-                        foreach ($promotionUrls as $pu) {
-                            if (!empty($pu) && $pu['url'] == $product['url']) {
-                                $product['affiliate_url'] = $pu['promotionUrl'];
-                                break;
-                            }
-                        }
+                foreach ($result['products'] as $product) {
+                    if (!empty($product['url'])) {
+                        $tmp_urls[] = $product['url'];
                     }
                 }
-            } catch (Throwable $e) {
-                a2wl_print_throwable($e);
+
+                try {
+                    $promotionUrls = $this->get_affiliate_urls($tmp_urls);
+                    if (!empty($promotionUrls) && is_array($promotionUrls)) {
+                        foreach ($result["products"] as &$product) {
+                            foreach ($promotionUrls as $pu) {
+                                if (!empty($pu) && $pu['url'] == $product['url']) {
+                                    $product['affiliate_url'] = $pu['promotionUrl'];
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        foreach ($result['products'] as &$product) {
+                            $product['affiliate_url'] = $product['url'];
+                        }
+                    }
+                } catch (Throwable $e) {
+                    a2wl_print_throwable($e);
+                    foreach ($result['products'] as &$product) {
+                        $product['affiliate_url'] = $product['url'];
+                    }
+                }
+            } else {
                 foreach ($result['products'] as &$product) {
-                    $product['affiliate_url'] = ''; //set empty to disable update!
+                    $product['affiliate_url'] = $product['url'];
                 }
             }
         }
+
 
         //we don't want to update description by default
         foreach ($result["products"] as &$product) {
@@ -478,33 +489,31 @@ class Aliexpress
         throw new ServiceException($exceptionMessage);
     }
 
-    private function clean_description($description)
+    private function clean_description(string $description): string
     {
-        $html = $description;
+        // Ensure proper UTF-8 encoding before processing
+        $html = mb_convert_encoding($description, 'UTF-8', 'auto');
 
-        if (function_exists('mb_convert_encoding')) {
-            $html = htmlspecialchars($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        } else {
-            $html = htmlspecialchars_decode(
-                utf8_decode(htmlentities($html, ENT_COMPAT, 'UTF-8', false))
-            );
-        }
+        // Convert special characters safely
+        $html = htmlspecialchars($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
+        // Enable internal error handling for DOMDocument
         if (function_exists('libxml_use_internal_errors')) {
             libxml_use_internal_errors(true);
         }
 
         if ($html && class_exists('\DOMDocument')) {
             $dom = new DOMDocument();
-            @$dom->loadHTML($html);
+
+            // Load HTML with proper UTF-8 handling
+            @$dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'), LIBXML_HTML_NODEFDTD);
             $dom->formatOutput = true;
 
+            // Tags to ignore/remove
             $ignoreDescriptionTags = [
                 'script', 'head', 'meta', 'style', 'map', 'noscript', 'object', 'iframe'
             ];
-
-            //ignore images because we get them from product['description_images'] property
-            $ignoreDescriptionTags[] = 'img';
+            $ignoreDescriptionTags[] = 'img'; // Ignore images
 
             $tags = apply_filters('a2wl_clean_description_tags', $ignoreDescriptionTags);
 
@@ -535,35 +544,34 @@ class Aliexpress
             $html = $dom->saveHTML();
         }
 
-        $html = preg_replace('~<(?:!DOCTYPE|/?(?:html|body))[^>]*>\s*~i', '', $html);
-
-        $html = preg_replace('/(<[^>]+) style=".*?"/i', '$1', $html);
-        $html = preg_replace('/(<[^>]+) class=".*?"/i', '$1', $html);
-        $html = preg_replace('/(<[^>]+) width=".*?"/i', '$1', $html);
-        $html = preg_replace('/(<[^>]+) height=".*?"/i', '$1', $html);
-        $html = preg_replace('/(<[^>]+) alt=".*?"/i', '$1', $html);
-        $html = preg_replace('/^<!DOCTYPE.+?>/', '$1', str_replace(array('<html>', '</html>', '<body>', '</body>'), '', $html));
-        $html = preg_replace("/<\/?div[^>]*\>/i", "", $html);
-
-        $html = preg_replace('/<a[^>]*>(.*)<\/a>/iU', '', $html);
-        $html = preg_replace('/<a[^>]*><\/a>/iU', '', $html); //delete empty A tags
-        $html = preg_replace("/<\/?h1[^>]*\>/i", "", $html);
-        $html = preg_replace("/<\/?strong[^>]*\>/i", "", $html);
-        $html = preg_replace("/<\/?span[^>]*\>/i", "", $html);
-
-        //$html = str_replace(' &nbsp; ', '', $html);
-        $html = str_replace('&nbsp;', ' ', $html);
-        $html = str_replace('\t', ' ', $html);
-        $html = str_replace('  ', ' ', $html);
-
         $html = preg_replace("/http:\/\/g(\d+)\.a\./i", "https://ae$1.", $html);
 
-        $html = preg_replace("/<[^\/>]*[^td]>([\s]?|&nbsp;)*<\/[^>]*[^td]>/", '', $html); //delete ALL empty tags
-        $html = preg_replace('/<td[^>]*><\/td>/iU', '', $html); //delete empty TD tags
+        // Remove unnecessary elements and attributes
+        $html = preg_replace([
+            '~<(?:!DOCTYPE|/?(?:html|body))[^>]*>\s*~i',
+            '/(<[^>]+) style=".*?"/i',
+            '/(<[^>]+) class=".*?"/i',
+            '/(<[^>]+) width=".*?"/i',
+            '/(<[^>]+) height=".*?"/i',
+            '/(<[^>]+) alt=".*?"/i',
+            '/^<!DOCTYPE.+?>/',
+            "/<\/?div[^>]*\>/i",
+            '/<a[^>]*>(.*)<\/a>/iU',
+            '/<a[^>]*><\/a>/iU',
+            "/<\/?h1[^>]*\>/i",
+            "/<\/?strong[^>]*\>/i",
+            "/<\/?span[^>]*\>/i",
+            '/<td[^>]*><\/td>/iU',
+            "/<[^\/>]*[^td]>([\s]?|&nbsp;)*<\/[^>]*[^td]>/"
+        ], '', $html);
 
-        $html = str_replace(array('<img', '<table'), array('<img class="img-responsive"', '<table class="table table-bordered'), $html);
+        // Normalize spaces
+        $html = str_replace(['&nbsp;', '\t', '  '], ' ', $html);
+
+        // Ensure balanced tags
         $html = force_balance_tags($html);
 
+        // Decode HTML entities correctly
         return html_entity_decode($html, ENT_COMPAT, 'UTF-8');
     }
 

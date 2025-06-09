@@ -26,15 +26,20 @@ class WooCommerceProductEditController extends AbstractController
         
         add_action('wp_ajax_a2wl_edit_image_url', [$this, 'ajax_edit_image_url']);
 
-        add_filter('get_sample_permalink_html', array($this, 'get_sample_permalink_html'), 10, 2);
+        add_filter('get_sample_permalink_html', [$this, 'get_sample_permalink_html'], 10, 2);
     }
 
-    public function get_sample_permalink_html($return, $id ){
-        $return .= '<button type="button" data-id="' .
-            $id .
-            '" class="sync-ali-product button button-small hide-if-no-js">' .
-            esc_html__("AliExpress Sync", 'ali2woo') .
-            '</button>';
+    public function get_sample_permalink_html(string $return, int $id): string
+    {
+        $external_id = get_post_meta($id, "_a2w_external_id", true);
+        if ($external_id) {
+            $return .= sprintf(
+                '<button type="button" data-id="%d" class="%s">%s</button>',
+                $id,
+                'sync-ali-product button button-small hide-if-no-js',
+                esc_html_x("AliExpress Sync", 'product editing page', 'ali2woo')
+            );
+        }
 
         return $return;
     }

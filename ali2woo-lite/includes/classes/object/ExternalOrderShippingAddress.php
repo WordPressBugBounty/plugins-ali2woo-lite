@@ -12,7 +12,7 @@ class ExternalOrderShippingAddress
 {
     function __construct(
         private ?string $customerName = null,
-        private ?int $phone = null,
+        private ?string $phone = null,
         private ?string $phoneCode = null,
         private ?string $country = null,
         private ?string $countryCode = null,

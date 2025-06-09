@@ -368,3 +368,11 @@
 * Fix getFulfillmentOrdersData shipping error breaks popup
 * Fix minor bugs
 
+3.5.8
+* Fixed issue where leading zeros in phone numbers were omitted during order fulfillment
+* Chrome extension badge can now be permanently hidden
+* Resolved issue of extra spaces in plugin account settings
+* Fixed UTF-8 character display bug in product descriptions
+* General minor bug fixes and improvements
+
+

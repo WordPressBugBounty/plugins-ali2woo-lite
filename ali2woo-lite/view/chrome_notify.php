@@ -19,9 +19,13 @@
         </div>
     </div>
     <script>(function ($) {
-            $('.chrome-notify-close').on('click', function () {
-                $(this).closest('.panel').remove();
-                return false;
+            $(document).on('ready', function () {
+                $('.chrome-notify-close').on('click', function (event) {
+                    event.preventDefault();
+
+                    $(this).closest('.panel').remove();
+                    localStorage.setItem('a2wChromeNotifyClosed', 'true');
+                });
             });
         })(jQuery);</script>
 </div>

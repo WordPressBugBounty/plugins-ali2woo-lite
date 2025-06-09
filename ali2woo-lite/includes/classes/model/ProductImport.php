@@ -73,8 +73,10 @@ class ProductImport {
         }
     }
 
-    public function save_product($product_id, $product, $processing = false) {
-        a2wl_set_transient('a2wl_' . ($processing ? 'processing_' : '') . 'product#' . strval($product_id), $product);
+    public function save_product($product_id, $product, $processing = false): void
+    {
+        $transientName = 'a2wl_' . ($processing ? 'processing_' : '') . 'product#' . strval($product_id);
+        a2wl_set_transient($transientName, $product);
     }
 
     public function get_product($product_id, $processing = false) {

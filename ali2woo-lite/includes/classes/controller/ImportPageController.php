@@ -115,8 +115,7 @@ class ImportPageController extends AbstractAdminPage
         }
 
         $product_import_model = new ProductImport();
-        /** @var $woocommerce_model  Woocommerce */ 
-        $woocommerce_model = A2WL()->getDI()->get('AliNext_Lite\Woocommerce');
+        $woocommerce_model = $this->WoocommerceModel;
         $country_model = new Country();
         $override_model = new Override();
 

@@ -238,7 +238,7 @@ if (!function_exists('utf8_decode')) {
 
 if (!function_exists('a2wl_set_transient')) {
 
-    function a2wl_set_transient($transient, $value, $expiration = 0, $use_cache = false, $autoload = 'no')
+    function a2wl_set_transient($transient, $value, $expiration = 0, $use_cache = false, $autoload = false)
     {
         if (a2wl_check_defined('A2WL_SAVE_TRANSIENT_AS_OPTION')) {
             wp_cache_delete($transient, 'options');
@@ -288,8 +288,8 @@ if (!function_exists('a2wl_set_transient')) {
             $transient_option = '_transient_' . $transient;
             if (false === get_option($transient_option)) {
                 if ($expiration) {
-                    $autoload = 'no';
-                    add_option($transient_timeout, time() + $expiration, '', 'no');
+                    $autoload = false;
+                    add_option($transient_timeout, time() + $expiration, '', false);
                 }
                 $result = add_option($transient_option, $value, '', $autoload);
             } else {
@@ -299,8 +299,8 @@ if (!function_exists('a2wl_set_transient')) {
                 if ($expiration) {
                     if (false === get_option($transient_timeout)) {
                         delete_option($transient_option);
-                        add_option($transient_timeout, time() + $expiration, '', 'no');
-                        $result = add_option($transient_option, $value, '', 'no');
+                        add_option($transient_timeout, time() + $expiration, '', false);
+                        $result = add_option($transient_option, $value, '', false);
                         $update = false;
                     } else {
                         update_option($transient_timeout, time() + $expiration);
@@ -332,15 +332,28 @@ if (!function_exists('a2wl_set_transient')) {
             /**
              * Fires after the value for a transient has been set.
              *
-             * @since 3.0.0
-             * @since 3.6.0 The `$value` and `$expiration` parameters were added.
+             * @since 6.8.0
              *
              * @param string $transient  The name of the transient.
              * @param mixed  $value      Transient value.
              * @param int    $expiration Time until expiration in seconds.
              */
-            do_action('setted_transient', $transient, $value, $expiration);
+            do_action('set_transient', $transient, $value, $expiration);
+
+            /**
+             * Fires after the transient is set.
+             *
+             * @since 3.0.0
+             * @since 3.6.0 The `$value` and `$expiration` parameters were added.
+             * @deprecated 6.8.0 Use {@see 'set_transient'} instead.
+             *
+             * @param string $transient  The name of the transient.
+             * @param mixed  $value      Transient value.
+             * @param int    $expiration Time until expiration in seconds.
+             */
+            do_action_deprecated('setted_transient', array( $transient, $value, $expiration ), '6.8.0', 'set_transient');
         }
+
         return $result;
     }
 

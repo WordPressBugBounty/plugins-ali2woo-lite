@@ -194,7 +194,7 @@ class Shipping {
                     <tr>
                         <td class="a2wl-placeholder-value-container">
                             <div class="form-inline" role="form">
-                                <div class="form-group has-success has-feedback testttt">  
+                                <div class="form-group has-success has-feedback">
                                     <input
                                             class="a2wl-placeholder-value form-control" type="text"
                                             readonly value="<?php echo esc_attr( "{{$key}}" ); ?>">

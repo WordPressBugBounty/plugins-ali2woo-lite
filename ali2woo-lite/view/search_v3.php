@@ -100,7 +100,7 @@ use AliNext_Lite\TipOfDay;
                 </div>
                 <?php if (A2WL()->isAnPlugin()) : ?>
                 <div class="search-panel-row search-panel-advanced" <?php if ($adv_search): ?>style="display: block;"<?php endif;?>>
-                    <div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">START FREE TRIAL</a></div>
+                    <div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>
                     <label class="filters">Additional filters (select one only)</label>
                     <div class="_a2wfv">
                         <div class="search-panel-col">

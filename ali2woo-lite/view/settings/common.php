@@ -22,19 +22,6 @@ use function AliNext_Lite\get_setting;
     <div class="panel-body">
         
         <div class="a2wl_purchase_code_info" style="display:none">
-            <?php /*
-            <div class="field field_inline">
-                <div class="field__label">
-                    <strong><?php  esc_html_e('Premium support', 'ali2woo');?></strong>
-                    <div class="info-box" data-toggle="tooltip" data-title='<?php  esc_html_e('Premium support', 'ali2woo');?>'></div>
-                </div>
-                <div class="field__input-wrap">
-                    <div class="form-group input-block no-margin">
-                        <span class="supported_until"></span> <a href="/" target="_blank"><?php  esc_html_e('extend/renew your support.', 'ali2woo');?></a>
-                    </div>
-                </div>
-            </div>
-            */ ?>
             <div class="field field_inline">
                 <div class="field__label">
                     <strong><?php  esc_html_e('Package', 'ali2woo');?></strong>
@@ -60,7 +47,7 @@ use function AliNext_Lite\get_setting;
     <div class="panel-body">
 
         <?php if (A2WL()->isAnPlugin()): ?>
-            <div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">START FREE TRIAL</a></div>
+            <div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>
             <div class="field field_inline _a2wfv">
                 <div class="field__label">
                     <label>
@@ -463,7 +450,7 @@ use function AliNext_Lite\get_setting;
     <div class="panel-heading">
         <h3 class="display-inline"><?php _ex('Schedule settings', 'Setting title', 'ali2woo'); ?></h3>
     </div>
-    <div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">START FREE TRIAL</a></div>
+    <div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>
     <div class="panel-body _a2wfv">
 
         <?php $a2wl_auto_update = get_setting('auto_update');?>
@@ -660,6 +647,21 @@ function a2wl_isInt(value) {
 (function ($) {
     let ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';
     let nonce_action = '<?php echo wp_create_nonce(AbstractController::AJAX_NONCE_ACTION); ?>';
+
+
+    $(".a2wl-visible-switch").on("click", function () {
+        let inputField = $("#a2wl_item_purchase_code");
+        let toggleIcon = $(this);
+
+        if (inputField.attr("type") === "password") {
+            inputField.attr("type", "text");
+            toggleIcon.removeClass("dashicons-hidden").addClass("dashicons-visibility");
+        } else {
+            inputField.attr("type", "password");
+            toggleIcon.removeClass("dashicons-visibility").addClass("dashicons-hidden");
+        }
+    });
+
 
     $("#a2w_local_currency").select2();
     $("#a2w_import_language").select2();
