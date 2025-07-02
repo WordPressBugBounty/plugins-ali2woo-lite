@@ -37,6 +37,10 @@ class MigrateService
             $this->migrate_to_354();
         }
 
+        if (version_compare($cur_version, "3.5.9", '<')) {
+            $this->migrate_to_359();
+        }
+
         if (version_compare($cur_version, A2WL()->version, '<')) {
             update_option('a2wl_db_version', A2WL()->version, 'no');
         }
@@ -60,5 +64,29 @@ class MigrateService
     {
         a2wl_error_log('migrate to 3.5.4');
         $this->ProductShippingDataRepository->clear();
+    }
+
+    public function migrate_to_359(): void
+    {
+        a2wl_error_log('migrate 3.5.9');
+        $cap = Capability::pluginAccess();
+        $allowManager = false;
+
+        if (A2WL()->isAnPlugin()) {
+            $allowManager = get_setting(Settings::SETTING_ALLOW_SHOP_MANAGER);
+        }
+
+        foreach (PageGuardHelper::getAllRoles() as $roleKey) {
+            $role = get_role($roleKey);
+            if (!$role) {
+                continue;
+            }
+
+            if ($roleKey === PageGuardHelper::ROLE_ADMIN || $allowManager) {
+                $role->add_cap($cap);
+            } else {
+                $role->remove_cap($cap);
+            }
+        }
     }
 }

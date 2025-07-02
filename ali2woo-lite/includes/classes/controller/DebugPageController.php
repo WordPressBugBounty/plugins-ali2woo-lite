@@ -10,19 +10,31 @@
 
 namespace AliNext_Lite;;
 
+use Pages;
+
 class DebugPageController extends AbstractAdminPage
 {
 
     public function __construct()
     {
         if (a2wl_check_defined('A2WL_DEBUG_PAGE')) {
-            parent::__construct(esc_html__('Debug', 'ali2woo'), esc_html__('Debug', 'ali2woo'), 'edit_plugins', 'a2wl_debug', 1100);
+            parent::__construct(
+                Pages::getLabel(Pages::DEBUG),
+                Pages::getLabel(Pages::DEBUG),
+                Capability::pluginAccess(),
+                Pages::DEBUG,
+                1100
+            );
         }
     }
 
-    public function render($params = array())
+    public function render($params = []): void
     {
-        echo "<br/><b>DEBUG</b><br/>";
+        if (!PageGuardHelper::canAccessPage(Pages::DEBUG)) {
+            wp_die($this->getErrorTextNoPermissions());
+        }
+
+        echo "<br/><b>" .  Pages::getLabel(Pages::DEBUG) . "</b><br/>";
     }
 
 }

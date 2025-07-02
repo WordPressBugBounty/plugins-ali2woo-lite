@@ -12,6 +12,7 @@
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
 namespace AliNext_Lite;;
 
+use Pages;
 use Throwable;
 
 class ImportAjaxController extends AbstractController
@@ -93,7 +94,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -204,7 +205,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -231,7 +232,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -439,7 +440,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -475,7 +476,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -538,7 +539,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -556,7 +557,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -582,7 +583,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -627,7 +628,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -669,7 +670,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -707,7 +708,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -742,7 +743,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -797,7 +798,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -825,7 +826,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -862,7 +863,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -890,7 +891,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -957,7 +958,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -1001,14 +1002,14 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
         }
 
         if (A2WL()->isFreePlugin()) {
-            $errorText = '<div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>';
+            $errorText = '<div class="_a2wfo a2wl-info"><div>This feature is available in full version of the plugin.</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>';
             $result = ResultBuilder::buildError($errorText);
 
             echo wp_json_encode($result);
@@ -1361,7 +1362,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -1410,7 +1411,7 @@ class ImportAjaxController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();

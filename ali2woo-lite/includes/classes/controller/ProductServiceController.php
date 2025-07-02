@@ -11,6 +11,7 @@
 
 namespace AliNext_Lite;;
 
+use Pages;
 use WC_Meta_Box_Product_Data;
 use WC_Product_Factory;
 
@@ -100,12 +101,11 @@ class ProductServiceController {
             }
         }
     }
-
     public function woocommerce_save_attributes(): void
     {
         check_ajax_referer('save-attributes', 'security');
 
-        if (!current_user_can('edit_products')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             wp_die(-1);
         }
 

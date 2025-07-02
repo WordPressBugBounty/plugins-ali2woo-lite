@@ -5,7 +5,7 @@ Plugin URI: https://ali2woo.com/pricing/?utm_source=lite&utm_medium=plugin&utm_c
 Description: Aliexpress Dropshipping for Woocommerce (AliNext Lite version)
 Text Domain: ali2woo
 Domain Path: /languages
-Version: 3.5.8
+Version: 3.5.9
 Author: Dropshipping Guru
 Author URI: https://ali2woo.com/dropshipping-plugin/?utm_source=lite&utm_medium=author&utm_campaign=alinext-lite
 License: GPLv3
@@ -18,6 +18,7 @@ Requires Plugins: woocommerce
  */
 
 use AliNext_Lite\ApplyPricingRulesProcess;
+use AliNext_Lite\Capability;
 use AliNext_Lite\ImportProcess;
 use AliNext_Lite\Json_Api_Configurator;
 use AliNext_Lite\Loader;
@@ -27,6 +28,12 @@ use DI\ContainerBuilder;
 if (!defined('A2WL_PLUGIN_FILE')) {
     define('A2WL_PLUGIN_FILE', __FILE__);
 }
+
+
+if (!defined('ALINEXT_IS_LITE')) {
+    define('ALINEXT_IS_LITE', true);
+}
+
 
 if (!class_exists('A2WL_Main')) {
 
@@ -158,9 +165,16 @@ if (!class_exists('A2WL_Main')) {
         {
             do_action('a2wl_before_admin_menu');
 
-            add_menu_page(esc_html__('AliNext (Lite version)', 'ali2woo'), esc_html__('AliNext (Lite version)', 'ali2woo'), 'import', 'a2wl_dashboard', '', plugins_url('assets/img/icon.png', A2WL_PLUGIN_FILE));
+            add_menu_page(
+                esc_html_x('AliNext (Lite version)', 'plugin name', 'ali2woo'),
+                esc_html_x('AliNext (Lite version)', 'plugin name', 'ali2woo'),
+                Capability::pluginAccess(),
+                Pages::DASHBOARD,
+                '',
+                plugins_url('assets/img/icon.png', A2WL_PLUGIN_FILE)
+            );
 
-            do_action('a2wl_init_admin_menu', 'a2wl_dashboard');
+            do_action('a2wl_init_admin_menu', Pages::DASHBOARD);
         }
 
         public function getDI(): ?Container {

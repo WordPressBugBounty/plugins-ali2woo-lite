@@ -10,10 +10,19 @@
 
 namespace AliNext_Lite;;
 
+use Pages;
+
 class WizardPageController extends AbstractAdminPage {
 
     public function __construct() {
-        parent::__construct(esc_html__('Wizard', 'ali2woo'), esc_html__('Wizard', 'ali2woo'), 'import', 'a2wl_wizard', 30, 2);
+        parent::__construct(
+            Pages::getLabel(Pages::WIZARD),
+            Pages::getLabel(Pages::WIZARD),
+            Capability::pluginAccess(),
+            Pages::WIZARD,
+            30,
+            2
+        );
     }
 
     public function render($params = []): void
@@ -22,7 +31,7 @@ class WizardPageController extends AbstractAdminPage {
             check_admin_referer(self::PAGE_NONCE_ACTION, self::NONCE);
         }
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::WIZARD)) {
             wp_die($this->getErrorTextNoPermissions());
         }
 

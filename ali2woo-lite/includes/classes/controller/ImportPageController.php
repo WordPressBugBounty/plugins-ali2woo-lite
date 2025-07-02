@@ -10,18 +10,20 @@
 
 namespace AliNext_Lite;;
 
+use Pages;
+
 class ImportPageController extends AbstractAdminPage
 {
     protected Woocommerce $WoocommerceModel;
     protected ImportListService $ImportListService;
 
     public function __construct(Woocommerce $WoocommerceModel, ImportListService $ImportListService) {
-        $menuTitle = esc_html__('Import List', 'ali2woo') . ' ' . $this->getImportListItemCountHtml();
+
         parent::__construct(
-            esc_html__('Import List', 'ali2woo'),
-            $menuTitle,
-            'import',
-            'a2wl_import',
+            Pages::getLabel(Pages::IMPORT_LIST),
+            Pages::getLabel(Pages::IMPORT_LIST) . ' ' . $this->getImportListItemCountHtml(),
+            Capability::pluginAccess(),
+            Pages::IMPORT_LIST,
             20
         );
 
@@ -63,7 +65,7 @@ class ImportPageController extends AbstractAdminPage
             check_admin_referer(self::PAGE_NONCE_ACTION, self::NONCE);
         }
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             wp_die($this->getErrorTextNoPermissions());
         }
 
@@ -110,7 +112,7 @@ class ImportPageController extends AbstractAdminPage
             check_admin_referer(self::PAGE_NONCE_ACTION, self::NONCE);
         }
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             wp_die($this->getErrorTextNoPermissions());
         }
 

@@ -12,6 +12,7 @@
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
 namespace AliNext_Lite;;
 
+use Pages;
 use Throwable;
 use WC_Order;
 use Automattic\WooCommerce\Utilities\OrderUtil;
@@ -68,7 +69,7 @@ class OrderFulfillmentController extends AbstractController
         add_filter('a2wl_fill_additional_shipping_fields', array($this, 'fill_additional_shipping_fields'), 10, 3);
         add_action('a2wl_update_custom_shipping_field', [$this, 'update_custom_shipping_field'], 10, 3);
 
-        add_action('init', [$this, 'init']);
+        $this->init();
     }
 
     public function admin_init(): void
@@ -358,7 +359,7 @@ class OrderFulfillmentController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::ORDER_MANAGEMENT)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -479,7 +480,7 @@ class OrderFulfillmentController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::ORDER_MANAGEMENT)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -545,7 +546,7 @@ class OrderFulfillmentController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::ORDER_MANAGEMENT)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -604,7 +605,7 @@ class OrderFulfillmentController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::ORDER_MANAGEMENT)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -676,7 +677,7 @@ class OrderFulfillmentController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::ORDER_MANAGEMENT)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -787,7 +788,7 @@ class OrderFulfillmentController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::ORDER_MANAGEMENT)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -835,7 +836,7 @@ class OrderFulfillmentController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::ORDER_MANAGEMENT)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -866,7 +867,7 @@ class OrderFulfillmentController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::ORDER_MANAGEMENT)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();

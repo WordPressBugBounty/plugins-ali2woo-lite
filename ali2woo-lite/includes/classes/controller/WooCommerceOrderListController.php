@@ -12,6 +12,7 @@
 namespace AliNext_Lite;;
 
 use Automattic\WooCommerce\Utilities\OrderUtil;
+use Pages;
 
 class WooCommerceOrderListController extends AbstractController
 {
@@ -91,7 +92,7 @@ class WooCommerceOrderListController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::ORDER_MANAGEMENT)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -111,7 +112,7 @@ class WooCommerceOrderListController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::ORDER_MANAGEMENT)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -142,7 +143,7 @@ class WooCommerceOrderListController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::ORDER_MANAGEMENT)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();

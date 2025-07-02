@@ -375,4 +375,12 @@
 * Fixed UTF-8 character display bug in product descriptions
 * General minor bug fixes and improvements
 
+3.5.9
+* Added a visibility toggle for the purchase code input field for improved UX (Premium only)
+* Introduced a loading indicator to the shipping modal in the Import List (Premium only)
+* Resolved incorrect usage notice for is_internal_meta_key
+* Fixed the "Edit Order Details" feature in the Order Fulfillment popup
+* Introduced advanced Access Control settings in plugin options (Premium only)
+* Various minor bug fixes and general improvement
+
 

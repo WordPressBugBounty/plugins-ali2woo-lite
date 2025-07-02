@@ -9,22 +9,22 @@
 
 namespace AliNext_Lite;;
 
+use Pages;
+
 class HelpController {
 
-    public $tab_class = '';
-    public $tab_id = '';
-    public $tab_title = '';
-    public $tab_icon = '';
-
     public function __construct() {    
-        add_action('a2wl_init_admin_menu', array($this, 'add_submenu_page'), 200);  
+        add_action('a2wl_init_admin_menu', [$this, 'add_submenu_page'], 200);
     }
 
-    public function add_submenu_page($parent_slug)
+    public function add_submenu_page($parent_slug): void
     {
         add_submenu_page(
-            $parent_slug, '', 'Help',
-            'manage_options', 'https://help.ali2woo.com/alinext-kb/'
+            $parent_slug,
+            '',
+            Pages::getLabel(Pages::HELP),
+            Capability::pluginAccess(),
+            'https://help.ali2woo.com/alinext-kb/'
         );
     }
 }

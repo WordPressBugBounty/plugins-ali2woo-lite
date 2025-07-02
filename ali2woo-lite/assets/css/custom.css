@@ -663,6 +663,14 @@ body[class*="page_a2w"]{
     opacity: .65;
 }
 
+.a2wl-content .a2wl-disabled {
+    opacity: 0.6;
+    pointer-events: none;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    background-color: #f9f9f9;
+    position: relative;
+}
+
 .a2wl-content .radio-inline{
     margin-right: 20px;
 }

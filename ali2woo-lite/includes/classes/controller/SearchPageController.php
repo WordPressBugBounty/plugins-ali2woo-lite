@@ -10,6 +10,8 @@
 
 namespace AliNext_Lite;;
 
+use Pages;
+
 class SearchPageController extends AbstractAdminPage
 {
     protected Aliexpress $AliexpressModel;
@@ -20,10 +22,10 @@ class SearchPageController extends AbstractAdminPage
         Country $CountryModel
     ) {
         parent::__construct(
-            esc_html__('Search Products', 'ali2woo'),
-            esc_html__('Search Products', 'ali2woo'),
-            'import',
-            'a2wl_dashboard',
+            Pages::getLabel(Pages::DASHBOARD),
+            Pages::getLabel(Pages::DASHBOARD),
+            Capability::pluginAccess(),
+            Pages::DASHBOARD,
             10
         );
 
@@ -45,7 +47,7 @@ class SearchPageController extends AbstractAdminPage
 
     public function render($params = []): void
     {
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::DASHBOARD)) {
             wp_die($this->getErrorTextNoPermissions());
         }
 

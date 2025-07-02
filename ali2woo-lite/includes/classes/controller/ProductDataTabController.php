@@ -12,6 +12,8 @@
 // phpcs:ignoreFile WordPress.Security.NonceVerification.Recommended
 namespace AliNext_Lite;;
 
+use Pages;
+
 class ProductDataTabController extends AbstractController
 {
 
@@ -208,7 +210,7 @@ class ProductDataTabController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -234,7 +236,7 @@ class ProductDataTabController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -259,7 +261,7 @@ class ProductDataTabController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -281,7 +283,7 @@ class ProductDataTabController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
@@ -335,7 +337,7 @@ class ProductDataTabController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();

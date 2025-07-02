@@ -3,6 +3,8 @@ namespace AliNext_Lite;;
 
 //if (!function_exists('a2w_global_template_redirect')) {
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
+use Pages;
+
 function a2w_global_template_redirect()
 {
     do_action('a2w_template_redirect');
@@ -115,14 +117,21 @@ class JSON_API
         }
     }
 
-    function admin_menu()
+    function admin_menu(): void
     {
-        add_submenu_page($this->root_menu_slug, 'JSON API Settings', 'JSON API', 'manage_options', 'a2w-json-api', array(&$this, 'admin_options'));
+        add_submenu_page(
+            $this->root_menu_slug,
+            Pages::getLabel(Pages::JSON_API),
+            Pages::getLabel(Pages::JSON_API),
+            Capability::pluginAccess(),
+            Pages::JSON_API,
+            [$this, 'render']
+        );
     }
 
-    function admin_options()
+    function render(): void
     {
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::JSON_API)) {
             wp_die(esc_html__('You do not have sufficient permissions to access this page.', 'ali2woo'));
         }
 
@@ -170,7 +179,7 @@ class JSON_API
         <div class="wrap">
             <div id="icon-options-general" class="icon32"><br/></div>
             <h2>JSON API Settings</h2>
-            <form action="admin.php?page=a2w-json-api" method="post">
+            <form action="admin.php?page=<?php echo Pages::JSON_API; ?>" method="post">
                 <?php wp_nonce_field('update-options'); ?>
                 <h3>Controllers</h3>
                 <?php $this->print_controller_actions(); ?>
@@ -217,9 +226,9 @@ class JSON_API
                                 <div class="row-actions-visible">
                                     <?php
                                     if ($active) {
-                                        echo '<a href="' . wp_nonce_url('admin.php?page=a2w-json-api&amp;action=deactivate&amp;controller=' . $controller, 'update-options') . '" title="' . esc_html__('Deactivate this controller', 'ali2woo') . '" class="edit">' . esc_html__('Deactivate') . '</a>';
+                                        echo '<a href="' . wp_nonce_url('admin.php?page=' .  Pages::JSON_API  . '&amp;action=deactivate&amp;controller=' . $controller, 'update-options') . '" title="' . esc_html__('Deactivate this controller', 'ali2woo') . '" class="edit">' . esc_html__('Deactivate') . '</a>';
                                     } else if (!$error) {
-                                        echo '<a href="' . wp_nonce_url('admin.php?page=a2w-json-api&amp;action=activate&amp;controller=' . $controller, 'update-options') . '" title="' . esc_html__('Activate this controller', 'ali2woo') . '" class="edit">' . esc_html__('Activate') . '</a>';
+                                        echo '<a href="' . wp_nonce_url('admin.php?page=' .  Pages::JSON_API  . '&amp;action=activate&amp;controller=' . $controller, 'update-options') . '" title="' . esc_html__('Activate this controller', 'ali2woo') . '" class="edit">' . esc_html__('Activate') . '</a>';
                                     }
 
                                     if (!empty($info['url'])) {

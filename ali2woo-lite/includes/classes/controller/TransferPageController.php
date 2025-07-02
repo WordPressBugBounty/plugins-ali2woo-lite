@@ -10,6 +10,8 @@
 
 namespace AliNext_Lite;;
 
+use Pages;
+
 class TransferPageController extends AbstractAdminPage
 {
     public const FIELD_HASH = "hash";
@@ -17,14 +19,17 @@ class TransferPageController extends AbstractAdminPage
     public function __construct()
     {
         parent::__construct(
-            esc_html__('Transfer', 'ali2woo'), esc_html__('Transfer', 'ali2woo'),
-            'import', 'a2wl_transfer', 95
+            Pages::getLabel(Pages::TRANSFER),
+            Pages::getLabel(Pages::TRANSFER),
+            Capability::pluginAccess(),
+            Pages::TRANSFER,
+            95
         );
     }
 
     public function render($params = []): void
     {
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::TRANSFER)) {
             wp_die($this->getErrorTextNoPermissions());
         }
 

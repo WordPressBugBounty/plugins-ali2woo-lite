@@ -615,6 +615,11 @@ var Utils = new Utils();
 
 (function ($, window, document, undefined) {
     $(function () {
+
+        if (!$('.a2wl-content').length) {
+            return;
+        }
+
         if (a2wl_chrome_extension_loaded === false && localStorage.getItem('a2wChromeNotifyClosed') !== 'true') {
             $("#chrome-notify").show();
         }

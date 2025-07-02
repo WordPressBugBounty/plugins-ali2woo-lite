@@ -11,6 +11,7 @@
 // phpcs:ignoreFile WordPress.Security.NonceVerification.Recommended
 namespace AliNext_Lite;;
 use Automattic\WooCommerce\Utilities\OrderUtil;
+use Pages;
 use Throwable;
 
 class OrderDataTabController extends AbstractController
@@ -70,7 +71,7 @@ class OrderDataTabController extends AbstractController
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();

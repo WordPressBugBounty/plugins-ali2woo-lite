@@ -9,6 +9,8 @@
  */
 namespace AliNext_Lite;;
 
+use Pages;
+
 class SearchStoreProductsPageController extends AbstractAdminPage
 {
 
@@ -20,7 +22,13 @@ class SearchStoreProductsPageController extends AbstractAdminPage
         Aliexpress $AliexpressModel,
         Country $CountryModel
     ) {
-        parent::__construct(esc_html__('Search In Store', 'ali2woo'), esc_html__('Search In Store', 'ali2woo'), 'import', 'a2wl_store', 10);
+        parent::__construct(
+            Pages::getLabel(Pages::STORE),
+            Pages::getLabel(Pages::STORE),
+            Capability::pluginAccess(),
+            Pages::STORE,
+            10
+        );
 
         $this->AliexpressModel = $AliexpressModel;
         $this->CountryModel = $CountryModel;
@@ -45,7 +53,7 @@ class SearchStoreProductsPageController extends AbstractAdminPage
             check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
         }
 
-        if (!current_user_can('manage_options')) {
+        if (!PageGuardHelper::canAccessPage(Pages::STORE)) {
             wp_die($this->getErrorTextNoPermissions());
         }
 

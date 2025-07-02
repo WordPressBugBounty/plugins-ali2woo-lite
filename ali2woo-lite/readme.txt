@@ -213,6 +213,12 @@ Please note: In the lite plugin version you have a limit of 10 orders operations
 
 - **Lifetime update**
 
+&#9658; **Advanced Access Control for Plugin Pages**:
+
+**[pro feature] Now you can securely grant the Shop Manager role access to key sections of the AliNext plugin — without giving them full administrator rights. Previously, only admin users could access core features, making it difficult to delegate store operations. With the new Access Control panel, you can allow store managers or team members to work with essential plugin pages like Search, Import or Order, while restricting access to sensitive controls.
+
+Go to AliNext Settings > Access Control.
+
 &#9658; **Find best products using built-in search tool**: 
 
 **[pro feature]** Get more search requests to find the best products for your store. In contrast to AliNext Lite allowing you to make only 100 operations per day.
@@ -308,6 +314,15 @@ In case you have any questions or need technical assistance, get in touch with u
 9. Import product video from AliExpress
 
 == Changelog ==
+
+= 3.5.9 - 2025.02.07
+* Added a visibility toggle for the purchase code input field for improved UX (Premium only)
+* Introduced a loading indicator to the shipping modal in the Import List (Premium only)
+* Resolved incorrect usage notice for is_internal_meta_key
+* Fixed the "Edit Order Details" feature in the Order Fulfillment popup
+* Introduced advanced Access Control settings in plugin options (Premium only)
+* Various minor bug fixes and general improvement
+
 = 3.5.8 - 2025.09.06
 * Fixed issue where leading zeros in phone numbers were omitted during order fulfillment
 * Chrome extension badge can now be permanently hidden
@@ -427,26 +442,6 @@ In case you have any questions or need technical assistance, get in touch with u
 
 = 3.3.3 - 2024.05.28 =
 * Fix plugin activation bug;
-
-= 3.3.2 - 2024.05.27 =
-* Update background process library, add namespaces for the library;
-* Fix bug with product last-update date;
-* Add cancel button for all background processed;
-* Add php max_execution_time check to system info page
-* Fix minor bug, old code base refactor;
-
-= 3.3.0 - 2024.05.20 =
-* Improve bulk price application script; Now you can close or refresh page when start the process;
-* Add status bar for all backroud processes in order to make it more clear;
-* Fix bug with product descriprtion images;
-* Fix minor bug, old code base refactor;
-
-= 3.2.8 - 2024.05.03 =
-* fix function saving images in image editor tool
-* fix pricing rules bug in plugin backend
-* fix product description loading
-* update some plugin dependecies
-* fix minor bugs
 
 == Upgrade Notice ==
 

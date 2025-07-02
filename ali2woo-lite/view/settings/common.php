@@ -1,5 +1,6 @@
 <?php
 use AliNext_Lite\AbstractController;
+use AliNext_Lite\CommonSettingService;
 use AliNext_Lite\Settings;
 use function AliNext_Lite\get_setting;
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -8,6 +9,10 @@ use function AliNext_Lite\get_setting;
  * @var array $languages
  * @var array $aliexpressRegions
  * @var string $aliexpressRegion
+ *
+ * @var bool $isShopManagerAllowed
+ * @var array $hiddenPages
+ * @var array $menuPages
  */
 ?>
 
@@ -47,7 +52,7 @@ use function AliNext_Lite\get_setting;
     <div class="panel-body">
 
         <?php if (A2WL()->isAnPlugin()): ?>
-            <div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>
+            <div class="_a2wfo a2wl-info"><div>This feature is available in full version of the plugin.</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>
             <div class="field field_inline _a2wfv">
                 <div class="field__label">
                     <label>
@@ -450,7 +455,7 @@ use function AliNext_Lite\get_setting;
     <div class="panel-heading">
         <h3 class="display-inline"><?php _ex('Schedule settings', 'Setting title', 'ali2woo'); ?></h3>
     </div>
-    <div class="_a2wfo a2wl-info"><div>This feature is available in full version of AliNext (Lite version).</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>
+    <div class="_a2wfo a2wl-info"><div>This feature is available in full version of the plugin.</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>
     <div class="panel-body _a2wfv">
 
         <?php $a2wl_auto_update = get_setting('auto_update');?>
@@ -625,6 +630,81 @@ use function AliNext_Lite\get_setting;
     </div>
 </div>
 
+<?php if (A2WL()->isAnPlugin()): ?>
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="display-inline"><?php echo esc_html_x('Access Control', 'setting section', 'ali2woo'); ?></h3>
+    </div>
+    <div class="_a2wfo a2wl-info"><div>This feature is available in full version of the plugin.</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>
+    <div class="panel-body _a2wfv">
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="row-comments text-muted" style="margin-bottom: 20px;">
+                    <i class="dashicons dashicons-lock" style="margin-right: 5px; vertical-align: middle;"></i>
+                    <?php echo esc_html_x(
+                        'By default, only Administrators can access the plugin. Use the options below to allow Shop Managers and control which sections are visible for that role.',
+                        'access control panel description',
+                        'ali2woo'
+                    ); ?>
+                </div>
+            </div>
+        </div>
+
+        <div class="field field_inline">
+            <div class="field__label">
+                <label>
+                    <strong><?php echo esc_html_x('Allow Shop Manager', 'Setting title', 'ali2woo'); ?></strong>
+                </label>
+                <div class="info-box"
+                     data-toggle="tooltip"
+                     data-title="<?php echo esc_html_x('Allow Shop Manager role to access AliNext (Lite version) plugin', 'setting description', 'ali2woo'); ?>">
+                </div>
+            </div>
+            <div class="field__input-wrap">
+                <div class="form-group input-block no-margin">
+                    <input type="checkbox"
+                           class="field__input form-control"
+                           id="<?php echo esc_attr(CommonSettingService::PARAM_ALLOW_SHOP_MANAGER); ?>"
+                           name="<?php echo esc_attr(CommonSettingService::PARAM_ALLOW_SHOP_MANAGER); ?>"
+                           value="yes"
+                        <?php checked($isShopManagerAllowed); ?> />
+                </div>
+            </div>
+        </div>
+
+        <div class="field field_default field_inline"
+             data-a2wl-hidden-section
+             style="margin-top: 30px;">
+            <label class="field__label">
+                <?php echo esc_html_x('Hidden Sections (non-admin)', 'Setting title', 'ali2woo'); ?>
+                <div class="info-box"
+                     data-toggle="tooltip"
+                     data-title="<?php echo esc_html_x('Choose sections to hide from non-admin users (admins always see all).', 'setting description', 'ali2woo'); ?>">
+
+                </div>
+            </label>
+            <div class="field__input-wrap">
+                <div class="grid grid_3">
+                    <?php foreach ($menuPages as $slug => $label): ?>
+                        <div class="grid__col">
+                            <label>
+                                <input type="checkbox" class="field__input"
+                                       name="<?php echo esc_attr(CommonSettingService::PARAM_HIDDEN_PAGES);?>[]"
+                                       value="<?php echo esc_attr($slug); ?>"
+                                    <?php checked(in_array($slug, $hiddenPages)); ?> />
+                                <?php echo esc_html($label); ?>
+                            </label>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<?php endif; ?>
+
 <div class="container-fluid">
     <div class="row pt20 border-top">
         <div class="col-sm-12">
@@ -636,6 +716,18 @@ use function AliNext_Lite\get_setting;
 </form>
 
 <script>
+window.A2W = window.A2W || {};
+A2W.AdminSettings = A2W.AdminSettings || {};
+
+A2W.AdminSettings.toggleAccessControl = function () {
+    const $checkbox = jQuery("#a2wl_allow_shop_manager");
+    const $hiddenSection = jQuery("[data-a2wl-hidden-section]");
+    const $inputs = $hiddenSection.find("input[name^='a2wl_hidden_pages']");
+
+    const enabled = $checkbox.is(':checked');
+    $inputs.prop('disabled', !enabled);
+    $hiddenSection.toggleClass('a2wl-disabled', !enabled);
+};
 
 function a2wl_isInt(value) {
     return !isNaN(value) &&
@@ -643,6 +735,23 @@ function a2wl_isInt(value) {
             !isNaN(parseInt(value, 10));
 }
 
+function handleAllowShopManagerLogic() {
+    const $checkbox = $("#a2wl_allow_shop_manager");
+    const $hiddenSection = $("[data-a2wl-hidden-section]");
+    const $inputs = $hiddenSection.find("input[name^='a2wl_hidden_pages']");
+
+    const enabled = $checkbox.is(':checked');
+    $inputs.prop('disabled', !enabled);
+
+    $hiddenSection.toggleClass('a2wl-disabled', !enabled);
+
+    // Toggle title for hover tooltip
+    if (!enabled) {
+        $hiddenSection.attr('title', 'Access disabled until Shop Manager is allowed');
+    } else {
+        $hiddenSection.removeAttr('title');
+    }
+}
 
 (function ($) {
     let ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';
@@ -682,6 +791,12 @@ function a2wl_isInt(value) {
         jQuery("#a2wl_email_alerts").prop('disabled', !jQuery(this).is(':checked'));
     });
 
+    $("#a2wl_allow_shop_manager").on('change', function() {
+        A2W.AdminSettings.toggleAccessControl();
+    });
+    A2W.AdminSettings.toggleAccessControl();
+
+
     jQuery("#a2wl_email_alerts").on('change', function () {
         jQuery("#a2wl_email_alerts_email").prop('disabled', !jQuery(this).is(':checked'));
     });
@@ -709,7 +824,7 @@ function a2wl_isInt(value) {
 
         a2wl_import_product_images_limit_keyup_timer = setTimeout(function () {
             if (!a2wl_isInt(this_el.val()) || this_el.val() < 0) {
-                this_el.after("<span class='help-block'><?php  esc_html_e('Please enter a integer greater than or equal to 0', 'ali2woo');?></span>");
+                this_el.after("<span class='help-block'><?php esc_html_e('Please enter a integer greater than or equal to 0', 'ali2woo');?></span>");
                 this_el.parents('.form-group').addClass('has-error');
             }
 

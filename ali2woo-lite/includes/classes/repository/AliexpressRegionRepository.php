@@ -39,6 +39,7 @@ class AliexpressRegionRepository
             'BR' => 'Brazil',
             'HR' => 'Croatia',
             'PT' => 'Portugal',
+            'SE' => 'Sweden',
             'DE' => 'Germany',
             'IT' => 'Italy',
             'FI' => 'Finland',

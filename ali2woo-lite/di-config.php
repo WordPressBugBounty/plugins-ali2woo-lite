@@ -8,6 +8,7 @@ use AliNext_Lite\ApplyPricingRulesProcess;
 use AliNext_Lite\Attachment;
 use AliNext_Lite\BackgroundProcessFactory;
 use AliNext_Lite\BackgroundProcessService;
+use AliNext_Lite\CommonSettingService;
 use AliNext_Lite\Country;
 use AliNext_Lite\ExternalOrderFactory;
 use AliNext_Lite\FrontendInitController;
@@ -156,6 +157,10 @@ return [
         ),
 
     /* services */
+    'AliNext_Lite\CommonSettingService' => create(CommonSettingService::class)
+        ->constructor(
+            get(AliexpressRegionRepository::class),
+        ),
     'AliNext_Lite\WoocommerceCategoryService' => create(WoocommerceCategoryService::class)
         ->constructor(
             get(Aliexpress::class),
@@ -259,7 +264,7 @@ return [
     'AliNext_Lite\SettingPageController' => create(SettingPageController::class)
         ->constructor(
             get(LocalService::class),
-            get(AliexpressRegionRepository::class),
+            get(CommonSettingService::class),
         ),
 
     'AliNext_Lite\ImportAjaxController' => create(ImportAjaxController::class)

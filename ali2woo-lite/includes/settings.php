@@ -7,6 +7,8 @@
 
 namespace AliNext_Lite;;
 
+use Pages;
+
 class Settings
 {
     public const DEFAULT_AUTO_UPDATE_MAX_QUOTA = '75';
@@ -21,6 +23,8 @@ class Settings
     public const SETTING_VIDEO_TAB_PRIORITY = 'video_tab_priority';
     public const SETTING_MAKE_VIDEO_FULL_TAB_WIDTH = 'make_video_full_tab_width';
     public const SETTING_ADD_VIDEO_TO_DESCRIPTION = 'add_video_to_description';
+    public const SETTING_ALLOW_SHOP_MANAGER = 'allow_shop_manager';
+    public const SETTING_HIDDEN_PAGES = 'hidden_pages';
 
     /**
      * Value in percents from 25 to 100
@@ -168,6 +172,9 @@ class Settings
         self::SETTING_SYSTEM_MESSAGE => [],
         self::SETTING_TIP_OF_DAY => [],
         self::SETTING_TIP_OF_DAY_LAST_DATE => null,
+
+        self::SETTING_ALLOW_SHOP_MANAGER => false,
+        self::SETTING_HIDDEN_PAGES => [Pages::SETTINGS, Pages::ADDONS, Pages::WIZARD, Pages::JSON_API, Pages::DEBUG],
 
         'api_keys' => [],
 

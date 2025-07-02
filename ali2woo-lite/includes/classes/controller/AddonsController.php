@@ -10,6 +10,8 @@
 
 namespace AliNext_Lite;;
 
+use Pages;
+
 class AddonsController extends AbstractAdminPage {
     private $update_period = 3600; //60*60*1;
     private $addons;
@@ -20,8 +22,19 @@ class AddonsController extends AbstractAdminPage {
             $this->addons['addons'] = array();
         }
         $new_addons_cnt = is_admin()?$this->get_new_addons_count():0;
-        
-        parent::__construct(esc_html__('Add-ons/Extensions', 'ali2woo'), esc_html__('Add-ons', 'ali2woo'). ($new_addons_cnt ? ' <span class="update-plugins count-' . $new_addons_cnt . '"><span class="plugin-count">' . $new_addons_cnt . '</span></span>' : ''), 'manage_options', 'a2wl_addons', 100);
+
+        $menuTitle = Pages::getLabel(Pages::ADDONS) .
+            ($new_addons_cnt ? ' <span class="update-plugins count-' .
+                $new_addons_cnt . '"><span class="plugin-count">' .
+                $new_addons_cnt . '</span></span>' : '');
+
+        parent::__construct(
+            Pages::getLabel(Pages::ADDONS),
+            $menuTitle,
+            Capability::pluginAccess(),
+            Pages::ADDONS,
+            100
+        );
 
         if (empty($this->addons['next_update']) || $this->addons['next_update'] < time()) {
             $request = a2wl_remote_get(get_setting('api_endpoint').'addons.php');
@@ -33,7 +46,12 @@ class AddonsController extends AbstractAdminPage {
         }
     }
 
-    public function render($params = array()) {
+    public function render($params = []): void
+    {
+        if (!PageGuardHelper::canAccessPage(Pages::ADDONS)) {
+            wp_die($this->getErrorTextNoPermissions());
+        }
+
         $this->set_viewed_addons();
         $this->model_put('addons', $this->addons);
         $this->include_view('addons.php');
