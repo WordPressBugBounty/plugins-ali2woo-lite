@@ -26,6 +26,10 @@ class Settings
     public const SETTING_ALLOW_SHOP_MANAGER = 'allow_shop_manager';
     public const SETTING_HIDDEN_PAGES = 'hidden_pages';
 
+
+    //shipping settings
+    public const SETTING_ASSIGN_SHIPPING_ON_IMPORT = 'assign_shipping_on_import';
+
     /**
      * Value in percents from 25 to 100
      */
@@ -110,7 +114,7 @@ class Settings
         'email_alerts' => false,
         'email_alerts_email' => '',
 
-        'fulfillment_prefship' => 'EMS_ZX_ZX_US',
+        'fulfillment_prefship' => 'CAINIAO_FULFILLMENT_STD',
         'fulfillment_phone_code' => '',
         'fulfillment_phone_number' => '',
         'fulfillment_custom_note' => '',
@@ -148,9 +152,11 @@ class Settings
         'review_country' => [],
 
         'aliship_shipto' => 'US',
+        //'aliship_shipfrom' - rudiment setting, use 'aliexpress_region' now
         'aliship_shipfrom' => 'CN',
         'default_shipping_class' => false,
         'aliship_frontend' => false,
+        self::SETTING_ASSIGN_SHIPPING_ON_IMPORT => false,
         'aliship_selection_type' => 'popup',
         'aliship_shipping_type' => 'new',
         'aliship_shipping_option_text' => '[{shipping_cost}] {shipping_company} ({delivery_time}) - {country}',

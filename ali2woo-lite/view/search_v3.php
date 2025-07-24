@@ -28,6 +28,7 @@ use AliNext_Lite\TipOfDay;
     <div class="page-main">
         <div class="_a2wfo a2wl-info"><div>You are using AliNext (Lite version) Lite. If you want to unlock all features and get premium support, purchase the full version of the plugin.</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>
         <?php include_once A2WL()->plugin_path() . '/view/chrome_notify.php';?>
+        <?php include_once A2WL()->plugin_path() . '/view/permanent_alert.php'; ?>
         
 
         <?php include_once A2WL()->plugin_path() . '/view/setup_wizard_notify.php';?>

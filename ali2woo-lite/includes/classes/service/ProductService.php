@@ -35,59 +35,7 @@ class ProductService
         $this->PurchaseCodeInfoService = $PurchaseCodeInfoService;
         $this->SynchronizePurchaseCodeInfoService = $SynchronizePurchaseCodeInfoService;
     }
-
-    /**
-     * @param array $products
-     * @param array $params
-     * @return array
-     * @throws ServiceException
-     * @todo this method should be improved, add exception, use DTO instead array result
-     */
-    public function synchronizeProducts(array $products, array $params = []): array
-    {
-        $productIds = array_map([$this, 'generateComplexProductId'], $products);
-        $productCount = $this->SynchronizeModel->get_product_cnt();
-        $params['pc'] = $productCount;
-
-        $isManualUpdate = isset($params['manual_update']) && $params['manual_update'];
-
-        $this->SynchronizePurchaseCodeInfoService->runSyncPurchaseCodeInfoProcess();
-
-        if (!$isManualUpdate) {
-            $allowAutoUpdate = $this->PurchaseCodeInfoService->checkAutoUpdateMaxQuota();
-
-            if (!$allowAutoUpdate) {
-                $errorMessage = _x('You have reached max autoupdate quota', 'error', 'ali2woo');
-                return ResultBuilder::buildError($errorMessage);
-            }
-        }
-
-        $result = $this->AliexpressModel->sync_products($productIds, $params);
-
-        $sync_default_shipping_cost = $isManualUpdate
-            && a2wl_check_defined('A2WL_SYNC_PRODUCT_SHIPPING')
-            && get_setting('add_shipping_to_price');
-
-        if ($sync_default_shipping_cost) {
-            /*
-                This feature enables the synchronization of the shipping cost assigned to a product.
-                It attempts to apply the cost of the default shipping method if it is available for the default shipping country.
-                If the default shipping method is not available, it selects the cheapest shipping option.
-            */
-
-            $country_from = get_setting('aliship_shipfrom', 'CN');
-            $country_to = get_setting('aliship_shipto');
-
-            foreach ($result['products'] as $key => $product) {
-                $product = $this->AliexpressModel->calculateProductPricesFromVariants($product);
-                $result['products'][$key] = $this->updateProductShippingInfo(
-                    $product, $country_from, $country_to, null, null
-                );
-            }
-        }
-
-        return $result;
-    }
+    
 
     /**
      * Load product and its shipping info from Aliexpress API
@@ -112,6 +60,7 @@ class ProductService
     }
 
     /**
+     * @todo: refactor to use setShippingMethod() instead
      * Set product shipping info fields with given parameters
      * @param array $product
      * @param string $method
@@ -166,6 +115,20 @@ class ProductService
         }
 
         return $product;
+    }
+
+
+    public function setShippingMethod(
+        array $Product, string $shippingMethodCode, string $ShippingCost, string $countryToCode,
+        string $externalVariationId = '', string $countryFromCode = 'CN'
+    ): array {
+        $Product[ImportedProductService::FIELD_METHOD] = $shippingMethodCode;
+        $Product[ImportedProductService::FIELD_VARIATION_KEY] = $externalVariationId;
+        $Product[ImportedProductService::FIELD_COUNTRY_TO] = $countryToCode;
+        $Product[ImportedProductService::FIELD_COUNTRY_FROM] = $countryFromCode;
+        $Product[ImportedProductService::FIELD_COST] = $ShippingCost;
+
+        return $this->PriceFormulaService->applyFormula($Product);
     }
 
     /**
@@ -304,57 +267,65 @@ class ProductService
 
     public function findDefaultFromShippingItems(array $shippingItems, array $importedProduct): ShippingItemDto
     {
-        $default_ff_method = get_setting('fulfillment_prefship');
+        /**
+         * todo: need to use hasTracking and companyName too in code which calls findDefaultFromShippingItems
+         */
 
-        $default_method = !empty($importedProduct[ImportedProductService::FIELD_METHOD]) ?
-            $importedProduct[ImportedProductService::FIELD_METHOD] :
-            $default_ff_method;
+        $preferredMethod = $importedProduct[ImportedProductService::FIELD_METHOD] ?? get_setting('fulfillment_prefship');
+        $fallbackMethod = get_setting('fulfillment_prefship');
+        $currentCurrency = apply_filters('wcml_price_currency', null);
 
-        $has_shipping_method = false;
-        foreach ($shippingItems as $shippingItem) {
-            if ($shippingItem['serviceName'] === $default_method) {
-                $has_shipping_method = true;
+        $bestMethod = '';
+        $lowestPrice = null;
+        $selectedItem = null;
+
+        foreach ($shippingItems as $item) {
+            $methodName = $item['serviceName'] ?? '';
+            $priceRaw = $item['previewFreightAmount']['value'] ?? $item['freightAmount']['value'] ?? 0;
+            $price = apply_filters('wcml_raw_price_amount', $priceRaw, $currentCurrency);
+
+            // Priority 1: Match preferred method
+            if ($methodName === $preferredMethod) {
+                $bestMethod = $methodName;
+                $selectedItem = $item;
                 break;
             }
-        }
 
-        $current_currency = apply_filters('wcml_price_currency', NULL);
-        if (!$has_shipping_method) {
-            $default_method = "";
-            $tmp_p = -1;
-            foreach ($shippingItems as $k => $shippingItem) {
-                $price = $shippingItem['previewFreightAmount']['value'] ?? $shippingItem['freightAmount']['value'];
-                $price = apply_filters('wcml_raw_price_amount', $price, $current_currency);
-                if ($tmp_p < 0 || $price < $tmp_p || $shippingItem['serviceName'] == $default_ff_method) {
-                    $tmp_p = $price;
-                    $default_method = $shippingItem['serviceName'];
-                    if ($default_method == $default_ff_method) {
-                        break;
-                    }
+            // Track the lowest price or fallback method
+            if (
+                $lowestPrice === null || $price < $lowestPrice ||
+                $methodName === $fallbackMethod
+            ) {
+                $lowestPrice = $price;
+                $bestMethod = $methodName;
+                $selectedItem = $item;
+
+                if ($methodName === $fallbackMethod) {
+                    break;
                 }
             }
         }
 
-        /**
-         * todo: need to use hasTracking and companyName too in code which calls findDefaultFromShippingItems
-         */
-        $shipping_cost = 0;
+        // Extract metadata if we found a valid item
+        $shippingCost = 0;
         $shippingTime = '';
         $hasTracking = false;
-        $companyName = '';
-        foreach ($shippingItems as $shippingItem) {
-            if ($shippingItem['serviceName'] == $default_method) {
-                $shippingTime = $shippingItem['time'] ?? '';
-                $hasTracking = isset($shippingItem['tracking']) && $shippingItem['tracking'];
-                $companyName =  $shippingItem['company'] ?? $shippingItem['serviceName'];
-                $shipping_cost = $shippingItem['previewFreightAmount']['value'] ?? $shippingItem['freightAmount']['value'];
-                $shipping_cost = apply_filters('wcml_raw_price_amount', $shipping_cost, $current_currency);
-            }
+        $companyName = $bestMethod;
+
+        if ($selectedItem) {
+            $shippingCost = apply_filters('wcml_raw_price_amount',
+                $selectedItem['previewFreightAmount']['value'] ?? $selectedItem['freightAmount']['value'] ?? 0,
+                $currentCurrency
+            );
+
+            $shippingTime = $selectedItem['time'] ?? '';
+            $hasTracking = !empty($selectedItem['tracking']);
+            $companyName = $selectedItem['company'] ?? $selectedItem['serviceName'] ?? $companyName;
+
+            $companyName = Utils::sanitizeExternalText($companyName);
         }
 
-        return new ShippingItemDto(
-            $default_method, $shipping_cost, $companyName, $shippingTime, $hasTracking
-        );
+        return new ShippingItemDto($bestMethod, $shippingCost, $companyName, $shippingTime, $hasTracking);
     }
 
     public function getShippingItems(

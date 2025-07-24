@@ -1,7 +1,18 @@
 <?php
-
 use AliNext_Lite\AbstractController;
+use AliNext_Lite\PriceFormula;
 use function AliNext_Lite\get_setting;
+use AliNext_Lite\Settings;
+
+/**
+ * @var array $shipping_class
+ * @var array $shipping_countries
+ * @var array $shipping_selection_types
+ * @var array $shipping_types
+ * @var array $selection_position_types
+ * @var PriceFormula $default_formula
+ */
+
 $a2w_local_currency = strtoupper(get_setting('local_currency'));
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
 ?>
@@ -72,6 +83,21 @@ $a2w_local_currency = strtoupper(get_setting('local_currency'));
                                 <input type="checkbox" class="field__input form-control small-input" id="a2wl_aliship_frontend" name="a2wl_aliship_frontend" <?php if (get_setting('aliship_frontend')): ?>value="yes" checked<?php endif;?> />
                             <p><?php esc_html_e('All options below will only work if this option is enabled', 'ali2woo')?></p>
                         </div>
+            </div>
+
+            <div class="field field_inline">
+                <div class="field__label">
+                    <label>
+                        <strong><?php echo esc_html_x('Auto-Assign Shipping on Import', 'Setting title', 'ali2woo'); ?></strong>
+                    </label>
+                    <div class="info-box" data-toggle="tooltip" data-title="<?php echo esc_html_x('Enable shipping auto-assignment on product import.', 'setting description', 'ali2woo'); ?>"></div>
+                </div>
+                <div class="field__input-wrap">
+                    <input type="checkbox" class="field__input form-control small-input" id="a2wl_<?php echo Settings::SETTING_ASSIGN_SHIPPING_ON_IMPORT ?>"
+                           name="a2wl_<?php echo Settings::SETTING_ASSIGN_SHIPPING_ON_IMPORT ?>"
+                           <?php if (get_setting(Settings::SETTING_ASSIGN_SHIPPING_ON_IMPORT, false)): ?>value="yes" checked<?php endif;?> />
+                    <p><?php esc_html_e('Assign default or lowest-cost shipping method when available', 'ali2woo')?></p>
+                </div>
             </div>
 
             <div class="field field_inline">
@@ -482,12 +508,7 @@ $a2w_local_currency = strtoupper(get_setting('local_currency'));
                 return false;
         });
 
-        $("#a2wl_aliship_frontend").change(function () {
-
-            return true;
-        });
-
-        $("#a2wl_aliship_product_enable").change(function () {
+        $("#a2wl_aliship_product_enable").on('change', function () {
 
             var checked_status = $(this).is(':checked');
 
@@ -497,7 +518,7 @@ $a2w_local_currency = strtoupper(get_setting('local_currency'));
             return true;
         });
 
-        $("#a2wl_aliship_not_available_remove").change(function () {
+        $("#a2wl_aliship_not_available_remove").on('change', function () {
             var checked_status = !$(this).is(':checked');
 
             $("#a2wl_aliship_not_available_cost").closest('.row').toggle(checked_status);
@@ -510,8 +531,6 @@ $a2w_local_currency = strtoupper(get_setting('local_currency'));
 
 
        //set init states:
-
-       $("#a2wl_aliship_frontend").trigger('change');
 
         if ( !$("#a2wl_aliship_product_enable").is(':checked') ) {
             $("#a2wl_aliship_product_enable").trigger('change');

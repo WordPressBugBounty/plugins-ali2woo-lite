@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Description of AddProductToImportListProcess
+ * Description of AddProductToImportListProcess it's used for CSV loader for now
  *
  * @author Ali2Woo Team
  *
@@ -21,18 +21,10 @@ class AddProductToImportListProcess extends BaseJob implements AddProductToImpor
     protected $action = self::ACTION_CODE;
     protected string $title = 'Add Product To Import List';
 
-    protected Aliexpress $AliexpressModel;
-    protected PriceFormulaService $PriceFormulaService;
-    protected ProductImport $ProductImportModel;
-
     public function __construct(
-        Aliexpress $AliexpressModel, PriceFormulaService $PriceFormulaService, ProductImport $ProductImportModel
+        protected ProductImportTransactionService $ProductImportTransactionService,
     ) {
         parent::__construct();
-
-        $this->AliexpressModel = $AliexpressModel;
-        $this->PriceFormulaService = $PriceFormulaService;
-        $this->ProductImportModel = $ProductImportModel;
     }
 
     public function pushToQueue(string $externalProductId): AddProductToImportListInterface
@@ -50,52 +42,33 @@ class AddProductToImportListProcess extends BaseJob implements AddProductToImpor
         return $this;
     }
 
-    protected function task($item)
+    protected function task($item): bool
     {
-
         a2wl_init_error_handler();
         try {
             $timeStart = microtime(true);
 
             $externalProductId = $item[self::PARAM_EXTERNAL_PRODUCT_ID];
-            $product = $this->getProductFromImportList($externalProductId);
 
-            global $wpdb;
-            $productId = $wpdb->get_var(
-            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-                $wpdb->prepare(
-                    "SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_a2w_external_id' AND meta_value=%s LIMIT 1",
-                    $externalProductId
-                )
+            $result = $this->ProductImportTransactionService->execute(
+                $externalProductId,
+                ProductSelectorService::PRIORITY_RESULT_FIRST
             );
 
-            if (get_setting('allow_product_duplication') || !$productId) {
-                $res = $this->AliexpressModel->load_product($externalProductId);
-                if ($res['state'] !== 'error') {
-                    $product = array_replace_recursive($product, $res['product']);
-
-                    if ($product) {
-                        $product = $this->PriceFormulaService->applyFormula($product);
-                        $this->ProductImportModel->add_product($product);
-                    } else {
-
-                        a2wl_info_log(sprintf(
-                            "Process job: %s, Skip product external id: %s (because cant match product fields);]",
-                            $this->getTitle(), $externalProductId,
-                        ));
-                    }
-                } else {
-                    a2wl_info_log(sprintf(
-                        "Process job: %s, Skip product external id: %s (because of aliexpress import error %s;]",
-                        $this->getTitle(), $externalProductId, $res['message'] ?? ''
-                    ));
-                }
+            if ($result->status === 'error') {
+                a2wl_info_log(sprintf(
+                    "Failed job: %s [external ID: %s; reason: %s]",
+                    $this->getTitle(),
+                    $externalProductId,
+                    $result->message
+                ));
             }
 
             $size = $this->getSize();
-            $time = microtime(true)-$timeStart;
+            $time = microtime(true) - $timeStart;
+
             a2wl_info_log(sprintf(
-                "Done job: %s [time: %s, queue size: %d, external product id: %s;]",
+                "Finished job: %s [time: %0.3fs, queue size: %d, external product id: %s;]",
                 $this->getTitle(), $time, $size, $externalProductId
             ));
         }
@@ -104,20 +77,5 @@ class AddProductToImportListProcess extends BaseJob implements AddProductToImpor
         }
 
         return false;
-    }
-
-    private function getProductFromImportList(string $externalProductId): array
-    {
-        $products = a2wl_get_transient('a2wl_search_result');
-
-        if ($products && is_array($products)) {
-            foreach ($products as $product) {
-                if ($product['id'] == $externalProductId) {
-                    return $product;
-                }
-            }
-        }
-
-        return [];
     }
 }

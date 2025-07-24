@@ -10,11 +10,9 @@ namespace AliNext_Lite;;
 
 class PermanentAlertService
 {
-    protected BackgroundProcessService $BackgroundProcessService;
 
-    public function __construct(BackgroundProcessService $BackgroundProcessService) {
-        $this->BackgroundProcessService = $BackgroundProcessService;
-    }
+    public function __construct(protected BackgroundProcessFactory $BackgroundProcessFactory)
+    {}
 
     /**
      * @return array|PermanentAlert[]
@@ -23,7 +21,7 @@ class PermanentAlertService
     {
         $PermanentAlerts = [];
         
-        foreach ($this->BackgroundProcessService->getAll() as $BackgroundProcess) {
+        foreach ($this->BackgroundProcessFactory->getAll() as $BackgroundProcess) {
             if ($BackgroundProcess->isQueued()) {
                 $count = $BackgroundProcess->getSize();
                 $helpButtonText = esc_html__('Cancel it', 'ali2woo');

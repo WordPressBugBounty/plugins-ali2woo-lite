@@ -14,10 +14,14 @@ use Pages;
 
 class ImportPageController extends AbstractAdminPage
 {
-    protected Woocommerce $WoocommerceModel;
-    protected ImportListService $ImportListService;
 
-    public function __construct(Woocommerce $WoocommerceModel, ImportListService $ImportListService) {
+
+    public function __construct(
+        protected Woocommerce $WoocommerceModel,
+        protected ImportListService $ImportListService,
+        protected AliexpressRegionRepository $AliexpressRegionRepository,
+        protected PermanentAlertService $PermanentAlertService,
+    ) {
 
         parent::__construct(
             Pages::getLabel(Pages::IMPORT_LIST),
@@ -26,9 +30,6 @@ class ImportPageController extends AbstractAdminPage
             Pages::IMPORT_LIST,
             20
         );
-
-        $this->WoocommerceModel = $WoocommerceModel;
-        $this->ImportListService = $ImportListService;
 
         add_filter('tiny_mce_before_init', array($this, 'tiny_mce_before_init'), 30);
         add_filter('a2wl_configure_lang_data', array($this, 'configure_lang_data'), 30);
@@ -123,10 +124,6 @@ class ImportPageController extends AbstractAdminPage
 
         $serach_query = !empty($_REQUEST['s']) ? $_REQUEST['s'] : '';
         $sort_query = !empty($_REQUEST['o']) ? $_REQUEST['o'] : $product_import_model->default_sort();
-
-        //todo: take into accoutn both settings
-        $default_shipping_from_country = get_setting('aliship_shipfrom', 'CN');
-        $default_shipping_to_country = get_setting('aliship_shipto', 'US');
 
         $products_cnt = $product_import_model->get_products_count();
         $paginator = Paginator::build($products_cnt);
@@ -233,6 +230,18 @@ class ImportPageController extends AbstractAdminPage
         $this->model_put('promo_data', $PromoService->getPromoData());
         
 
+        $this->model_put("PermanentAlerts", $this->PermanentAlertService->getAll());
+
+        
+
+        if (A2WL()->isFreePlugin()) {
+            $this->model_put('aliexpressRegion', 'US');
+            $this->model_put('aliexpressRegions', ['US' => 'United States']);
+            $this->model_put('defaultShippingLabel', $this->getDefaultShippingLabel());
+            $this->model_put('countryToCode', get_setting('aliship_shipto', 'US'));
+            $this->model_put('applyShippingScopes', []);
+        }
+
         $this->include_view("import.php");
     }
 
@@ -242,6 +251,19 @@ class ImportPageController extends AbstractAdminPage
             $initArray['setup'] = 'function(ed) {ed.on("change", function(e) { a2wl_update_product(e.target.id, { description:encodeURIComponent(e.target.getContent())}); });}';
         }
         return $initArray;
+    }
+
+    private function getDefaultShippingLabel(): string
+    {
+        $shippingOptions = Utils::get_aliexpress_shipping_options();
+        $currentShippingCode = get_setting('fulfillment_prefship', 'CAINIAO_PREMIUM');
+        foreach ($shippingOptions as $shipping_option) {
+            if ($currentShippingCode === $shipping_option['value']) {
+                return $shipping_option['label'];
+            }
+        }
+
+        return '';
     }
 
     private function getFindAllProductInStoreLink(array $product): string

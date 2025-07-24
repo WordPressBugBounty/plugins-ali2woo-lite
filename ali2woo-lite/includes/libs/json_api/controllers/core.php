@@ -7,6 +7,8 @@ Controller name: Core
 Controller description: Basic introspection methods
  */
 
+use Exception;
+
 class JSON_API_Core_Controller
 {
 
@@ -16,6 +18,7 @@ class JSON_API_Core_Controller
     protected ProductService $ProductService;
     protected Aliexpress $AliexpressModel;
     protected PriceFormulaService $PriceFormulaService;
+    protected ProductImportTransactionService $ProductImportTransactionService;
 
     public function __construct(
         GlobalSystemMessageService $GlobalSystemMessageService,
@@ -23,7 +26,8 @@ class JSON_API_Core_Controller
         Woocommerce $WoocommerceModel,
         ProductService $ProductService,
         Aliexpress $AliexpressModel,
-        PriceFormulaService $PriceFormulaService
+        PriceFormulaService $PriceFormulaService,
+        ProductImportTransactionService $ProductImportTransactionService
     ) {
 
         $this->GlobalSystemMessageService = $GlobalSystemMessageService;
@@ -32,6 +36,7 @@ class JSON_API_Core_Controller
         $this->ProductService = $ProductService;
         $this->AliexpressModel = $AliexpressModel;
         $this->PriceFormulaService = $PriceFormulaService;
+        $this->ProductImportTransactionService = $ProductImportTransactionService;
 
         //todo: perhaps it would be better to move this call to some other controller
         $this->GlobalSystemMessageService->clear();
@@ -74,72 +79,38 @@ class JSON_API_Core_Controller
 
     public function add_product()
     {
-        global $wpdb;
+        /**
+         * @var JSON_API $a2wl_json_api
+         */
         global $a2wl_json_api;
-        $result = array();
+        $result = [];
 
-        if (empty($_REQUEST['id'])) {
+
+        $externalId = isset($_REQUEST['id']) ? sanitize_text_field($_REQUEST['id']) : null;
+
+        if (!$externalId) {
             $a2wl_json_api->error("No ID specified. Include 'id' var in your request.");
-        } else {
-            $product_id = $_REQUEST['id'];
-            $product = array('id' => $product_id);
-
-            if (!empty($_REQUEST['url'])) {
-                $product['url'] = $_REQUEST['url'];
-            }
-            if (!empty($_REQUEST['thumb'])) {
-                $product['thumb'] = $_REQUEST['thumb'];
-            }
-            if (!empty($_REQUEST['price'])) {
-                $product['price'] = str_replace(",", ".", $_REQUEST['price']);
-            }
-            if (!empty($_REQUEST['price_min'])) {
-                $product['price_min'] = str_replace(",", ".", $_REQUEST['price_min']);
-            }
-            if (!empty($_REQUEST['price_max'])) {
-                $product['price_max'] = str_replace(",", ".", $_REQUEST['price_max']);
-            }
-            if (!empty($_REQUEST['title'])) {
-                $product['title'] = $_REQUEST['title'];
-            }
-            if (!empty($_REQUEST['currency'])) {
-                $product['currency'] = $_REQUEST['currency'];
-            }
-
-            $imported = !!$this->WoocommerceModel->get_product_id_by_external_id($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]) || !!$this->ProductImportModel->get_product($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]);
-            // $post_id = $wpdb->get_var($wpdb->prepare("SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_a2w_external_id' AND meta_value='%s' LIMIT 1", $product['id']));
-            if (get_setting('allow_product_duplication') || !$imported) {
-
-                if (a2wl_check_defined('A2WL_CHROME_EXT_IMPORT') && !empty($_POST['apd'])) {
-                    $apd = trim($_POST['apd']);
-
-                    if (!empty($apd)) {
-                        $decodedData = json_decode(stripslashes($apd));
-                        $params = ['data' => ['apd' => $decodedData]];
-                    } else {
-                        $params = [];
-                    }
-                } else {
-                    $params = [];
-                }
-
-                $result = $this->AliexpressModel->load_product(
-                    $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID], $params
-                );
-
-                if ($result['state'] !== 'error') {
-                    $product = array_replace_recursive($product, $result['product']);
-                    $product = $this->PriceFormulaService->applyFormula($product);
-
-                    $result = $this->ProductImportModel->add_product($product);
-                    $result = array('status' => 'ok');
-                } else {
-                    $a2wl_json_api->error($result['message']);
-                }
-            } else {
-                $a2wl_json_api->error('Product already imported.');
-            }
         }
+
+        $apdRaw = isset($_REQUEST['apd']) ? sanitize_text_field($_REQUEST['apd']) : '';
+
+        $Product = [
+            ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID => $externalId
+        ];
+
+        $apd = !empty($apdRaw)
+            ? ['data' => ['apd' => json_decode(stripslashes($apdRaw))]]
+            : [];
+
+        a2wl_init_error_handler();
+        try {
+            $result = $this->ProductImportTransactionService->executeWithProductData($Product, $apd);
+            restore_error_handler();
+        }
+        catch (Exception $Exception) {
+            $a2wl_json_api->error($Exception->getMessage());
+        }
+
 
         return $result;
     }

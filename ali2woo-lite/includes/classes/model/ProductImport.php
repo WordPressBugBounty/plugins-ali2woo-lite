@@ -19,13 +19,6 @@ class ProductImport {
             $product['import_id'] = $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID];
         }
 
-        //todo: move this loader call to a new background TASK
-        if (!isset($product['is_affiliate'])) {
-            $AliexpressModel = A2WL()->getDI()->get('AliNext_Lite\Aliexpress');
-            $check_result = $AliexpressModel->check_affiliate($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]);
-            $product['is_affiliate'] = $check_result['affiliate'];
-        }
-        
         if (!isset($product['date_add'])) {
             $product['date_add'] = gmdate('Y-m-d H:i:s');
         }
@@ -82,6 +75,9 @@ class ProductImport {
     public function get_product($product_id, $processing = false) {
         $product = a2wl_get_transient('a2wl_' . ($processing ? 'processing_' : '') . 'product#' . strval($product_id));
         if ($product) {
+          /*  if (!isset($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID])) {
+                return [];
+            }*/
             if (!isset($product['import_id']) || !$product['import_id']) {
                 // 1.7.0 for compatibility with older versions
                 $product['import_id'] = $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID];
@@ -131,6 +127,9 @@ class ProductImport {
             if (!isset($product['tmp_edit_images'])) {
                 $product['tmp_edit_images'] = [];
             }
+            if (!isset($product[ImportedProductService::FIELD_SHIPPING_INFO])) {
+                $product[ImportedProductService::FIELD_SHIPPING_INFO] = [];
+            }
 
             return $product;
         }
@@ -156,7 +155,8 @@ class ProductImport {
     }
 
 
-    public function get_product_list($with_html = true, $search = '', $sort = '', $limit = null, $ofset = null) {
+    public function get_product_list($with_html = true, $search = '', $sort = '', $limit = null, $ofset = null): array
+    {
         $product_id_list = $this->get_product_id_list($limit, $ofset);
         $products = array();
 
@@ -171,7 +171,7 @@ class ProductImport {
                     $product['html'] = "#needload#";
                 }
 
-                if (empty($search) || strpos($product['title'], strval($search)) !== false || strpos($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID], strval($search)) !== false) {
+                if (empty($search) || str_contains($product['title'], strval($search)) || str_contains($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID], strval($search))) {
                     $products[$product_id] = $product;
                 }
                 unset($product);
@@ -222,24 +222,41 @@ class ProductImport {
         return $ids;
     }
     
-    public function get_products_count() {
+    public function get_products_count(): int
+    {
         global $wpdb;
+
         if (a2wl_check_defined('A2WL_SAVE_TRANSIENT_AS_OPTION')) {
-            return $wpdb->get_var("select count(option_id) from {$wpdb->options} where option_name like 'a2wl_product#%'");
+            $result = $wpdb->get_var("select count(option_id) from {$wpdb->options} where option_name like 'a2wl_product#%'");
         } else {
-            return $wpdb->get_var("select count(option_id) from {$wpdb->options} where option_name like '_transient_a2wl_product#%'");
+            $result = $wpdb->get_var("select count(option_id) from {$wpdb->options} where option_name like '_transient_a2wl_product#%'");
         }
+
+        if (!$result) {
+            return 0;
+        }
+
+        return (int) $result;
     }
 
-    public function default_sort() {
+    public function default_sort(): string
+    {
         return 'date_add-asc';
     }
     
-    public function sort_list() {
-        return array('id-asc'=>esc_html__('Sort by External Id', 'ali2woo'),'title-asc'=>esc_html__('Sort by Product title', 'ali2woo'),'date_add-asc'=>esc_html__('Sort by Date add (old first)', 'ali2woo'),'date_add-desc'=>esc_html__('Sort by Date add (new first)', 'ali2woo'));
+    public function sort_list(): array
+    {
+        return [
+            'id-asc' => esc_html__('Sort by External Id', 'ali2woo'),
+            'title-asc' => esc_html__('Sort by Product title', 'ali2woo'),
+            'date_add-asc' => esc_html__('Sort by Date add (old first)', 'ali2woo'),
+            'date_add-desc' => esc_html__('Sort by Date add (new first)', 'ali2woo'),
+            
+        ];
     }
 
-    public function init_sort($sort) {
+    public function init_sort($sort): void
+    {
         if (empty($sort)) {
             $sort = $this->default_sort();
         }
@@ -251,7 +268,8 @@ class ProductImport {
         }
     }
 
-    private function custom_sort($a, $b) {
+    private function custom_sort($a, $b): int
+    {
         if ($a[$this->order] == $b[$this->order]) {
             return 0;
         }

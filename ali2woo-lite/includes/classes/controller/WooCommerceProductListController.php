@@ -277,84 +277,14 @@ class WooCommerceProductListController extends AbstractController
             echo wp_json_encode($result);
             wp_die();
         }
-
-        a2wl_init_error_handler();
-        try {
-            $ids = isset($_POST['ids']) ? (is_array($_POST['ids']) ? $_POST['ids'] : array($_POST['ids'])) : array();
-
-            $on_price_changes = get_setting('on_price_changes');
-            $on_stock_changes = get_setting('on_stock_changes');
-
-            $products = array();
-            foreach ($ids as $post_id) {
-                try {
-                    $product = $this->WoocommerceService->getProduct($post_id);
-                } catch (RepositoryException|ServiceException $Exception) {
-                    continue;
-                }
-
-                $product['disable_var_price_change'] = $product['disable_var_price_change'] || $on_price_changes !== "update";
-                $product['disable_var_quantity_change'] = $product['disable_var_quantity_change'] || $on_stock_changes !== "update";
-                $products[strval($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID])] = $product;
-            }
-
-            $result = array("state" => "ok", "update_state" => array('ok' => count($ids), 'error' => 0));
-            if (count($products) > 0) {
-                $apd_items = empty($_POST['apd_items']) ? array() : $_POST['apd_items'];
-
-                foreach ($apd_items as $k => $adpi) {
-                    $apd_items[$k]['apd'] = json_decode(stripslashes($adpi['apd']));
-                }
-                $data = empty($apd_items) ? array() : array('data' => array('apd_items' => $apd_items));
-
-                $params = array_merge(
-                        ['manual_update' => 1],
-                        $data
-                );
-
-                $res = $this->ProductService->synchronizeProducts($products, $params);
-
-                if ($res['state'] === 'error') {
-                    $result = $res;
-
-                    $errorLogMessage = sprintf(
-                        "Manually synced product(s) at %s - failed: %s!",
-                        date("j, Y, g:i a"), $result['error'] ?? ''
-                    );
-                    a2wl_error_log($errorLogMessage);
-
-                    // update daily limit warning
-                    if ($result['error_code'] == 5001 && isset($result['time_left'])) {
-                        set_transient(
-                                '_a2w_daily_limits_warning',
-                                array(
-                                        'limit' => $result['call_limit'],
-                                    'until' => time() + $result['time_left']),
-                                time() + $result['time_left']
-                        );
-                    }
-                } else {
-                    foreach ($res['products'] as $product) {
-                        $product = array_replace_recursive($products[strval($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID])], $product);
-                        $product = $this->PriceFormulaService->applyFormula($product);
-                        $this->WoocommerceModel->upd_product($product['post_id'], $product, array('manual_update' => 1));
-
-                        $infoLogMessage = sprintf(
-                                "Manually synced product (ID: %d) at %s - success!",
-                                $product['post_id'],
-                            date("j, Y, g:i a")
-                        );
-                        a2wl_info_log($infoLogMessage);
-                    }
-
-                    delete_transient('_a2w_daily_limits_warning');
-                }
-            }
-        } catch (Throwable $e) {
-            a2wl_print_throwable($e);
-            $result = ResultBuilder::buildError($e->getMessage());
+        
+        if (A2WL()->isFreePlugin()) {
+            $errorMessage = _x(
+                'Product sync functionality is exclusive to the premium version of the plugin.',
+                'Error text', 'ali2woo'
+            );
+            $result = ResultBuilder::buildError($errorMessage);
         }
-
         echo wp_json_encode($result);
         wp_die();
     }

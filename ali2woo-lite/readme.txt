@@ -7,7 +7,7 @@ License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Stable tag: trunk
 Requires PHP: 8.0
-WC tested up to: 9.9
+WC tested up to: 10.0
 WC requires at least: 5.0
 
 This AliExpress Dropshipping Plugin for WooCommerce: Import products with reviews from AliExpress and fulfill orders automatically!
@@ -213,9 +213,17 @@ Please note: In the lite plugin version you have a limit of 10 orders operations
 
 - **Lifetime update**
 
+&#9658; Smart Shipping Auto-Assignment for Imported Products:
+
+**[pro feature] Automatically assign the most suitable shipping option for every product added to your import list based on your region settings. The plugin intelligently selects the product variation with a warehouse in your specified region, falling back to China if none match. It then applies either your default shipping method or the lowest available option. You can disable this auto-assignment using the "Auto-Assign Shipping on Import" toggle in Shipping Settings -ideal for saving your daily API quota. This feature works only if the "Use AliExpress Shipping" option is also active. Need to apply shipping later? Use the "Apply Shipping in Bulk" action for fast reassignment.
+
+See a detailed guide on this topic [HERE.](https://help.ali2woo.com/alinext-kb/set-shipping-cost-in-bulk/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite)
+
 &#9658; **Advanced Access Control for Plugin Pages**:
 
 **[pro feature] Now you can securely grant the Shop Manager role access to key sections of the AliNext plugin — without giving them full administrator rights. Previously, only admin users could access core features, making it difficult to delegate store operations. With the new Access Control panel, you can allow store managers or team members to work with essential plugin pages like Search, Import or Order, while restricting access to sensitive controls.
+
+See a detailed guide on this topic [HERE.](https://help.ali2woo.com/alinext-kb/using-staff-accounts/?utm_source=lite&utm_medium=wporg&utm_campaign=alinext-lite)
 
 Go to AliNext Settings > Access Control.
 
@@ -314,16 +322,20 @@ In case you have any questions or need technical assistance, get in touch with u
 9. Import product video from AliExpress
 
 == Changelog ==
+= 3.6.1 – 2025.07.24 =
+* Premium: Minimum shipping auto-applied during import (via "Assign default or lowest-cost…" setting).
+* Premium: New "Mass Apply Shipping Method" modal for bulk updating assigned methods.
+* Minor fixes and performance tweaks.
 
-= 3.5.9 - 2025.02.07
-* Added a visibility toggle for the purchase code input field for improved UX (Premium only)
-* Introduced a loading indicator to the shipping modal in the Import List (Premium only)
+= 3.5.9 - 2025.02.07 =
+* Premium: Added a visibility toggle for the purchase code input field for improved UX
+* Premium: Introduced a loading indicator to the shipping modal in the Import List
+* Premium: Introduced advanced Access Control settings in plugin options
 * Resolved incorrect usage notice for is_internal_meta_key
 * Fixed the "Edit Order Details" feature in the Order Fulfillment popup
-* Introduced advanced Access Control settings in plugin options (Premium only)
 * Various minor bug fixes and general improvement
 
-= 3.5.8 - 2025.09.06
+= 3.5.8 - 2025.09.06 =
 * Fixed issue where leading zeros in phone numbers were omitted during order fulfillment
 * Chrome extension badge can now be permanently hidden
 * Resolved issue of extra spaces in plugin account settings

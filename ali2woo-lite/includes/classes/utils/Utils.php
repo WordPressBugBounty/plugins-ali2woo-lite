@@ -10,6 +10,24 @@ namespace AliNext_Lite;;
 
 class Utils
 {
+
+    public static function sanitizeExternalText(string $text): string
+    {
+        // Remove invisible characters like non-breaking spaces
+        $text = str_replace("\u{00A0}", ' ', $text);
+
+        // Collapse multiple whitespace
+        $text = preg_replace('/\s+/u', ' ', $text);
+
+        // Ensure UTF-8 consistency
+        $text = mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+
+        // Decode HTML entities if present
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return trim($text);
+    }
+
     public static function wcae_strack_active()
     {
         return is_plugin_active('woocommerce_aliexpress_shipment_tracking/index.php');
@@ -672,6 +690,18 @@ class Utils
     public static function get_aliexpress_shipping_options(){
         return
         [
+            [
+                'value' => "CAINIAO_FULFILLMENT_STD",
+                'label' => "AliExpress Selection Standard"
+            ],
+            [
+                'value' => "CAINIAO_FULFILLMENT_STD_PRE_SG",
+                'label' => "Choice Special Cargo Standard PRE"
+            ],
+            [
+                'value' => "CAINIAO_FULFILLMENT_PRE",
+                'label' => "AliExpress Selection Premium"
+            ],
             [
                 'value' => "ECONOMIC139",
                 'label' => "139Express"

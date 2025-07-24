@@ -15,14 +15,18 @@ use Pages;
 class SettingPageController extends AbstractAdminPage
 {
     public const FIELD_FIELD_NO_AVATAR_PHOTO = 'a2wl_review_noavatar_photo';
-    public const SETTING_VIDEO = 'video';
 
-    protected LocalService $LocalService;
-    protected CommonSettingService $CommonSettingService;
+    public const SETTING_COMMON = 'common';
+    public const SETTING_VIDEO = 'video';
+    public const SETTING_SHIPPING = 'shipping';
 
     public function __construct(
-        LocalService $LocalService,
-        CommonSettingService $CommonSettingService
+        protected LocalService $LocalService,
+        protected CommonSettingService $CommonSettingService,
+        protected ShippingSettingService $ShippingSettingService,
+        protected PermanentAlertService $PermanentAlertService,
+        protected TipOfDayService $TipOfDayService,
+
     ) {
         parent::__construct(
             Pages::getLabel(Pages::SETTINGS),
@@ -31,9 +35,6 @@ class SettingPageController extends AbstractAdminPage
             Pages::SETTINGS,
             30
         );
-
-        $this->LocalService = $LocalService;
-        $this->CommonSettingService = $CommonSettingService;
 
         add_filter('a2wl_setting_view', [$this, 'setting_view']);
         add_filter('a2wl_configure_lang_data', array($this, 'configure_lang_data'));
@@ -64,14 +65,9 @@ class SettingPageController extends AbstractAdminPage
             wp_die($this->getErrorTextNoPermissions());
         }
 
-        /** @var PermanentAlertService $PermanentAlertService  */
-        $PermanentAlertService = A2WL()->getDI()->get('AliNext_Lite\PermanentAlertService');
-
-        $TipOfDayService = A2WL()->getDI()->get('AliNext_Lite\TipOfDayService');
-
         $current_module = $_REQUEST['subpage'] ?? 'common';
-        $this->model_put("PermanentAlerts", $PermanentAlertService->getAll());
-        $this->model_put("TipOfDay", $TipOfDayService->getNextTip());
+        $this->model_put("PermanentAlerts", $this->PermanentAlertService->getAll());
+        $this->model_put("TipOfDay", $this->TipOfDayService->getNextTip());
         $this->model_put("modules", $this->getModules());
         $this->model_put("current_module", $current_module);
 
@@ -85,12 +81,12 @@ class SettingPageController extends AbstractAdminPage
     public function getModules(): array
     {
         return apply_filters('a2wl_setting_modules', [
-            ['id' => 'common', 'name' => esc_html__('Common settings', 'ali2woo')],
+            ['id' => self::SETTING_COMMON, 'name' => esc_html__('Common settings', 'ali2woo')],
             ['id' => self::SETTING_VIDEO, 'name' => esc_html__('Video settings', 'ali2woo')],
             ['id' => 'account', 'name' => esc_html__('Account settings', 'ali2woo')],
             ['id' => 'price_formula', 'name' => esc_html__('Pricing Rules', 'ali2woo')],
             ['id' => 'reviews', 'name' => esc_html__('Reviews settings', 'ali2woo')],
-            ['id' => 'shipping', 'name' => esc_html__('Shipping settings', 'ali2woo')],
+            ['id' => self::SETTING_SHIPPING, 'name' => esc_html__('Shipping settings', 'ali2woo')],
             ['id' => 'phrase_filter', 'name' => esc_html__('Phrase Filtering', 'ali2woo')],
             ['id' => 'chrome_api', 'name' => esc_html__('API Keys', 'ali2woo')],
             ['id' => 'system_info', 'name' => esc_html__('System Info', 'ali2woo')],
@@ -101,7 +97,7 @@ class SettingPageController extends AbstractAdminPage
     {
         $view = "";
         switch ($current_module) {
-            case 'common':
+            case self::SETTING_COMMON:
                 $view = $this->common_handle();
                 break;
             case self::SETTING_VIDEO:
@@ -116,7 +112,7 @@ class SettingPageController extends AbstractAdminPage
             case 'reviews':
                 $view = $this->reviews();
                 break;
-            case 'shipping':
+            case self::SETTING_SHIPPING:
                 $view = $this->shipping();
                 break;
             case 'phrase_filter':
@@ -438,72 +434,14 @@ class SettingPageController extends AbstractAdminPage
         }
 
         if (isset($_POST['setting_form'])) {
-
-            set_setting('aliship_shipto', isset($_POST['a2w_aliship_shipto']) ? wp_unslash($_POST['a2w_aliship_shipto']) : 'US');
-            set_setting('aliship_frontend', isset($_POST['a2wl_aliship_frontend']));
-            set_setting('default_shipping_class', !empty($_POST['a2wl_default_shipping_class']) ? $_POST['a2wl_default_shipping_class'] : false);
-
-            if (isset($_POST['a2wl_aliship_frontend'])) {
-
-                if (isset($_POST['default_rule'])) {
-                    ShippingPriceFormula::set_default_formula(new ShippingPriceFormula($_POST['default_rule']));
-                }
-
-                set_setting('aliship_selection_type', isset($_POST['a2wl_aliship_selection_type']) ? wp_unslash($_POST['a2wl_aliship_selection_type']) : 'popup');
-
-                set_setting('aliship_shipping_type', isset($_POST['a2wl_aliship_shipping_type']) ? wp_unslash($_POST['a2wl_aliship_shipping_type']) : 'new');
-
-                set_setting('aliship_shipping_option_text',
-                    (isset($_POST['a2wl_aliship_shipping_option_text']) && !empty($_POST['a2wl_aliship_shipping_option_text'])) ?
-                    wp_unslash($_POST['a2wl_aliship_shipping_option_text']) : '[{shipping_cost}] {shipping_company} ({delivery_time}) - {country}');
-
-                set_setting('aliship_shipping_label', isset($_POST['a2wl_aliship_shipping_label']) ? wp_unslash($_POST['a2wl_aliship_shipping_label']) : 'Shipping');
-                set_setting('aliship_free_shipping_label', isset($_POST['a2wl_aliship_free_shipping_label']) ? wp_unslash($_POST['a2wl_aliship_free_shipping_label']) : 'Free Shipping');
-
-                set_setting('aliship_product_enable', isset($_POST['a2wl_aliship_product_enable']));
-
-                if (isset($_POST['a2wl_aliship_product_enable'])) {
-                    set_setting('aliship_product_position', isset($_POST['a2wl_aliship_product_position']) ? wp_unslash($_POST['a2wl_aliship_product_position']) : 'after_cart');
-
-                    set_setting('aliship_product_not_available_message',
-                        (isset($_POST['a2wl_aliship_product_not_available_message']) && !empty($_POST['a2wl_aliship_product_not_available_message'])) ?
-                        wp_unslash($_POST['a2wl_aliship_product_not_available_message']) : 'This product can not be delivered to {country}.');
-                }
-
-                set_setting('aliship_not_available_remove', isset($_POST['a2wl_aliship_not_available_remove']));
-
-                set_setting('aliship_not_available_message',
-                    (isset($_POST['a2wl_aliship_not_available_message']) && !empty($_POST['a2wl_aliship_not_available_message'])) ?
-                    wp_unslash($_POST['a2wl_aliship_not_available_message']) : '[{shipping_cost}] {delivery_time} - {country}');
-
-                $not_available_shipping_cost = (isset($_POST['a2wl_aliship_not_available_cost']) && floatval($_POST['a2wl_aliship_not_available_cost']) >= 0) ? floatval($_POST['a2wl_aliship_not_available_cost']) : 10;
-
-                set_setting('aliship_not_available_cost', $not_available_shipping_cost);
-
-                $min_time = (isset($_POST['a2wl_aliship_not_available_time_min']) && intval($_POST['a2wl_aliship_not_available_time_min']) > 0) ? intval($_POST['a2wl_aliship_not_available_time_min']) : 20;
-                $max_time = (isset($_POST['a2wl_aliship_not_available_time_max']) && intval($_POST['a2wl_aliship_not_available_time_max']) > 0) ? intval($_POST['a2wl_aliship_not_available_time_max']) : 30;
-
-                set_setting('aliship_not_available_time_min', $min_time);
-                set_setting('aliship_not_available_time_max', $max_time);
-
-            }
-
+            $this->ShippingSettingService->handle();
         }
 
-        $countryModel = new Country();
+        $model = $this->ShippingSettingService->collectModel();
 
-        $this->model_put("shipping_countries", $countryModel->get_countries());
-
-        $this->model_put("shipping_selection_types", Shipping::get_selection_types());
-
-        $this->model_put("shipping_types", Shipping::get_shipping_types());
-
-        $this->model_put("selection_position_types", Shipping::get_selection_position_types());
-
-        $this->model_put("default_formula", ShippingPriceFormula::get_default_formula());
-
-        $shipping_class = get_terms(array('taxonomy' => 'product_shipping_class', 'hide_empty' => false));
-        $this->model_put("shipping_class", $shipping_class ? $shipping_class : array());
+        foreach ($model as $key => $value) {
+            $this->model_put($key, $value);
+        }
 
         return "settings/shipping.php";
     }

@@ -1,3 +1,69 @@
+window.A2W = window.A2W || {};
+A2W.ImportList = A2W.ImportList || {};
+A2W.Services = A2W.Services || {};
+
+(function($) {
+    A2W.ImportList.getCheckedItems = function() {
+        const ids = [];
+        $('.a2wl-product-import-list .select :checkbox:checked:not(:disabled)').each(function () {
+            ids.push($(this).val());
+        });
+
+        return ids;
+    };
+    A2W.ImportList.resetSelection = function() {
+        // Reset action dropdown
+        $('#a2wl-import-actions .action-with-check select').val(0);
+
+        // Uncheck all selected product checkboxes
+       // $('.a2wl-product-import-list .select :checkbox:checked:not(:disabled)').prop('checked', false);
+    };
+    A2W.Services.ShippingBulk = {
+        applyShipping: function(scope, countryToCode, countryFromCode, ignoreExisting, ids = [], nonce, ajaxurl) {
+
+            const payload = {
+                action: 'a2wl_start_bulk_shipping_assignment',
+                ali2woo_nonce: nonce,
+                scope: scope,
+                country_from_code: countryFromCode,
+                country_to_code: countryToCode,
+                ignore_existing: ignoreExisting ? 1 : 0,
+                ids: ids
+            };
+
+            return $.post(ajaxurl, payload)
+                .done(function(response) {
+                    const json = JSON.parse(response);
+                    if (json.state === 'ok') {
+                        A2W.Services.Notification?.show(json.message);
+                    } else {
+                        A2W.Services.Notification?.show(json.message ?? 'AJAX request failed.', 'error');
+                    }
+                })
+                .fail(function(xhr, status, error) {
+                    A2W.Services.Notification?.show('AJAX request failed.', 'error');
+                });
+        }
+    };
+    A2W.Services.Notification = {
+        show: function(message, type = 'success', duration = 3000) {
+            const container = $('#a2wl-toast-container');
+            if (!container.length) {
+                $('body').append('<div id="a2wl-toast-container"></div>');
+            }
+
+            const toast = $(`
+        <div class="a2wl-toast a2wl-toast-${type}">
+          ${message}
+        </div>
+      `);
+
+            $('#a2wl-toast-container').append(toast);
+            setTimeout(() => toast.fadeOut(300, () => toast.remove()), duration);
+        }
+    };
+})(jQuery);
+
 // Create Base64 Object
 var Base64 = { _keyStr: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=", encode: function (e) { var t = ""; var n, r, i, s, o, u, a; var f = 0; e = Base64._utf8_encode(e); while (f < e.length) { n = e.charCodeAt(f++); r = e.charCodeAt(f++); i = e.charCodeAt(f++); s = n >> 2; o = (n & 3) << 4 | r >> 4; u = (r & 15) << 2 | i >> 6; a = i & 63; if (isNaN(r)) { u = a = 64 } else if (isNaN(i)) { a = 64 } t = t + this._keyStr.charAt(s) + this._keyStr.charAt(o) + this._keyStr.charAt(u) + this._keyStr.charAt(a) } return t }, decode: function (e) { var t = ""; var n, r, i; var s, o, u, a; var f = 0; e = e.replace(/[^A-Za-z0-9\+\/\=]/g, ""); while (f < e.length) { s = this._keyStr.indexOf(e.charAt(f++)); o = this._keyStr.indexOf(e.charAt(f++)); u = this._keyStr.indexOf(e.charAt(f++)); a = this._keyStr.indexOf(e.charAt(f++)); n = s << 2 | o >> 4; r = (o & 15) << 4 | u >> 2; i = (u & 3) << 6 | a; t = t + String.fromCharCode(n); if (u != 64) { t = t + String.fromCharCode(r) } if (a != 64) { t = t + String.fromCharCode(i) } } t = Base64._utf8_decode(t); return t }, _utf8_encode: function (e) { e = e.replace(/\r\n/g, "\n"); var t = ""; for (var n = 0; n < e.length; n++) { var r = e.charCodeAt(n); if (r < 128) { t += String.fromCharCode(r) } else if (r > 127 && r < 2048) { t += String.fromCharCode(r >> 6 | 192); t += String.fromCharCode(r & 63 | 128) } else { t += String.fromCharCode(r >> 12 | 224); t += String.fromCharCode(r >> 6 & 63 | 128); t += String.fromCharCode(r & 63 | 128) } } return t }, _utf8_decode: function (e) { var t = ""; var n = 0; var r = c1 = c2 = 0; while (n < e.length) { r = e.charCodeAt(n); if (r < 128) { t += String.fromCharCode(r); n++ } else if (r > 191 && r < 224) { c2 = e.charCodeAt(n + 1); t += String.fromCharCode((r & 31) << 6 | c2 & 63); n += 2 } else { c2 = e.charCodeAt(n + 1); c3 = e.charCodeAt(n + 2); t += String.fromCharCode((r & 15) << 12 | (c2 & 63) << 6 | c3 & 63); n += 3 } } return t } }
 
@@ -529,7 +595,7 @@ function a2wl_get_product_proc(params, callback) {
     }
 }
 
-function a2wl_js_update_product(products_to_update, state, on_load_calback) {
+function a2wl_js_update_product(products_to_update, state, on_load_callback) {
     if (products_to_update.length > 0) {
         let data = products_to_update.shift();
 
@@ -556,20 +622,20 @@ function a2wl_js_update_product(products_to_update, state, on_load_calback) {
                     state.update_cnt += json.update_state.ok;
                 }
 
-                if (on_load_calback) {
-                    on_load_calback(json.state, state);
+                if (on_load_callback) {
+                    on_load_callback(json.state, state, json.message ?? '');
                 }
 
-                a2wl_js_update_product(products_to_update, state, on_load_calback);
+                a2wl_js_update_product(products_to_update, state, on_load_callback);
             }).fail(function (xhr, status, error) {
                 console.log(error);
                 state.update_error_cnt += data.ids.length;
 
-                if (on_load_calback) {
-                    on_load_calback('error', state);
+                if (on_load_callback) {
+                    on_load_callback('error', state);
                 }
 
-                a2wl_js_update_product(products_to_update, state, on_load_calback);
+                a2wl_js_update_product(products_to_update, state, on_load_callback);
             });
         }
 
@@ -583,10 +649,10 @@ function a2wl_js_update_product(products_to_update, state, on_load_calback) {
                 } else {
                     console.log('Error! a2wl_get_product: ', msg);
                     state.update_error_cnt += data.ids.length;
-                    if (on_load_calback) {
-                        on_load_calback('error', state);
+                    if (on_load_callback) {
+                        on_load_callback('error', state);
                     }
-                    a2wl_js_update_product(products_to_update, state, on_load_calback);
+                    a2wl_js_update_product(products_to_update, state, on_load_callback);
                 }
             });
         } else {
@@ -640,7 +706,12 @@ var Utils = new Utils();
                 if (data.ids.length > 0) {
                     products_to_update.push(data);
 
-                    let on_load = function (response_state, state) {
+                    let on_load = function (response_state, state, error_message) {
+                        if (response_state === 'error' && error_message) {
+                            alert(error_message);
+                            location.reload();
+                            return;
+                        }
                         if ((state.update_cnt + state.update_error_cnt) === state.num_to_update) {
                             a2wl_update_action_lock = false;
                             alert(a2wl_sync_data.lang.sync_successfully);
@@ -2055,14 +2126,10 @@ var Utils = new Utils();
         });
 
 
-        $('#a2wl-import-actions .action-with-check select').change(function () {
-            var ids = [];
-            $('.a2wl-product-import-list .select :checkbox:checked:not(:disabled)').each(function () {
-                ids.push($(this).val());
-            });
+        $('#a2wl-import-actions .action-with-check select').on('change', function () {
+            let ids = A2W.ImportList.getCheckedItems();
 
             if ($(this).val() === 'remove') {
-
                 $('.modal-confirm').confirm_modal({
                     title: 'Remove ' + $('.a2wl-product-import-list .select :checkbox:checked').length + ' products',
                     body: 'Are you sure you want to remove ' + $('.a2wl-product-import-list .select :checkbox:checked').length + ' products from your import list?',
@@ -2105,8 +2172,6 @@ var Utils = new Utils();
                         $('#a2wl-import-actions .action-with-check select').val(0);
                     }
                 });
-
-
             } else if ($(this).val() === 'push') {
                 $('.modal-confirm').confirm_modal({
                     title: 'Push ' + $('.a2wl-product-import-list .select :checkbox:checked').length + ' products',
@@ -2153,6 +2218,8 @@ var Utils = new Utils();
                 $(".set-category-dialog").addClass('opened');
                 update_bulk_actions();
                 $('#a2wl-import-actions .action-with-check select').val(0);
+            } else if ($(this).val() === 'apply-shipping') {
+                A2W.Modals.BulkShippingModal.open(ids);
             }
         });
 

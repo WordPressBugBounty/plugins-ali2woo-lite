@@ -11,7 +11,6 @@ namespace AliNext_Lite;;
 
 use Exception;
 use Throwable;
-use function AliNext_Lite\get_setting;
 
 class ImportProcess extends BaseJob implements ImportJobInterface
 {

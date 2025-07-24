@@ -28,7 +28,8 @@ class Loader {
         return self::$_instance;
     }
 
-    static public function classes($classpath, $default_load_action, Container $DI) {
+    static public function classes($classpath, $default_load_action, Container $DI)
+    {
         $this_class = Loader::getInstance();
 
         $result = $this_class->load_classpath($classpath, $default_load_action);
@@ -64,9 +65,9 @@ class Loader {
         foreach ($result['autoload'] as $action => $class_array) {
             if ('global' === $action) {
                 foreach ($class_array as $className) {
-                    if(
-                        (defined('DOING_AJAX') && in_array($className, $result['skip_ajax'])) || 
-                        (defined('DOING_CRON') && in_array($className, $result['skip_cron'])) 
+                    if (
+                        (defined('DOING_AJAX') && in_array($className, $result['skip_ajax'])) ||
+                        (defined('DOING_CRON') && in_array($className, $result['skip_cron']))
                     ) {
                         continue;
                     }
@@ -76,9 +77,9 @@ class Loader {
             } else {
                 $this_class->add_method($action, function () use (&$this_class, $action, $class_array, $result, $DI) {
                     foreach ($class_array as $className) {
-                        if(
-                            (defined('DOING_AJAX') && in_array($className, $result['skip_ajax'])) || 
-                            (defined('DOING_CRON') && in_array($className, $result['skip_cron'])) 
+                        if (
+                            (defined('DOING_AJAX') && in_array($className, $result['skip_ajax'])) ||
+                            (defined('DOING_CRON') && in_array($className, $result['skip_cron']))
                         ) {
                             continue;
                         }
@@ -89,6 +90,40 @@ class Loader {
                 add_action($action, array($this_class, $action), 20);
             }
         }
+
+     /*   foreach ($result['hook'] as $hook => $class_array_1) {
+            foreach ($class_array_1 as $className1) {
+                if (
+                    (defined('DOING_AJAX') && in_array($className1, $result['skip_ajax'])) ||
+                    (defined('DOING_CRON') && in_array($className1, $result['skip_cron']))
+                ) {
+                    continue;
+                }
+                $this_class->debug("Registering hook '{$hook}' with class '{$className1}'");
+                $instance = $this_class->createClassInstance($className1, $DI);
+            }
+        }*/
+
+        $this_class->add_method('finalize_hooks', function () use ($result, $DI, $this_class) {
+            foreach ($result['hook'] as $hook => $classList) {
+                foreach ($classList as $className) {
+                    if (
+                        (defined('DOING_AJAX') && in_array($className, $result['skip_ajax'])) ||
+                        (defined('DOING_CRON') && in_array($className, $result['skip_cron']))
+                    ) {
+                        continue;
+                    }
+                    $this_class->debug("Registering hook '{$hook}' with class '{$className}'");
+                    $instance = $this_class->createClassInstance($className, $DI);
+                    if (method_exists($instance, '__invoke')) {
+                        add_action($hook, $instance);
+                    }
+                }
+            }
+        });
+
+        // And finally register a single WP hook to initialize this
+        add_action('plugins_loaded', [$this_class, 'finalize_hooks']);
     }
 
     static public function addons($classpath) {
@@ -111,19 +146,35 @@ class Loader {
         }
     }
 
-    private function createClassInstance(string $className, Container $DI): void {
-        $className = 'AliNext_Lite\\' . $className;
-
-        if ($DI->has($className)) {
-            //load class using DI id it has DI definition in config
-            $DI->get($className);
-        } else {
-            new $className();
+    private function debug(string $message): void
+    {
+        if (defined('A2WL_LOADER_DEBUG') && A2WL_LOADER_DEBUG === true) {
+            error_log("[A2W Loader] " . $message);
         }
     }
 
+    private function createClassInstance(string $className, Container $DI): object
+    {
+        $fqcn = 'AliNext_Lite\\' . $className;
+
+        $this->debug("Instantiating: {$fqcn} via " . ($DI->has($fqcn) ? "DI container" : "constructor"));
+
+        if ($DI->has($fqcn)) {
+            //load class using DI id it has DI definition in config
+            return $DI->get($fqcn);
+        }
+
+        return new $fqcn();
+    }
+
     private function load_classpath($classpath, $default_load_action) {
-        $result = array('delay_include' => array(), 'autoload' => array(), 'skip_ajax' => array(), 'skip_cron' => array());
+        $result = array(
+            'delay_include' => array(),
+            'autoload' => array(),
+            'skip_ajax' => array(),
+            'skip_cron' => array(),
+            'hook' => array()
+        );
         
         if ($classpath) {
             $classpath .= substr($classpath, -1) === "/" ? "" : "/";
@@ -132,15 +183,48 @@ class Loader {
 
             foreach (glob($classpath . "*") as $f) {
                 if (is_file($f)) {
+                    $this->debug("Scanning file: {$f}");
+
                     $file_info = pathinfo($f);
                     if ($file_info["extension"] == "php") {
-                        $file_data = get_file_data($f, array('position' => '@position', 'autoload' => '@autoload', 'include_action' => '@include_action', 'ajax' => '@ajax', 'cron' => '@cron'));
+                        $file_data = get_file_data($f, array(
+                            'position' => '@position',
+                            'autoload' => '@autoload',
+                            'include_action' => '@include_action',
+                            'hook' => '@hook',
+                            'ajax' => '@ajax',
+                            'cron' => '@cron',
+                        ));
                         if (isset($file_data['autoload']) && $file_data['autoload']) {
                             $action = (!is_null(filter_var($file_data['autoload'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE))) ? $default_load_action : $file_data['autoload'];
                             if (!isset($result['autoload'][$action])) {
                                 $result['autoload'][$action] = array();
                             }
+
+                            $this->debug("Autoloading: {$file_info['filename']} for action: {$action}");
                             $result['autoload'][$action][] = $file_info['filename'];
+
+                            if(isset($file_data['ajax'])){
+                                if(!filter_var($file_data['ajax'], FILTER_VALIDATE_BOOLEAN)){
+                                    $result['skip_ajax'][] = $file_info['filename'];
+                                }
+                            }
+
+                            if(isset($file_data['cron'])){
+                                if(!filter_var($file_data['cron'], FILTER_VALIDATE_BOOLEAN)){
+                                    $result['skip_cron'][] = $file_info['filename'];
+                                }
+                            }
+                        }
+
+                        if (!empty($file_data['hook'])) {
+                            $action = $file_data['hook'];
+                            if (!isset($result['hook'][$action])) {
+                                $result['hook'][$action] = array();
+                            }
+
+                            $this->debug("Detected hook: {$file_data['hook']} for {$file_info['filename']}");
+                            $result['hook'][$action][] = $file_info['filename'];
 
                             if(isset($file_data['ajax'])){
                                 if(!filter_var($file_data['ajax'], FILTER_VALIDATE_BOOLEAN)){
@@ -160,6 +244,8 @@ class Loader {
                             if (!isset($result['delay_include'][$include_action])) {
                                 $result['delay_include'][$include_action] = array();
                             }
+
+                            $this->debug("Including delayed file: {$f} for action: {$include_action}");
                             $result['delay_include'][$include_action][] = $f . "###" . (IntVal($file_data['position']) ? IntVal($file_data['position']) : self::DEFAULT_INCLUDE_POSITION);
                         } else {
                             $include_array[$f] = IntVal($file_data['position']) ? IntVal($file_data['position']) : self::DEFAULT_INCLUDE_POSITION;

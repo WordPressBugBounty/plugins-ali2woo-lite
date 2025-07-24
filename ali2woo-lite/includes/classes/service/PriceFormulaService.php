@@ -50,12 +50,10 @@ class PriceFormulaService
         }
 
         $product_price = $this->normalizeProductPrice($product);
-
         if ($formula && $formula_regular && $product_price['price']) {
             $use_compared_price_markup = $this->PriceFormulaSettingsRepository->getUseComparedPriceMarkup();
             $price_cents = $this->PriceFormulaSettingsRepository->getPriceCents();
             $price_compared_cents = $this->PriceFormulaSettingsRepository->getPriceComparedCents();
-
             if ($applyFormulaTo === PriceFormula::TYPE_ALL || $applyFormulaTo === PriceFormula::TYPE_PRICE || !isset($product['calc_price'])) {
                 // calculate price
                 $price = $pricing_rules_type == self::REGULAR_PRICE_AS_BASE ?

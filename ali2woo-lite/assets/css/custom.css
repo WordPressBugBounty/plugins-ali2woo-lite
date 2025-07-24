@@ -674,3 +674,33 @@ body[class*="page_a2w"]{
 .a2wl-content .radio-inline{
     margin-right: 20px;
 }
+
+#a2wl-toast-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    text-align: center;
+}
+
+.a2wl-toast {
+    background: #323232;
+    color: #fff;
+    padding: 14px 24px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    font-size: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    opacity: 0.95;
+    display: inline-block;
+    max-width: 90vw;
+}
+
+.a2wl-toast-success {
+    background: #28a745;
+}
+
+.a2wl-toast-error {
+    background: #dc3545;
+}

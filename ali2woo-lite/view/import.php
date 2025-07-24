@@ -21,6 +21,7 @@ use AliNext_Lite\Utils;
     <div class="container">
         <div class="_a2wfo a2wl-info"><div>You are using AliNext (Lite version) Lite. If you want to unlock all features and get premium support, purchase the full version of the plugin.</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>
         <?php include_once A2WL()->plugin_path() . '/view/chrome_notify.php'; ?>
+        <?php include_once A2WL()->plugin_path() . '/view/permanent_alert.php'; ?>
         
         
         <div id="a2wl-import-empty" class="panel panel-default margin-top"<?php if ($serach_query || count($product_list) !== 0): ?> style="display:none;"<?php endif; ?>>
@@ -64,22 +65,26 @@ use AliNext_Lite\Utils;
                     <div class="grid__col">
                         <div class="container-flex" style="height: 32px;">
                             <div class="margin-right">
-                                <input type="checkbox" class="check-all form-control"><span class="space-small-left"><strong><?php  esc_html_e('Select All Products', 'ali2woo'); ?></strong></span>
+                                <input type="checkbox" class="check-all form-control"><span class="space-small-left"><strong>
+                                        <?php echo esc_html_x('Select All Products', 'import list','ali2woo'); ?>
+                                    </strong></span>
                             </div>
                             <div class="action-with-check" style="display: none;">
                                 <select class="form-control">
                                     <option value="0">Bulk Actions (0 selected)</option>
-                                    <option value="remove"><?php  esc_html_e('Remove from Import List', 'ali2woo'); ?></option>
-                                    <option value="push"><?php  esc_html_e('Push Products to Shop', 'ali2woo'); ?></option>
-                                    <option value="link-category"><?php  esc_html_e('Link to category', 'ali2woo'); ?></option>
+                                    <option value="apply-shipping"><?php echo esc_html_x('Apply Shipping', 'import list', 'ali2woo'); ?></option>
+                                    <option value="remove"><?php echo esc_html_x('Remove from Import List', 'import list', 'ali2woo'); ?></option>
+                                    <option value="push"><?php echo esc_html_x('Push Products to Shop', 'import list','ali2woo'); ?></option>
+                                    <option value="link-category"><?php echo esc_html_x('Link to category','import list', 'ali2woo'); ?></option>
                                 </select>
                                 <div class="loader"><div class="a2wl-loader"></div></div>
                             </div>
                         </div>
                     </div>
                     <div class="grid__col grid__col_to-right">
-                        <a href="#" class="btn btn-default link_category_all"><?php  esc_html_e('Link All products to category', 'ali2woo'); ?></a>
+                        <a href="#" class="btn btn-default link_category_all"><?php esc_html_e('Link All products to category', 'ali2woo'); ?></a>
                         <a href="<?php echo $links['remove_all_products_link']; ?>" class="btn btn-danger margin-small-left delete_all"><?php  esc_html_e('Remove All Products', 'ali2woo'); ?></a>
+
                         <button type="button" class="btn btn-success no-outline btn-icon-left margin-small-left push_all">
                             <div class="btn-loader-wrap"><div class="a2wl-loader"></div></div>
                             <span class="btn-icon-wrap add"><svg><use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#icon-add"></use></svg></span><?php  esc_html_e('Push All Products to Shop', 'ali2woo'); ?>
@@ -608,6 +613,7 @@ use AliNext_Lite\Utils;
             <?php include_once 'includes/rename_attributes_modal.php'; ?>
             <?php include_once 'includes/confirm_modal.php'; ?>
             <?php include_once 'includes/shipping_modal.php'; ?>
+            <?php include_once 'includes/shipping_apply_bulk_modal.php'; ?>
             <?php include_once 'includes/category_modal.php'; ?>
             <?php include_once 'includes/progress_modal.php'; ?>
             <?php include_once 'includes/split_modal.php'; ?>

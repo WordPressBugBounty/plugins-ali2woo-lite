@@ -337,7 +337,7 @@ body .a2wl-content {
 .a2wl-content .container-flex-column {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 10px;
 }
 
 .a2wl-content .container-flex.flex-between {
@@ -1595,13 +1595,22 @@ body .a2wl-content {
     margin-right: 8px;
 }
 
-.modal-shipping .header-item
-{
-    display: flex;
+.modal-apply-shipping-bulk .modal-content {
+    width: 600px;
+    max-width: 800px;
+    margin: 32px auto;
+    box-sizing: border-box;
 }
 
-.modal-shipping .header-item .label {
-    margin-left: 5px;
+.a2wl-modal-standard-fields .header-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.a2wl-modal-standard-fields .header-item .label {
+    margin-right: 5px;
+    font-weight: 500;
 }
 
 .modal-shipping .country-select-from {

@@ -12,6 +12,7 @@
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
 namespace AliNext_Lite;;
 
+use Exception;
 use Pages;
 use Throwable;
 
@@ -32,6 +33,8 @@ class ImportAjaxController extends AbstractController
     protected ImportedProductServiceFactory $ImportedProductServiceFactory;
     protected WoocommerceService $WoocommerceService;
     protected WoocommerceCategoryService $WoocommerceCategoryService;
+    protected BackgroundProcessFactory $BackgroundProcessFactory;
+    protected ProductImportTransactionService $ProductImportTransactionService;
 
     public function __construct(
         ProductImport $ProductImportModel, Woocommerce $WoocommerceModel, ProductReviewsService $ProductReviewsService,
@@ -39,7 +42,9 @@ class ImportAjaxController extends AbstractController
         ProductShippingDataService $ProductShippingDataService, ImportListService $ImportListService,
         ProductService $ProductService, PriceFormulaService $PriceFormulaService,
         ImportedProductServiceFactory $ImportedProductServiceFactory, WoocommerceService $WoocommerceService,
-        WoocommerceCategoryService $WoocommerceCategoryService
+        WoocommerceCategoryService $WoocommerceCategoryService,
+        BackgroundProcessFactory $BackgroundProcessFactory,
+        ProductImportTransactionService $ProductImportTransactionService,
     ) {
         parent::__construct();
 
@@ -56,6 +61,8 @@ class ImportAjaxController extends AbstractController
         $this->ImportedProductServiceFactory = $ImportedProductServiceFactory;
         $this->WoocommerceService = $WoocommerceService;
         $this->WoocommerceCategoryService = $WoocommerceCategoryService;
+        $this->BackgroundProcessFactory = $BackgroundProcessFactory;
+        $this->ProductImportTransactionService = $ProductImportTransactionService;
 
         add_filter('a2wl_woocommerce_after_add_product', array($this, 'woocommerce_after_add_product'), 30, 4);
         add_action('wp_ajax_a2wl_push_product', [$this, 'ajax_push_product']);
@@ -892,68 +899,42 @@ class ImportAjaxController extends AbstractController
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
 
         if (!PageGuardHelper::canAccessPage(Pages::IMPORT_LIST)) {
-            $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
-            echo wp_json_encode($result);
+            echo wp_json_encode(ResultBuilder::buildError($this->getErrorTextNoPermissions()));
             wp_die();
         }
 
-        if (isset($_POST['id'])) {
+        $externalId = isset($_POST['id']) ? sanitize_text_field($_POST['id']) : null;
+        $pageRaw = isset($_POST['page']) ? sanitize_text_field($_POST['page']) : '';
+        $apdRaw = isset($_POST['apd']) ? sanitize_text_field($_POST['apd']) : '';
 
-            $product = array();
-
-            if ($_POST['page'] === 'a2wl_dashboard'){
-                $products = a2wl_get_transient('a2wl_search_result');
-            } elseif ($_POST['page'] === 'a2wl_store'){
-                $products = a2wl_get_transient('a2wl_search_store_result');
-            }
-
-            $product_import_model = $this->ProductImportModel;
-            $PriceFormulaService = $this->PriceFormulaService;
-
-            if ($products && is_array($products)) {
-                foreach ($products as $p) {
-                    if ($p['id'] == $_POST['id']) {
-                        $product = $p;
-                        break;
-                    }
-                }
-            }
-
-            global $wpdb;
-            $post_id = $wpdb->get_var(
-                $wpdb->prepare(
-                    "SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_a2w_external_id' AND meta_value=%s LIMIT 1",
-                    $_POST['id']
-                )
-            );
-            if (get_setting('allow_product_duplication') || !$post_id) {
-                $params = empty($_POST['apd']) ? array() : array('data' => array('apd' => json_decode(stripslashes($_POST['apd']))));
-                $res = $this->AliexpressModel->load_product($_POST['id'], $params);
-                if ($res['state'] !== 'error') {
-                    $product = array_replace_recursive($product, $res['product']);
-
-                    if ($product) {
-                        $product = $PriceFormulaService->applyFormula($product);
-
-                        $product_import_model->add_product($product);
-
-                        echo wp_json_encode(ResultBuilder::buildOk());
-                    } else {
-                        echo wp_json_encode(ResultBuilder::buildError("Product not found in serach result"));
-                    }
-                } else {
-                    echo wp_json_encode($res);
-                }
-            } else {
-                echo wp_json_encode(ResultBuilder::buildError("Product already imported."));
-            }
-        } else {
-            echo wp_json_encode(ResultBuilder::buildError("add_to_import: waiting for ID..."));
+        if (!$externalId) {
+            $this->respondWithError("add_to_import: waiting for ID...");
         }
+
+        $priority = $pageRaw === 'a2wl_store'
+            ? ProductSelectorService::PRIORITY_STORE_FIRST
+            : ProductSelectorService::PRIORITY_RESULT_FIRST;
+
+        $apd = !empty($apdRaw)
+            ? ['data' => ['apd' => json_decode(stripslashes($apdRaw))]]
+            : [];
+
+        a2wl_init_error_handler();
+        try {
+            $result = $this->ProductImportTransactionService->execute($externalId, $priority, $apd);
+            restore_error_handler();
+        }
+        catch (Exception $Exception) {
+            $this->respondWithError($Exception->getMessage());
+        }
+
+        echo wp_json_encode($result->status === 'ok'
+            ? ResultBuilder::buildOk()
+            : ResultBuilder::buildError($result->message)
+        );
         wp_die();
     }
     
-
     public function ajax_remove_from_import(): void
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
@@ -1448,5 +1429,11 @@ class ImportAjaxController extends AbstractController
                 wp_defer_comment_counting(false);
             });
         }
+    }
+
+    private function respondWithError(string $message): void
+    {
+        echo wp_json_encode(ResultBuilder::buildError($message));
+        wp_die();
     }
 }

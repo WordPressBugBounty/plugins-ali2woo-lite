@@ -1,13 +1,14 @@
 <?php
 
 use AliNext_Lite\AddProductToImportListProcess;
+use AliNext_Lite\AffiliateCheckProcess;
 use AliNext_Lite\Aliexpress;
 use AliNext_Lite\AliexpressHelper;
 use AliNext_Lite\AliexpressRegionRepository;
 use AliNext_Lite\ApplyPricingRulesProcess;
 use AliNext_Lite\Attachment;
 use AliNext_Lite\BackgroundProcessFactory;
-use AliNext_Lite\BackgroundProcessService;
+use AliNext_Lite\AfterProductImportHook;
 use AliNext_Lite\CommonSettingService;
 use AliNext_Lite\Country;
 use AliNext_Lite\ExternalOrderFactory;
@@ -41,17 +42,16 @@ use AliNext_Lite\PriceFormulaSettingsRepository;
 use AliNext_Lite\ProductChange;
 use AliNext_Lite\ProductDataTabController;
 use AliNext_Lite\ProductImport;
+use AliNext_Lite\ProductImportTransactionService;
 use AliNext_Lite\ProductInfoWidgetController;
 use AliNext_Lite\ProductReviewsService;
+use AliNext_Lite\ProductSelectorService;
 use AliNext_Lite\ProductService;
 use AliNext_Lite\ProductShippingDataFactory;
 use AliNext_Lite\ProductShippingDataRepository;
 use AliNext_Lite\ProductShippingDataService;
+use AliNext_Lite\ProductValidatorService;
 use AliNext_Lite\ProductVideoController;
-
-use AliNext_Lite\PromoService;
-
-
 use AliNext_Lite\PurchaseCodeInfoFactory;
 use AliNext_Lite\PurchaseCodeInfoRepository;
 use AliNext_Lite\PurchaseCodeInfoService;
@@ -60,6 +60,8 @@ use AliNext_Lite\SearchPageController;
 use AliNext_Lite\SearchStoreProductsPageController;
 use AliNext_Lite\SettingPageAjaxController;
 use AliNext_Lite\SettingPageController;
+use AliNext_Lite\Settings;
+use AliNext_Lite\ShippingSettingService;
 use AliNext_Lite\SplitProductService;
 use AliNext_Lite\SynchProductController;
 use AliNext_Lite\Synchronize;
@@ -75,9 +77,16 @@ use AliNext_Lite\Woocommerce;
 use AliNext_Lite\WoocommerceCategoryService;
 use AliNext_Lite\WooCommerceProductListController;
 use AliNext_Lite\WoocommerceService;
+use DI\Container as ContainerDI;
 use function DI\create;
+use function DI\factory;
 use function DI\get;
-use AliNext_Lite\Settings;
+
+
+use AliNext_Lite\PromoService;
+
+
+
 
 return [
     /* helpers */
@@ -91,7 +100,7 @@ return [
     'AliNext_Lite\ImportedProductServiceFactory' => create(ImportedProductServiceFactory::class),
     'AliNext_Lite\BackgroundProcessFactory' => create(BackgroundProcessFactory::class)
         ->constructor(
-            get(AddProductToImportListProcess::class),
+            get(ContainerDI::class),
         ),
     'AliNext_Lite\ExternalOrderFactory' => create(ExternalOrderFactory::class)
         ->constructor(
@@ -157,10 +166,26 @@ return [
         ),
 
     /* services */
+    
+
+    'AliNext_Lite\ProductImportTransactionService' => create(ProductImportTransactionService::class)
+        ->constructor(
+            get(ProductSelectorService::class),
+            get(ProductValidatorService::class),
+            get(Aliexpress::class),
+            get(PriceFormulaService::class),
+            get(ProductImport::class),
+        ),
+    'AliNext_Lite\ProductValidatorService' => factory(function (ContainerDI $Container) {
+            global $wpdb;
+            return new ProductValidatorService($wpdb);
+    }),
+    'AliNext_Lite\ProductSelectorService' => create(ProductSelectorService::class),
     'AliNext_Lite\CommonSettingService' => create(CommonSettingService::class)
         ->constructor(
             get(AliexpressRegionRepository::class),
         ),
+    'AliNext_Lite\ShippingSettingService' => create(ShippingSettingService::class),
     'AliNext_Lite\WoocommerceCategoryService' => create(WoocommerceCategoryService::class)
         ->constructor(
             get(Aliexpress::class),
@@ -177,14 +202,8 @@ return [
             get(SynchronizePurchaseCodeInfoProcess::class)
         ),
     'AliNext_Lite\ImportedProductService' => create(ImportedProductService::class),
-    'AliNext_Lite\BackgroundProcessService' => create(BackgroundProcessService::class)
-        ->constructor(
-            get(ApplyPricingRulesProcess::class),
-            get(ImportProcess::class),
-            get(AddProductToImportListProcess::class),
-        ),
     'AliNext_Lite\PermanentAlertService' => create(PermanentAlertService::class)
-        ->constructor(get(BackgroundProcessService::class)),
+        ->constructor(get(BackgroundProcessFactory::class)),
     'AliNext_Lite\ImportListService' => create(ImportListService::class)
         ->constructor(
             get(AddProductToImportListProcess::class),
@@ -258,13 +277,25 @@ return [
             get(ProductShippingDataService::class),
         ),
     
+    
     'AliNext_Lite\PromoService' => create(PromoService::class),
     
+
+    /* hooks */
+    'AliNext_Lite\AfterProductImportHook' => create(AfterProductImportHook::class)
+        ->constructor(
+            get(BackgroundProcessFactory::class),
+        
+        ),
+
     /* controllers */
     'AliNext_Lite\SettingPageController' => create(SettingPageController::class)
         ->constructor(
             get(LocalService::class),
             get(CommonSettingService::class),
+            get(ShippingSettingService::class),
+            get(PermanentAlertService::class),
+            get(TipOfDayService::class),
         ),
 
     'AliNext_Lite\ImportAjaxController' => create(ImportAjaxController::class)
@@ -278,6 +309,8 @@ return [
             get(ImportedProductServiceFactory::class),
             get(WoocommerceService::class),
             get(WoocommerceCategoryService::class),
+            get(BackgroundProcessFactory::class),
+            get(ProductImportTransactionService::class),
         ),
 
     'AliNext_Lite\PriceFormulaSetAjaxController' => create(PriceFormulaSetAjaxController::class)
@@ -351,11 +384,21 @@ return [
         ->constructor(
             get(Aliexpress::class),
             get(Country::class),
+            get(PermanentAlertService::class),
+            get(TipOfDayService::class),
+            
+            get(PromoService::class),
+            
         ),
     'AliNext_Lite\SearchStoreProductsPageController' => create(SearchStoreProductsPageController::class)
         ->constructor(
             get(Aliexpress::class),
             get(Country::class),
+            get(PermanentAlertService::class),
+            get(TipOfDayService::class),
+            
+            get(PromoService::class),
+            
         ),
     'AliNext_Lite\FrontendInitController' => create(FrontendInitController::class)
         ->constructor(
@@ -373,6 +416,8 @@ return [
         ->constructor(
             get(Woocommerce::class),
             get(ImportListService::class),
+            get(AliexpressRegionRepository::class),
+            get(PermanentAlertService::class),
         ),
     /* libs */
     'AliNext_Lite\JSON_API_Core_Controller' => create(JSON_API_Core_Controller::class)
@@ -382,7 +427,8 @@ return [
             get(Woocommerce::class),
             get(ProductService::class),
             get(Aliexpress::class),
-            get(PriceFormulaService::class)
+            get(PriceFormulaService::class),
+            get(ProductImportTransactionService::class)
         ),
 
     /* jobs */
@@ -392,13 +438,18 @@ return [
         ),
     'AliNext_Lite\AddProductToImportListProcess' => create(AddProductToImportListProcess::class)
         ->constructor(
+            get(ProductImportTransactionService::class),
+        ),
+    'AliNext_Lite\AffiliateCheckProcess' => create(AffiliateCheckProcess::class)
+        ->constructor(
             get(Aliexpress::class),
-            get(PriceFormulaService::class),
             get(ProductImport::class),
         ),
-
+    
     'register_jobs' => [
         get(SynchronizePurchaseCodeInfoProcess::class),
         get(AddProductToImportListProcess::class),
+        get(AffiliateCheckProcess::class),
+        
     ]
 ];

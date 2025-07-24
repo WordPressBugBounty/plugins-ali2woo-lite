@@ -14,13 +14,14 @@ use Pages;
 class SearchStoreProductsPageController extends AbstractAdminPage
 {
 
-    protected Aliexpress $AliexpressModel;
-    protected Country $CountryModel;
-
-
     public function __construct(
-        Aliexpress $AliexpressModel,
-        Country $CountryModel
+        protected Aliexpress $AliexpressModel,
+        protected Country $CountryModel,
+        protected PermanentAlertService $PermanentAlertService,
+        protected TipOfDayService $TipOfDayService,
+        
+        protected PromoService $PromoService,
+        
     ) {
         parent::__construct(
             Pages::getLabel(Pages::STORE),
@@ -29,9 +30,6 @@ class SearchStoreProductsPageController extends AbstractAdminPage
             Pages::STORE,
             10
         );
-
-        $this->AliexpressModel = $AliexpressModel;
-        $this->CountryModel = $CountryModel;
 
         add_filter('a2wl_configure_lang_data', [$this, 'configure_lang_data']);
     }
@@ -127,7 +125,6 @@ class SearchStoreProductsPageController extends AbstractAdminPage
         }
 
         $localizator = AliexpressLocalizator::getInstance();
-        $TipOfDayService = A2WL()->getDI()->get('AliNext_Lite\TipOfDayService');
 
         $page = esc_attr(((isset($_GET['page'])) ? $_GET['page'] : ''));
         $curPage = esc_attr(((isset($_GET['cur_page'])) ? $_GET['cur_page'] : ''));;
@@ -142,7 +139,13 @@ class SearchStoreProductsPageController extends AbstractAdminPage
         $this->model_put('load_products_result', $load_products_result);
         $this->model_put('page', $page);
         $this->model_put('curPage', $curPage);
-        $this->model_put("TipOfDay", $TipOfDayService->getNextTip());
+
+        
+        $this->model_put('promo_data', $this->PromoService->getPromoData());
+        
+
+        $this->model_put("PermanentAlerts", $this->PermanentAlertService->getAll());
+        $this->model_put("TipOfDay", $this->TipOfDayService->getNextTip());
 
         $search_version = 'v1';
         $this->include_view('search_store_products_' . $search_version . '.php');

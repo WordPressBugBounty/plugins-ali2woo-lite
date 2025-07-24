@@ -33,6 +33,8 @@ class ImportedProductService
     public const FIELD_EXTERNAL_SKU_ID = 'skuId';
     public const FIELD_EXTERNAL_PRODUCT_ID = 'id';
     public const FIELD_COUNTRY_CODE = 'country_code';
+    public const FIELD_QUANTITY = 'quantity';
+    public const FIELD_ORIGINAL_QUANTITY = 'original_quantity';
 
     private array $shouldShowVideoTabStates = [
         ShouldShowVideoTab::HIDE,

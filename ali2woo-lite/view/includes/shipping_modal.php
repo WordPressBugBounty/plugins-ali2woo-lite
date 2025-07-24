@@ -5,7 +5,7 @@
  * @var array $variations
  */
 ?>
-<div class="modal-overlay modal-shipping a2wl-content">
+<div class="modal-overlay modal-shipping a2wl-content a2wl-modal-standard-fields">
     <div class="modal-content">
         <div class="modal-header">
             <h3 class="modal-title">

@@ -10,6 +10,7 @@ namespace AliNext_Lite;;
 
 use DOMDocument;
 use Throwable;
+use wpdb;
 
 class Aliexpress
 {
@@ -56,7 +57,6 @@ class Aliexpress
                 $product['import_id'] = in_array($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID], $products_in_import) ? $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID] : 0;
                 $product['product_type'] = $default_type;
                 $product['product_status'] = $default_status;
-                $product['is_affiliate'] = true;
 
                 if (isset($filter['country']) && $filter['country']) {
                     $product[ImportedProductService::FIELD_COUNTRY_TO] = $filter['country'];
@@ -190,15 +190,15 @@ class Aliexpress
             if (get_setting('use_random_stock')) {
                 $result['product']['disable_var_quantity_change'] = true;
                 foreach ($result['product']['sku_products']['variations'] as &$variation) {
-                    $variation['original_quantity'] = intval($variation['quantity']);
+                    $variation[ImportedProductService::FIELD_ORIGINAL_QUANTITY] = intval($variation[ImportedProductService::FIELD_QUANTITY]);
                     $tmp_quantity = wp_rand(
                         intval(get_setting('use_random_stock_min')),
                         intval(get_setting('use_random_stock_max'))
                     );
-                    $tmp_quantity = ($tmp_quantity > $variation['original_quantity']) ?
-                        $variation['original_quantity'] :
+                    $tmp_quantity = ($tmp_quantity > $variation[ImportedProductService::FIELD_ORIGINAL_QUANTITY]) ?
+                        $variation[ImportedProductService::FIELD_ORIGINAL_QUANTITY] :
                         $tmp_quantity;
-                    $variation['quantity'] = $tmp_quantity;
+                    $variation[ImportedProductService::FIELD_QUANTITY] = $tmp_quantity;
                 }
             }
 
@@ -381,10 +381,12 @@ class Aliexpress
 
             foreach ($result['products'] as &$product) {
                 foreach ($product['sku_products']['variations'] as &$variation) {
-                    $variation['original_quantity'] = intval($variation['quantity']);
+                    $variation[ImportedProductService::FIELD_ORIGINAL_QUANTITY] =
+                        intval($variation[ImportedProductService::FIELD_QUANTITY]);
                     $tmp_quantity = wp_rand($random_stock_min, $random_stock_max);
-                    $tmp_quantity = ($tmp_quantity > $variation['original_quantity']) ? $variation['original_quantity'] : $tmp_quantity;
-                    $variation['quantity'] = $tmp_quantity;
+                    $tmp_quantity = ($tmp_quantity > $variation[ImportedProductService::FIELD_ORIGINAL_QUANTITY]) ?
+                        $variation[ImportedProductService::FIELD_ORIGINAL_QUANTITY] : $tmp_quantity;
+                    $variation[ImportedProductService::FIELD_QUANTITY] = $tmp_quantity;
                 }
             }
         }
@@ -839,9 +841,9 @@ class Aliexpress
             $items = $product['shipping_info']['items'];
             $shippingFromCode = $product['shipping_info']['shippingFromCode'];
             $shippingToCode = $product['shipping_info']['shippingToCode'];
-            $product['shipping_info'] = [];
+            $product[ImportedProductService::FIELD_SHIPPING_INFO] = [];
             $countryCode = ProductShippingData::meta_key($shippingFromCode, $shippingToCode);
-            $product['shipping_info'][$countryCode] = $items;
+            $product[ImportedProductService::FIELD_SHIPPING_INFO][$countryCode] = $items;
         }
 
         return $product;
