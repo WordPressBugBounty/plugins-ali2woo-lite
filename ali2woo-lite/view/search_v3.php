@@ -423,6 +423,6 @@ if (0 < $row_ind && $row_ind < 4) {
         <?php endif;?>
 
         <?php include_once 'includes/confirm_modal.php';?>
-        <?php include_once 'includes/shipping_modal.php';?>
+        <?php include_once 'includes/shipping-modal/modal.php';?>
     </div>
 </div>

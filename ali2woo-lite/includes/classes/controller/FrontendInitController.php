@@ -101,6 +101,11 @@ class FrontendInitController extends AbstractController
 
         $countryToCode = isset($_POST['country']) ? wc_clean(wp_unslash($_POST['country'])) : "";
 
+        $quantity = 1;
+        if (!empty($_POST['quantity'])) {
+            $quantity = intval($_POST['quantity']);
+        }
+
         if (!$countryToCode) {
             echo wp_json_encode(ResultBuilder::buildError("Country is required."));
             wp_die();
@@ -159,11 +164,13 @@ class FrontendInitController extends AbstractController
         }
 
         try {
+
             $countryFromCode = $this->WoocommerceService->getShippingFromByProduct($WC_ProductOrVariation);
             $importedProduct = $this->WoocommerceService->updateProductShippingItems(
                 $WC_ProductOrVariation,
                 $countryToCode,
-                $countryFromCode
+                $countryFromCode,
+                $quantity
             );
 
             $shippingItems = $this->ProductService->getShippingItems(

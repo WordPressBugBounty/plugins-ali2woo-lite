@@ -69,8 +69,9 @@ jQuery(function($) {
     }
 
     function update_order_items(order_id) { 
-        const order = $('.single-order-wrap[data-order_id="' + order_id + '"]')
-        const shiping_to_country = $(order).attr('data-shiping_to_country')
+        const order = $('.single-order-wrap[data-order_id="' + order_id + '"]');
+        const shiping_to_country = $(order).attr('data-shiping_to_country');
+
         const data = {
             'action': 'a2wl_update_fulfillment_shipping',
             order_id,
@@ -78,6 +79,7 @@ jQuery(function($) {
             items: [],
             'ali2woo_nonce': a2wl_ali_orderfulfill_js.nonce_action,
         }
+
         $(order).find('[data-order_item_id]').each(function () { 
             const order_item = $(this)
             const order_item_id = $(order_item).attr('data-order_item_id')        

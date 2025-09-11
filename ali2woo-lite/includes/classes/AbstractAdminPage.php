@@ -50,8 +50,11 @@ abstract class AbstractAdminPage extends AbstractController
         }
     }
     
-    function woocomerce_check_error() {
-        echo '<div id="message2222" class="notice error is-dismissible"><p>'.esc_html__('AliNext (Lite version) notice! Please install the <a href="https://woocommerce.com/" target="_blank">WooCommerce</a> plugin first.', 'ali2woo').'</p><button type="button" class="notice-dismiss"><span class="screen-reader-text">Dismiss this notice.</span></button></div>';
+    function woocomerce_check_error(): void
+    {
+        echo '<div id="message2222" class="notice error is-dismissible"><p>' .
+            esc_html__('AliNext (Lite version) notice! Please install the <a href="https://woocommerce.com/" target="_blank">WooCommerce</a> plugin first.', 'ali2woo') .
+            '</p><button type="button" class="notice-dismiss"><span class="screen-reader-text">Dismiss this notice.</span></button></div>';
     }
     
     function global_system_message(): void
@@ -61,25 +64,39 @@ abstract class AbstractAdminPage extends AbstractController
     }
     
 
-    protected function init($page_title, $menu_title, $capability, $menu_slug, $priority, $menu_type) {
+    protected function init($page_title, $menu_title, $capability, $menu_slug, $priority, $menu_type): void
+    {
         $this->page_title = $page_title;
         $this->menu_title = $menu_title;
         $this->capability = $capability;
         $this->menu_slug = $menu_slug;
         $this->menu_type = $menu_type;
+
         add_action('a2wl_init_admin_menu', array($this, 'add_submenu_page'), $priority);
+
+        if ($this->menu_type == 2) {
+            add_action('admin_menu', function () {
+                remove_menu_page($this->menu_slug);
+            });
+        }
     }
 
-    public function add_submenu_page($parent_slug) {
-        if($this->menu_type == 1){
-            $page_id = add_submenu_page($parent_slug, $this->page_title, $this->menu_title, $this->capability, $this->menu_slug);
-        } else if($this->menu_type == 2) {
-            $page_id = add_submenu_page(null, $this->page_title, $this->menu_title, $this->capability, $this->menu_slug, array($this, 'render'));
-        }else {
-            $page_id = add_submenu_page($parent_slug, $this->page_title, $this->menu_title, $this->capability, $this->menu_slug, array($this, 'render'));
+    public function add_submenu_page($parent_slug): void
+    {
+        if ($this->menu_type == 1) {
+            $page_id = add_submenu_page(
+                $parent_slug, $this->page_title, $this->menu_title, $this->capability, $this->menu_slug
+            );
+        } else if ($this->menu_type == 2) {
+            $page_id = $this->addHiddenAdminPage();
+        } else {
+            $page_id = add_submenu_page(
+                $parent_slug, $this->page_title, $this->menu_title,
+                $this->capability, $this->menu_slug, [$this, 'render']
+            );
         }
         
-        add_action("load-$page_id", array($this, 'configure_screen_options'));
+        add_action("load-${page_id}", [$this, 'configure_screen_options']);
     }
 
     public function before_render_action() {
@@ -257,6 +274,22 @@ abstract class AbstractAdminPage extends AbstractController
     {
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         return is_admin() && isset($_REQUEST['page']) && $_REQUEST['page'] && $this->menu_slug == $_REQUEST['page'];
+    }
+
+    private function addHiddenAdminPage(): string|false
+    {
+        // Добавляем страницу напрямую, но скрываем её из меню
+        $pageId = add_menu_page(
+            $this->page_title,
+            '',
+            $this->capability,
+            $this->menu_slug,
+            [$this, 'render'],
+            '',
+            99
+        );
+
+        return $pageId;
     }
 
 }

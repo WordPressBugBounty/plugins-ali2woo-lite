@@ -39,6 +39,7 @@ use AliNext_Lite\Utils;
             continue;
         }
 
+        $quantity = max(1, (int) ($item['quantity'] ?? 0));
         $shipping_cost = $ProductShippingData->getCost();
         $shipping_country_from = $ProductShippingData->getCountryFrom() ?: 'CN';
         $shipping_country_from_list = $ProductShippingDataService->getCountryFromList($item['product_id']);
@@ -81,12 +82,13 @@ use AliNext_Lite\Utils;
                 <a href="#" class="reload-companies a2wl-shipping-update-global"
                    title="<?php echo esc_attr_x('Update Shipping Companies', 'ali2woo'); ?>"
                    data-country_from_list="<?php echo esc_attr(wp_json_encode($shipping_country_from_list)); ?>"
-                   data-external_id="<?php echo esc_attr($external_id); ?>"
-                   data-product_id="<?php echo esc_attr($product_id); ?>"
-                   data-country_from="<?php echo esc_attr($shipping_country_from); ?>"
-                   data-country_to="<?php echo esc_attr($order_data['shiping_to_country']); ?>"
-                   data-shipping_method="<?php echo esc_attr($shipping_method); ?>"
-                   data-variation_key="<?php echo esc_attr($variationKey); ?>">
+                   data-external_id="<?php echo esc_attr($external_id);?>"
+                   data-product_id="<?php echo esc_attr($product_id);?>"
+                   data-country_from="<?php echo esc_attr($shipping_country_from);?>"
+                   data-country_to="<?php echo esc_attr($order_data['shiping_to_country']);?>"
+                   data-quantity="<?php echo esc_attr($quantity);?>"
+                   data-shipping_method="<?php echo esc_attr($shipping_method);?>"
+                   data-variation_key="<?php echo esc_attr($variationKey);?>">
                 </a>
             </td>
             <td class="delivery_time">

@@ -25,14 +25,14 @@ class LocalService
         // Check for Windows
         elseif (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
             try {
-                // Create a COM object for WMI
-                $wmi = new \COM('winmgmts://./root/cimv2');
-                $processors = $wmi->ExecQuery("SELECT NumberOfLogicalProcessors FROM Win32_Processor");
-                foreach ($processors as $processor) {
-                    $ncpu = (int)$processor->NumberOfLogicalProcessors;
+                if (class_exists('COM')) {
+                    $wmi = new \COM('winmgmts://./root/cimv2');
+                    $processors = $wmi->ExecQuery("SELECT NumberOfLogicalProcessors FROM Win32_Processor");
+                    foreach ($processors as $processor) {
+                        $ncpu = (int)$processor->NumberOfLogicalProcessors;
+                    }
                 }
             } catch (Exception $e) {
-                // Handle any exceptions (e.g., COM not enabled)
                 a2wl_error_log(
                     "LocalService::getNumberOfProcessors - could not retrieve processor count: " . $e->getMessage()
                 );
@@ -44,7 +44,11 @@ class LocalService
 
     public function getSystemLoadAverage(): array
     {
-        $load = sys_getloadavg();
+        if (!function_exists('sys_getloadavg')) {
+            return [];
+        }
+
+        $load = \sys_getloadavg();
 
         if ($load === false) {
             return [];

@@ -255,14 +255,14 @@ use AliNext_Lite\Attachment;
                            a2wl_load_shipping_info(
                                '<?php echo $post_id; ?>',
                                '<?php echo $variationExternalId; ?>',
-                               country_from, country_to, 'product',
+                               country_from, country_to, 1, 'product',
                                function (state, items, default_method, shipping_cost, variations, errorMessage) {
                                    fill_modal_shipping_info(
                                        '<?php echo $post_id; ?>',
                                        variations,
                                        '<?php echo $variationExternalId; ?>',
                                        <?php echo wp_json_encode($shipping_country_from_list); ?>,
-                                       country_from, country_to, items, 'product',
+                                       country_from, country_to, items, 1, 'product',
                                        shipping_method, onSelectCallback, errorMessage
                                    );
                            });
@@ -449,5 +449,5 @@ use AliNext_Lite\Attachment;
 </div>
 
 <div class="a2wl-content">
-    <?php include_once 'includes/shipping_modal.php'; ?>
+    <?php include_once 'includes/shipping-modal/modal.php'; ?>
 </div>

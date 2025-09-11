@@ -352,7 +352,7 @@ class OrderFulfillmentController extends AbstractController
     {
         $this->model_put('countries', WC()->countries->get_countries());
         $this->model_put('disableCountryTo', true);
-        $this->include_view('includes/shipping_modal.php');
+        $this->include_view('includes/shipping-modal/modal.php');
     }
 
     public function ajax_get_aliexpress_order_data(): void

@@ -55,7 +55,8 @@ class WoocommerceService
                 $ImportedProductService->getShippingFromCountryCode(),
                 $countryToCode,
                 $ImportedProductService->getExternalSkuId(),
-                $ImportedProductService->getExtraData()
+                $ImportedProductService->getExtraData(),
+                $quantity
             );
         } else {
             return $importedProduct;
@@ -72,10 +73,15 @@ class WoocommerceService
             $WC_ProductOrVariation, $countryToCode, $quantity
         );
 
-        $wcProductId = $importedProduct['post_id'];
 
+        if ($quantity > 1) {
+            return $importedProduct;
+        }
+
+        //keep a cache simple: save only for quantity = 1.
         try {
-           $this->ProductShippingDataService->updateFromProduct($wcProductId, $importedProduct);
+            $wcProductId = $importedProduct['post_id'];
+            $this->ProductShippingDataService->updateFromProduct($wcProductId, $importedProduct);
         } catch (RepositoryException $RepositoryException) {
             a2wl_error_log('Can`t update product shipping info cache' . $RepositoryException->getMessage());
         }
@@ -109,6 +115,11 @@ class WoocommerceService
             return $importedProduct;
         }
 
+        if ($quantity > 1) {
+            return $importedProduct;
+        }
+
+        // Keep a persistent cache simple: save only for quantity = 1.
         try {
             $this->ProductShippingDataService->saveItems(
                 $wcProductId, $countryFromCode, $countryToCode,

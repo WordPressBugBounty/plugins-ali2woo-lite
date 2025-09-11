@@ -113,7 +113,7 @@ class WooCommerceProductListController extends AbstractController
 
         AbstractAdminPage::localizeAdminScript();
 
-        wp_enqueue_style('a2wl-wc-pl-style', A2WL()->plugin_url() . '/assets/css/wc_pl_style.css', ['a2wl-admin-script'], A2WL()->version);
+        wp_enqueue_style('a2wl-wc-pl-style', A2WL()->plugin_url() . '/assets/css/wc_pl_style.css', [], A2WL()->version);
 
         wp_style_add_data('a2wl-wc-pl-style', 'rtl', 'replace');
 

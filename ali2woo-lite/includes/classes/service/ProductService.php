@@ -139,12 +139,14 @@ class ProductService
      * @param string $country_to
      * @param string|null $externalSkuId
      * @param string|null $extraData
+     * @param int $quantity
      * @return array
      * @throws ServiceException
      */
     public function updateProductShippingInfo(
         array $product, string $country_from, string $country_to,
-        ?string $externalSkuId = null, ?string $extraData = null
+        ?string $externalSkuId = null, ?string $extraData = null,
+        int $quantity = 1
     ): array {
         if (!isset($product[ImportedProductService::FIELD_SHIPPING_INFO])) {
             $product[ImportedProductService::FIELD_SHIPPING_INFO] = [];
@@ -191,24 +193,31 @@ class ProductService
         $country = ProductShippingData::meta_key($country_from, $country_to);
 
         if (Account::getInstance()->get_purchase_code()) {
-            if (empty($product[ImportedProductService::FIELD_SHIPPING_INFO][$country])) {
+            $ignoreCache = empty($product[ImportedProductService::FIELD_SHIPPING_INFO][$country]) ||
+                $quantity > 1;
+
+            if ($ignoreCache) {
                 $externalProductId = $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID];
                 $shippingItems = $this->AliexpressModel
                     ->loadShippingItems(
-                        $externalProductId, 1, $country_to, $country_from,
+                        $externalProductId, $quantity, $country_to, $country_from,
                         $externalSkuId, $extraData
                     );
+
+                // Always place items into the returned product for the current request,
+                // so UI and callers can use them; persistence will be handled separately
+                // and kept simple (only for quantity = 1).
                 $product[ImportedProductService::FIELD_SHIPPING_INFO][$country] = $shippingItems;
+
             } else {
+                $shippingItems = $product[ImportedProductService::FIELD_SHIPPING_INFO][$country] ?? [];
                 a2wl_info_log(sprintf('Shipping data is loaded from cache. WC Product ID: %d, Country code: %s',
                     $product['post_id'], $country
                 ));
             }
         }
 
-        $items = $product[ImportedProductService::FIELD_SHIPPING_INFO][$country] ?? [];
-
-        $ShippingItemDto = $this->findDefaultFromShippingItems($items, $product);
+        $ShippingItemDto = $this->findDefaultFromShippingItems($shippingItems, $product);
 
         $product[ImportedProductService::FIELD_METHOD] = $ShippingItemDto->getMethodName();
         $product[ImportedProductService::FIELD_COST] = $ShippingItemDto->getCost();

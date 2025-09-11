@@ -1035,6 +1035,9 @@ class ImportAjaxController extends AbstractController
         $externalSkuId = $_POST['variation_key'] ?? null;
         $wcProductId = intval($_POST['id']);
 
+        $quantity = $_POST['quantity'] ?? null;
+        $quantity = max(1, (int) ($quantity ?? 0));
+
         $WC_ProductOrVariation = wc_get_product($wcProductId);
         if (!$WC_ProductOrVariation) {
             $errorText = _x('Bad product ID', 'error', 'ali2woo');
@@ -1097,7 +1100,8 @@ class ImportAjaxController extends AbstractController
         try {
             $importedProduct = $this->ProductService->updateProductShippingInfo(
                 $importedProduct, $countryFromCode,
-                $countryToCode, $externalSkuId, null
+                $countryToCode, $externalSkuId, null,
+                $quantity
             );
 
             $shippingItems = $this->ProductService->getShippingItems(
@@ -1108,13 +1112,16 @@ class ImportAjaxController extends AbstractController
             $shippingItems = [];
         }
 
-        try {
-            $this->ProductShippingDataService->saveItems(
-                $wcProductId, $countryFromCode, $countryToCode,
-                $importedProduct[ImportedProductService::FIELD_SHIPPING_INFO][$countryCode]
-            );
-        } catch (RepositoryException $RepositoryException) {
-            a2wl_error_log('Can`t update product shipping items cache' . $RepositoryException->getMessage());
+        if ($quantity < 2) {
+            // Keep a persistent cache simple: save only for quantity = 1.
+            try {
+                $this->ProductShippingDataService->saveItems(
+                    $wcProductId, $countryFromCode, $countryToCode,
+                    $importedProduct[ImportedProductService::FIELD_SHIPPING_INFO][$countryCode]
+                );
+            } catch (RepositoryException $RepositoryException) {
+                a2wl_error_log('Can`t update product shipping items cache' . $RepositoryException->getMessage());
+            }
         }
 
         $importedProduct = $this->PriceFormulaService->applyFormula($importedProduct);

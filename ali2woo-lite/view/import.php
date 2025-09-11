@@ -612,7 +612,7 @@ use AliNext_Lite\Utils;
 
             <?php include_once 'includes/rename_attributes_modal.php'; ?>
             <?php include_once 'includes/confirm_modal.php'; ?>
-            <?php include_once 'includes/shipping_modal.php'; ?>
+            <?php include_once 'includes/shipping-modal/modal.php'; ?>
             <?php include_once 'includes/shipping_apply_bulk_modal.php'; ?>
             <?php include_once 'includes/category_modal.php'; ?>
             <?php include_once 'includes/progress_modal.php'; ?>

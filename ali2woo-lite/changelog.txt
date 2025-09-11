@@ -388,4 +388,10 @@
 * Premium: New "Mass Apply Shipping Method" modal for bulk updating assigned methods.
 * Minor fixes and performance tweaks.
 
+3.6.2
+* Added compatibility with WooCommerce 9.10.*
+* Resolved issues flagged by the Query Monitor plugin by removing and updating deprecated code
+* Improved shipping data accuracy for products with quantity greater than 1
+* Applied minor bug fixes and performance optimizations
+
 

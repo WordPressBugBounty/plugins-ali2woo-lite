@@ -7,7 +7,7 @@ License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Stable tag: trunk
 Requires PHP: 8.0
-WC tested up to: 10.0
+WC tested up to: 10.1
 WC requires at least: 5.0
 
 This AliExpress Dropshipping Plugin for WooCommerce: Import products with reviews from AliExpress and fulfill orders automatically!
@@ -30,9 +30,6 @@ This AliExpress Dropshipping Plugin for WooCommerce: Import products with review
 ### Enhance Your Dropshipping Profits with AliExpress's Official Program!
 Transform your AliExpress account into a Business Account [using our exclusive invitation link](https://inbusiness.aliexpress.com/web/newCertification?bizScene=STANDARD_SCENE&channel=STANDARD_CHANNEL&invitationCode=2qkht5). This linkage ensures AliExpress recognizes you as a dropshipping partner, opening the door to new earning potentials.
                   
-### Compatibility with Woocommerce HPOS
-Starting from version 3.1.3, AliNext is compatible with HPOS. 
-To activate HPOS, follow these steps: go to Woocommerce -> Settings -> Advanced -> Order data storage and select the "High-performance order storage (recommended)" option. Additionally, ensure that you have enabled the "Enable compatibility mode (synchronizes orders to the posts table)" option. Save your Woocommerce settings and confirm that all orders are synchronized by Woocommerce. If some orders are pending synchronization, you will see information about it there. Please wait until all orders are synchronized before using the AliNext plugin normally. For further information about HPOS [refer official woocommerce article](https://woocommerce.com/posts/platform-update-high-performance-order-storage-for-woocommerce/)
 
 ### Important Notice:
 
@@ -322,6 +319,12 @@ In case you have any questions or need technical assistance, get in touch with u
 9. Import product video from AliExpress
 
 == Changelog ==
+= 3.6.2 – 2025.09.11 =
+* Added compatibility with WooCommerce 9.10.*
+* Premium: Resolved issues flagged by the Query Monitor plugin by removing and updating deprecated code
+* Improved shipping data accuracy for products with quantity greater than 1
+* Applied minor bug fixes and performance optimizations
+
 = 3.6.1 – 2025.07.24 =
 * Premium: Minimum shipping auto-applied during import (via "Assign default or lowest-cost…" setting).
 * Premium: New "Mass Apply Shipping Method" modal for bulk updating assigned methods.
