@@ -1018,4 +1018,23 @@ class Utils
         return wp_kses($content, $allowed_html);
     }
 
+    /**
+     * Set cookie in WordPress admin with safe parameters
+     *
+     * @param string $name   Cookie name
+     * @param string $value  Cookie value
+     * @param int    $expire Cookie expiration time (30 days by default)
+     */
+    public static function setAdminCookie(string $name, string $value, int $expire = 30 * DAY_IN_SECONDS): void
+    {
+        setcookie($name, $value, [
+            'expires'  => time() + $expire,
+            'path'     => COOKIEPATH,
+            'domain'   => COOKIE_DOMAIN,
+            'secure'   => is_ssl(),
+            'httponly' => true,
+            'samesite' => 'Lax', // or 'Strict' if neassery
+        ]);
+    }
+
 }

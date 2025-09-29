@@ -196,4 +196,9 @@ class WoocommerceService
         return $this->ProductService->fillProductShippingInfo($importedProduct);
     }
 
+    public function isImportedProduct(int $wcProductId): bool
+    {
+        return !($this->WoocommerceModel->get_product_external_id($wcProductId) === '');
+    }
+
 }

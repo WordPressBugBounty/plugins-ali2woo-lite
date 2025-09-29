@@ -32,8 +32,8 @@ class PromoService
             'local_price' => '12.00',
             'local_regular_price' => '24.00',
             'currency' => 'EUR',
-            'evaluateScore' => 4.7,
-            'purchases' => 37936,
+            'evaluateScore' => 4.8,
+            'purchases' => 67156,
             'button_cta' => 'Get Full Version',
         ];
     }
@@ -41,19 +41,29 @@ class PromoService
     protected function generateDescriptionHtml(): string
     {
         $features = [
-            'Instant Upgrade Without Disruption' => 'Keep all your existing settings, imported products, and fulfilled orders—your store transitions seamlessly.',
-            'Priority Support & Continuous Updates' => 'Get premium assistance plus ongoing updates to stay ahead of the game.',
-            'Supercharged Daily Usage Quota' => 'Expand your daily limit from 100 to 500, 5,000, 50,000 or even 100,000—based on your chosen AliNext (Lite version) plan.',
-            'Region-Specific Accuracy' => 'Select your preferred AliExpress region to display precise stock, pricing, and shipping options for your customers.',
-            'Import Full Category Trees at Scale' => 'Access deep product categories with expanded API limits—no more 5-request-a-day restriction.',
-            'Effortless Order Fulfillment via API' => 'Place unlimited orders through the official AliExpress API (Lite plan supports just one).',
-            'Real-Time Order Syncing' => 'Keep order statuses in sync automatically—no manual updates needed (unlimited vs. Lite’s single sync).',
-            'Smart Frontend Shipping Options' => 'Let your customers choose shipping providers by country—just like AliExpress.',
-            'Auto-Sync Price & Stock' => 'Stay up-to-date with automatic price and stock syncing. Get email alerts and track progress in logs.',
-            'Live Review Syncing' => 'New reviews on AliExpress? They’ll appear automatically on your product pages—no effort required.',
-            'Flexible Shipping Markup Rules' => 'Set custom pricing strategies for imported shipping methods to boost your margins.',
-            'Secure Staff Permissions' => 'Let your Shop Managers access key plugin areas without granting full admin rights.',
-            'Bulk Shipping Assignment' => 'Assign preferred shipping options to multiple products at once—set minimum rates or carriers easily.',
+            'Seamless Upgrade & Priority Support' =>
+                'Switch to the full version in seconds—no lost settings, no downtime. Plus, enjoy premium support and continuous updates to stay ahead.',
+
+            'Massive Daily Quotas & Region Accuracy' =>
+                'Break free from Lite limits with up to 100,000 daily requests. Target the right AliExpress region for precise stock, pricing, and shipping data.',
+
+            'Advanced Catalog & Review Automation' =>
+                'Import full category trees without restrictions and keep your store fresh with automatic review syncing from AliExpress.',
+
+            'Unlimited Orders & Real-Time Sync' =>
+                'Fulfill unlimited orders via the official API and keep order statuses perfectly aligned—no manual updates needed.',
+
+            'Automatic Product Data Sync' =>
+                'Stay worry‑free with continuous syncing of prices, stock levels, and shipping details for all imported products—your catalog is always up to date.',
+
+            'Built‑In Image Editor' =>
+                'Edit imported product images directly inside the plugin. Remove seller watermarks and polish visuals without relying on external tools.',
+
+            'Advanced Shipping Control' =>
+                'Give customers real AliExpress shipping options on your storefront, while you stay in full control with flexible markup rules and bulk carrier assignments.',
+
+            'Team-Friendly & Secure' =>
+                'Grant Shop Managers controlled access to plugin features without exposing full admin rights—safe delegation made simple.',
         ];
 
         $html = '<ul style="list-style: decimal;">';

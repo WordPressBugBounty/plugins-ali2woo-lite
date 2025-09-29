@@ -41,6 +41,10 @@ class MigrateService
             $this->migrate_to_359();
         }
 
+        if (version_compare($cur_version, "3.6.3", '<')) {
+            $this->migrate_to_363();
+        }
+
         if (version_compare($cur_version, A2WL()->version, '<')) {
             update_option('a2wl_db_version', A2WL()->version, 'no');
         }
@@ -88,5 +92,11 @@ class MigrateService
                 $role->remove_cap($cap);
             }
         }
+    }
+
+    public function migrate_to_363(): void
+    {
+        a2wl_error_log('migrate 3.6.3');
+        set_setting(Settings::SETTING_DELIVERY_INFO_DISPLAY_MODE, 'default');
     }
 }

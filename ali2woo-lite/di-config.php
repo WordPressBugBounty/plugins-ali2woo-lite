@@ -5,7 +5,6 @@ use AliNext_Lite\AffiliateCheckProcess;
 use AliNext_Lite\Aliexpress;
 use AliNext_Lite\AliexpressHelper;
 use AliNext_Lite\AliexpressRegionRepository;
-use AliNext_Lite\ApplyPricingRulesProcess;
 use AliNext_Lite\Attachment;
 use AliNext_Lite\BackgroundProcessFactory;
 use AliNext_Lite\AfterProductImportHook;
@@ -22,7 +21,6 @@ use AliNext_Lite\ImportedProductService;
 use AliNext_Lite\ImportedProductServiceFactory;
 use AliNext_Lite\ImportListService;
 use AliNext_Lite\ImportPageController;
-use AliNext_Lite\ImportProcess;
 use AliNext_Lite\JSON_API_Core_Controller;
 use AliNext_Lite\LocalService;
 use AliNext_Lite\MigrateService;
@@ -297,7 +295,7 @@ return [
             get(PermanentAlertService::class),
             get(TipOfDayService::class),
         ),
-
+    
     'AliNext_Lite\ImportAjaxController' => create(ImportAjaxController::class)
         ->constructor(
             get(ProductImport::class), get(Woocommerce::class),
@@ -418,6 +416,13 @@ return [
             get(ImportListService::class),
             get(AliexpressRegionRepository::class),
             get(PermanentAlertService::class),
+            get(ProductImport::class),
+            get(Country::class),
+            get(Override::class),
+            get(TipOfDayService::class),
+            
+            get(PromoService::class),
+            
         ),
     /* libs */
     'AliNext_Lite\JSON_API_Core_Controller' => create(JSON_API_Core_Controller::class)

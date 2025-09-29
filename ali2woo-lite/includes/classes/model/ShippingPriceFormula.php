@@ -156,7 +156,7 @@ class ShippingPriceFormula {
     }
 
     public static function allow_price_rule(){
-        return get_setting('aliship_frontend', false);
+        return get_setting(Settings::SETTING_ALLOW_SHIPPING_FRONTEND);
     }
     
     public static function allow_post_price_rule($post_id){

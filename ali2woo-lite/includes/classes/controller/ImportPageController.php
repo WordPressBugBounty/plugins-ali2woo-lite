@@ -15,12 +15,21 @@ use Pages;
 class ImportPageController extends AbstractAdminPage
 {
 
+    public const COOKIE_IMPORT_SORT = 'a2wl_import_sort';
+
 
     public function __construct(
         protected Woocommerce $WoocommerceModel,
         protected ImportListService $ImportListService,
         protected AliexpressRegionRepository $AliexpressRegionRepository,
         protected PermanentAlertService $PermanentAlertService,
+        protected ProductImport $ProductImport,
+        protected Country $Country,
+        protected Override $Override,
+        protected TipOfDayService $TipOfDayService,
+        
+        protected PromoService $PromoService,
+        
     ) {
 
         parent::__construct(
@@ -53,7 +62,7 @@ class ImportPageController extends AbstractAdminPage
         }
     }
 
-    public function configure_lang_data($data){
+    public function configure_lang_data($data) {
         $data['attr_new_name'] = esc_html__('New name', 'ali2woo');
         $data['attr_name_duplicate_error'] = esc_html__('this name is already used', 'ali2woo');
 
@@ -70,22 +79,21 @@ class ImportPageController extends AbstractAdminPage
             wp_die($this->getErrorTextNoPermissions());
         }
 
-        $product_import_model = new ProductImport();
         if (isset($_REQUEST['delete_id']) && $_REQUEST['delete_id']) {
-            if ($product = $product_import_model->get_product($_REQUEST['delete_id'])) {
+            if ($product = $this->ProductImport->get_product($_REQUEST['delete_id'])) {
                 foreach ($product['tmp_edit_images'] as $edit_image) {
                     if (isset($edit_image['attachment_id'])) {
                         Utils::delete_attachment($edit_image['attachment_id'], true);
                     }
                 }
-                $product_import_model->del_product($_REQUEST['delete_id']);
+                $this->ProductImport->del_product($_REQUEST['delete_id']);
             }
             wp_redirect(admin_url('admin.php?page=a2wl_import'));
         } else if ((isset($_REQUEST['action']) && $_REQUEST['action'] == "delete_all") || (isset($_REQUEST['action2']) && $_REQUEST['action2'] == "delete_all")) {
-            $product_ids = $product_import_model->get_product_id_list();
+            $product_ids = $this->ProductImport->get_product_id_list();
 
             foreach ($product_ids as $product_id) {
-                if ($product = $product_import_model->get_product($product_id)) {
+                if ($product = $this->ProductImport->get_product($product_id)) {
                     foreach ($product['tmp_edit_images'] as $edit_image) {
                         if (isset($edit_image['attachment_id'])) {
                             Utils::delete_attachment($edit_image['attachment_id'], true);
@@ -94,14 +102,14 @@ class ImportPageController extends AbstractAdminPage
                 }
             }
 
-            $product_import_model->del_product($product_ids);
+            $this->ProductImport->del_product($product_ids);
 
             wp_redirect(admin_url('admin.php?page=a2wl_import'));
         } else if ((isset($_REQUEST['action']) && $_REQUEST['action'] == "push_all") || (isset($_REQUEST['action2']) && $_REQUEST['action2'] == "push_all")) {
             // push all
             wp_redirect(admin_url('admin.php?page=a2wl_import'));
         } else if (((isset($_REQUEST['action']) && $_REQUEST['action'] == "delete") || (isset($_REQUEST['action2']) && $_REQUEST['action2'] == "delete")) && isset($_REQUEST['gi']) && is_array($_REQUEST['gi']) && $_REQUEST['gi']) {
-            $product_import_model->del_product($_REQUEST['gi']);
+            $this->ProductImport->del_product($_REQUEST['gi']);
 
             wp_redirect(admin_url('admin.php?page=a2wl_import'));
         }
@@ -109,7 +117,7 @@ class ImportPageController extends AbstractAdminPage
 
     public function render($params = []): void
     {
-        if (!empty($_REQUEST['s']) || !empty($_REQUEST['o'])) {
+        if (!empty($_REQUEST['s']) || !empty($_REQUEST['o']) || !empty($_REQUEST['cur_page'])) {
             check_admin_referer(self::PAGE_NONCE_ACTION, self::NONCE);
         }
 
@@ -117,25 +125,21 @@ class ImportPageController extends AbstractAdminPage
             wp_die($this->getErrorTextNoPermissions());
         }
 
-        $product_import_model = new ProductImport();
-        $woocommerce_model = $this->WoocommerceModel;
-        $country_model = new Country();
-        $override_model = new Override();
+        $search_query = !empty($_REQUEST['s']) ? sanitize_text_field($_REQUEST['s']) : '';
 
-        $serach_query = !empty($_REQUEST['s']) ? $_REQUEST['s'] : '';
-        $sort_query = !empty($_REQUEST['o']) ? $_REQUEST['o'] : $product_import_model->default_sort();
+        $sort_query = $this->resolveSortQuery();
 
-        $products_cnt = $product_import_model->get_products_count();
+        $products_cnt = $this->ProductImport->get_products_count();
         $paginator = Paginator::build($products_cnt);
 
         if (a2wl_check_defined('A2WL_SKIP_IMPORT_SORTING')) {
-            $product_list = $product_import_model->get_product_list(
-                true, $serach_query,
+            $product_list = $this->ProductImport->get_product_list(
+                true, $search_query,
                 $sort_query, $paginator['per_page'],
                 ($paginator['cur_page'] - 1) * $paginator['per_page']
             );
         } else {
-            $product_list_all = $product_import_model->get_product_list(true, $serach_query, $sort_query);
+            $product_list_all = $this->ProductImport->get_product_list(true, $search_query, $sort_query);
             $product_list = array_slice(
                 $product_list_all,
                 $paginator['per_page'] * ($paginator['cur_page'] - 1),
@@ -144,102 +148,49 @@ class ImportPageController extends AbstractAdminPage
             unset($product_list_all);
         }
         foreach ($product_list as &$product) {
-            if (empty($product['sku_products'])) {
-                $product['sku_products'] = [
-                    'variations' => [],
-                    'attributes' => []
-                ];
-            }
-
-            $tmp_all_images = Utils::get_all_images_from_product($product);
-
-            if (empty($product['description'])) {
-                $product['description'] = '';
-            }
-
-            $product['gallery_images'] = [];
-            $product['variant_images'] = [];
-            $product['description_images'] = [];
-
-            foreach ($tmp_all_images as $img_id => $img) {
-                if ($img['type'] === 'gallery') {
-                    $product['gallery_images'][$img_id] = $img['image'];
-                } else if ($img['type'] === 'variant') {
-                    $product['variant_images'][$img_id] = $img['image'];
-                } else if ($img['type'] === 'description') {
-                    $product['description_images'][$img_id] = $img['image'];
-                }
-            }
-            foreach ($product['tmp_copy_images'] as $img_id => $source) {
-                if (isset($tmp_all_images[$img_id])) {
-                    $product['gallery_images'][$img_id] = $tmp_all_images[$img_id]['image'];
-                }
-            }
-
-            foreach ($product['tmp_move_images'] as $img_id => $source) {
-                if (isset($tmp_all_images[$img_id])) {
-                    $product['gallery_images'][$img_id] = $tmp_all_images[$img_id]['image'];
-                }
-            }
-
-            if (!isset($product['thumb_id']) && $product['gallery_images']) {
-                $k = array_keys($product['gallery_images']);
-                $product['thumb_id'] = $k[0];
-            }
+            $this->prepareProduct($product);
         }
 
-        $productShippingFromList = [];
-        foreach ($product_list as $index => $item) {
-            $productShippingFromList[$index] = $this->ImportListService->getCountryFromList($item);
-        }
+        $productShippingFromList = $this->prepareShippingFromList($product_list);
 
-        $product_links = [];
+        $page = !empty($_REQUEST['page']) ? sanitize_text_field($_REQUEST['page']) : '';
 
-        foreach ($product_list as $index => $item) {
-            $product_links[$index]['remove_product_link'] =
-                $this->getRemoveProductLink($_REQUEST['page'], $item);
-
-            if (!empty($item['store_id']) && !empty($item['seller_id'])) {
-                $product_links[$index]['find_all_products_in_store_link'] =
-                    $this->getFindAllProductInStoreLink($item);
-            }
-        }
+        $product_links = $this->prepareProductLinks($product_list, $page);
 
         $links = [
             'remove_all_products_link' =>
-                $this->getRemoveAllProductsLink($_REQUEST['page'])
+                $this->getRemoveAllProductsLink($page)
         ];
 
-        $TipOfDayService = A2WL()->getDI()->get('AliNext_Lite\TipOfDayService');
-
-        $this->model_put("paginator", $paginator);
-        $this->model_put("serach_query", $serach_query);
-        $this->model_put("sort_query", $sort_query);
-        $this->model_put("sort_list", $product_import_model->sort_list());
-        $this->model_put("product_list", $product_list);
-        $this->model_put("product_links", $product_links);
-        $this->model_put("links", $links);
-        $this->model_put('productShippingFromList', $productShippingFromList);
-        $this->model_put("localizator", AliexpressLocalizator::getInstance());
-        $this->model_put("categories", $woocommerce_model->get_categories());
-        $this->model_put('countries', $country_model->get_countries());
-        $this->model_put('override_model', $override_model);
-        $this->model_put("TipOfDay", $TipOfDayService->getNextTip());
-        
-        $PromoService = A2WL()->getDI()->get('AliNext_Lite\PromoService');
-        $this->model_put('promo_data', $PromoService->getPromoData());
-        
-
-        $this->model_put("PermanentAlerts", $this->PermanentAlertService->getAll());
-
-        
+        $this->modelPutArray([
+            'paginator'              => $paginator,
+            'search_query'           => $search_query,
+            'sort_query'             => $sort_query,
+            'sort_list'              => $this->ProductImport->sort_list(),
+            'product_list'           => $product_list,
+            'product_links'          => $product_links,
+            'links'                  => $links,
+            'productShippingFromList'=> $productShippingFromList,
+            'localizator'            => AliexpressLocalizator::getInstance(),
+            'categories'             => $this->WoocommerceModel->get_categories(),
+            'countries'              => $this->Country->get_countries(),
+            'override_model'         => $this->Override,
+            'TipOfDay'               => $this->TipOfDayService->getNextTip(),
+            
+            'promo_data'             => $this->PromoService->getPromoData(),
+            
+            'PermanentAlerts'        => $this->PermanentAlertService->getAll(),
+            
+        ]);
 
         if (A2WL()->isFreePlugin()) {
-            $this->model_put('aliexpressRegion', 'US');
-            $this->model_put('aliexpressRegions', ['US' => 'United States']);
-            $this->model_put('defaultShippingLabel', $this->getDefaultShippingLabel());
-            $this->model_put('countryToCode', get_setting('aliship_shipto', 'US'));
-            $this->model_put('applyShippingScopes', []);
+            $this->modelPutArray([
+                'aliexpressRegion'     => 'US',
+                'aliexpressRegions'    => ['US' => 'United States'],
+                'defaultShippingLabel' => $this->getDefaultShippingLabel(),
+                'countryToCode'        => get_setting('aliship_shipto', 'US'),
+                'applyShippingScopes'  => [],
+            ]);
         }
 
         $this->include_view("import.php");
@@ -251,6 +202,107 @@ class ImportPageController extends AbstractAdminPage
             $initArray['setup'] = 'function(ed) {ed.on("change", function(e) { a2wl_update_product(e.target.id, { description:encodeURIComponent(e.target.getContent())}); });}';
         }
         return $initArray;
+    }
+
+    private function prepareProduct(array &$product): void
+    {
+        if (empty($product['sku_products'])) {
+            $product['sku_products'] = [
+                'variations' => [],
+                'attributes' => []
+            ];
+        }
+
+        $tmp_all_images = Utils::get_all_images_from_product($product);
+
+        if (empty($product['description'])) {
+            $product['description'] = '';
+        }
+
+        $product['gallery_images'] = [];
+        $product['variant_images'] = [];
+        $product['description_images'] = [];
+
+        foreach ($tmp_all_images as $img_id => $img) {
+            if ($img['type'] === 'gallery') {
+                $product['gallery_images'][$img_id] = $img['image'];
+            } else if ($img['type'] === 'variant') {
+                $product['variant_images'][$img_id] = $img['image'];
+            } else if ($img['type'] === 'description') {
+                $product['description_images'][$img_id] = $img['image'];
+            }
+        }
+
+        $this->mergeTmpImages($product, $tmp_all_images, 'tmp_copy_images');
+        $this->mergeTmpImages($product, $tmp_all_images, 'tmp_move_images');
+
+        if (!isset($product['thumb_id']) && $product['gallery_images']) {
+            $k = array_keys($product['gallery_images']);
+            $product['thumb_id'] = $k[0];
+        }
+    }
+
+    private function prepareShippingFromList(array $productList): array
+    {
+        return array_map(function ($item) {
+            return $this->ImportListService->getCountryFromList($item);
+        }, $productList);
+    }
+
+    private function prepareProductLinks($productList, $page): array
+    {
+        $result = [];
+
+        foreach ($productList as $index => $item) {
+            $result[$index]['remove_product_link'] =
+                $this->getRemoveProductLink($page, $item);
+
+            if (!empty($item['store_id']) && !empty($item['seller_id'])) {
+                $result[$index]['find_all_products_in_store_link'] =
+                    $this->getFindAllProductInStoreLink($item);
+            }
+        }
+
+        return $result;
+    }
+
+    private function mergeTmpImages(array &$product, array $tmp_all_images, string $field): void
+    {
+        if (empty($product[$field]) || !is_array($product[$field])) {
+            return;
+        }
+
+        foreach ($product[$field] as $img_id => $source) {
+            if (isset($tmp_all_images[$img_id])) {
+                $product['gallery_images'][$img_id] = $tmp_all_images[$img_id]['image'];
+            }
+        }
+    }
+
+    private function resolveSortQuery(): string
+    {
+        $sort_query = null;
+
+        if (!empty($_REQUEST['o'])) {
+            $sort_query = sanitize_text_field($_REQUEST['o']);
+            $sort_query = $this->normalizeSortValue($sort_query);
+            Utils::setAdminCookie(self::COOKIE_IMPORT_SORT, $sort_query);
+        } elseif (!empty($_COOKIE[self::COOKIE_IMPORT_SORT])) {
+            $sort_query = sanitize_text_field($_COOKIE[self::COOKIE_IMPORT_SORT]);
+            $sort_query = $this->normalizeSortValue($sort_query);
+        }
+
+        return $sort_query ?: $this->ProductImport->default_sort();
+    }
+
+    private function normalizeSortValue(string $sortValue): string
+    {
+        $allowed_sorts = array_keys($this->ProductImport->sort_list());
+        if (!in_array($sortValue, $allowed_sorts, true)) {
+            $sortValue = $this->ProductImport->default_sort();
+        }
+
+        return $sortValue;
     }
 
     private function getDefaultShippingLabel(): string
@@ -296,8 +348,7 @@ class ImportPageController extends AbstractAdminPage
     {
         $products_cnt = 0;
         if (is_admin()) {
-            $product_import_model = new ProductImport();
-            $products_cnt = $product_import_model->get_products_count();
+            $products_cnt = $this->ProductImport->get_products_count();
         }
 
         $itemCountText = '';

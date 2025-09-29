@@ -36,12 +36,12 @@ class PriceFormulaSettingsRepository
 
     public function getAddShippingToPrice(): bool
     {
-        return  get_setting('add_shipping_to_price');
+        return get_setting(Settings::SETTING_ADD_SHIPPING_TO_PRICE);
     }
 
     public function setAddShippingToPrice(bool $addShippingToPrice): self
     {
-        set_setting('add_shipping_to_price', $addShippingToPrice);
+        set_setting(Settings::SETTING_ADD_SHIPPING_TO_PRICE, $addShippingToPrice);
 
         return $this;
     }

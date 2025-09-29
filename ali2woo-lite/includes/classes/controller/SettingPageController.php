@@ -443,7 +443,7 @@ class SettingPageController extends AbstractAdminPage
             $this->model_put($key, $value);
         }
 
-        return "settings/shipping.php";
+        return "settings/shipping/index.php";
     }
 
     private function phrase_filter(): string

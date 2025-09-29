@@ -274,6 +274,7 @@ class ProductService
         return $product;
     }
 
+
     public function findDefaultFromShippingItems(array $shippingItems, array $importedProduct): ShippingItemDto
     {
         /**
@@ -345,28 +346,28 @@ class ProductService
         return $product[ImportedProductService::FIELD_SHIPPING_INFO][$countryCodeKey] ?? [];
     }
 
-    private function generateComplexProductId(array $product): string
+    /**
+     * @param array $product
+     * @return ShippingItemDto|null
+     */
+    public function getShippingItemsAssigned(array $product): ?ShippingItemDto
     {
-        $complex_id = $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID] . ';' . $product['import_lang'];
-
-        try {
-            $ProductShippingData = $this->ProductShippingDataRepository->get($product['post_id']);
-
-            $countryTo = $ProductShippingData->getCountryTo();
-            $method = $ProductShippingData->getMethod();
-
-            if (!is_null($countryTo)) {
-                $complex_id .= ';' . $countryTo;
-            }
-
-            if (!is_null($method)) {
-                $complex_id .= ';' . $method;
-            }
-        } catch (RepositoryException $RepositoryException) {
-            a2wl_error_log($RepositoryException->getMessage());
+        if (empty($product[ImportedProductService::FIELD_METHOD])) {
+            return null;
         }
 
-        return $complex_id;
+        $countryFromCode = $product[ImportedProductService::FIELD_COUNTRY_FROM] ?: 'CN';
+        $countryToCode = $product[ImportedProductService::FIELD_COUNTRY_TO] ?: '';
+
+        $countryCodeKey = ProductShippingData::meta_key($countryFromCode, $countryToCode);
+
+        if (empty($product[ImportedProductService::FIELD_SHIPPING_INFO][$countryCodeKey])) {
+            return null;
+        }
+
+        $shippingItems = $product[ImportedProductService::FIELD_SHIPPING_INFO][$countryCodeKey];
+
+        return $this->findDefaultFromShippingItems($shippingItems, $product);
     }
 
     private function getExtraDataFromProduct(array $product, ?string $externalSkuId = null): ?string
@@ -387,4 +388,6 @@ class ProductService
 
         return null;
     }
+
+    
 }

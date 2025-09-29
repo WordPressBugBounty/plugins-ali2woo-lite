@@ -12,6 +12,7 @@ use AliNext_Lite\AbstractController;
 use AliNext_Lite\PriceFormula;
 use AliNext_Lite\PriceFormulaSet;
 use AliNext_Lite\PriceFormulaSettingsRepository;
+use AliNext_Lite\Settings;
 use function AliNext_Lite\get_setting;
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
 $a2wl_pricing_rules_type = $PriceFormulaSettingsRepository->getPricingRulesType();
@@ -402,13 +403,25 @@ $a2w_local_currency = strtoupper(get_setting('local_currency'));
 
             <div class="field field_inline">
                 <div class="field__label">
-                    <label for="a2wl_add_shipping_to_price">
-                        <strong><?php echo esc_html_e("Add shipping cost to product price", 'ali2woo'); ?></strong>
+                    <label for="a2wl_<?php echo esc_attr(Settings::SETTING_ADD_SHIPPING_TO_PRICE); ?>">
+                        <strong>
+                            <?php esc_html_e("Add shipping cost to product price", 'ali2woo'); ?>
+                        </strong>
                     </label>
-                    <div class="info-box" data-toggle="tooltip" data-title="<?php echo esc_html_e("Shipping costs will be added to the product price.", 'ali2woo'); ?>"></div>
+                    <div class="info-box"
+                         data-toggle="tooltip"
+                         data-title="<?php esc_attr_e("Shipping costs will be added to the product price.", 'ali2woo'); ?>">
+                    </div>
                 </div>
                 <div class="field__input-wrap">
-                    <input type="checkbox" class="field__input form-control" id="a2wl_add_shipping_to_price" name="a2wl_add_shipping_to_price" value="yes" <?php if (get_setting('add_shipping_to_price')): ?>checked<?php endif;?>/>
+                    <label>
+                        <input type="checkbox"
+                               class="field__input form-control"
+                               id="a2wl_<?php echo esc_attr(Settings::SETTING_ADD_SHIPPING_TO_PRICE); ?>"
+                               name="a2wl_<?php echo esc_attr(Settings::SETTING_ADD_SHIPPING_TO_PRICE); ?>"
+                               value="yes"
+                                <?php checked(get_setting(Settings::SETTING_ADD_SHIPPING_TO_PRICE)); ?> />
+                    </label>
                 </div>
             </div>
 
@@ -420,7 +433,7 @@ $a2w_local_currency = strtoupper(get_setting('local_currency'));
                     <div class="info-box" data-toggle="tooltip" data-title="<?php echo esc_html_e("Pricing rules will be applied after shipping cost are added to the product price. This is necessary if you want to add a markup to both the product cost and the shipping cost.", 'ali2woo'); ?>"></div>
                 </div>
                 <div class="field__input-wrap">
-                    <input type="checkbox"<?php if (!get_setting('add_shipping_to_price')): ?> disabled="disabled"<?php endif;?> class="field__input form-control" id="a2wl_apply_price_rules_after_shipping_cost" name="a2wl_apply_price_rules_after_shipping_cost" value="yes" <?php if (get_setting('apply_price_rules_after_shipping_cost')): ?>checked<?php endif;?>/>
+                    <input type="checkbox"<?php if (!get_setting(Settings::SETTING_ADD_SHIPPING_TO_PRICE)): ?> disabled="disabled"<?php endif;?> class="field__input form-control" id="a2wl_apply_price_rules_after_shipping_cost" name="a2wl_apply_price_rules_after_shipping_cost" value="yes" <?php if (get_setting('apply_price_rules_after_shipping_cost')): ?>checked<?php endif;?>/>
                 </div>
             </div>
 
@@ -1180,8 +1193,8 @@ $a2w_local_currency = strtoupper(get_setting('local_currency'));
                                     'compared_sign': get_el_sign_value($(price_table).find('.default_compared_sign'))},
                                 'cents': $('#cb-set-cents').is(":checked") ? $('#set-cents').val() : -1,
                                 'compared_cents': $('#cb-compared-set-cents').is(":checked") ? $('#compared-set-cents').val() : -1,
-                                'add_shipping_to_price': $('#a2wl_add_shipping_to_price').is(":checked")?1:0,
-                                'apply_price_rules_after_shipping_cost': $('#a2wl_apply_price_rules_after_shipping_cost').is(":checked")?1:0,
+                                'add_shipping_to_price': $('#a2wl_add_shipping_to_price').is(":checked") ? 1 : 0,
+                                'apply_price_rules_after_shipping_cost': $('#a2wl_apply_price_rules_after_shipping_cost').is(":checked") ? 1 : 0,
                                 'ali2woo_nonce': nonce_action,
                             };
 

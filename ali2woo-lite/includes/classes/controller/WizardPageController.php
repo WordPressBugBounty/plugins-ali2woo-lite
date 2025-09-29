@@ -103,10 +103,10 @@ class WizardPageController extends AbstractAdminPage {
             }
 
             if ($a2wl_pricing_rules != "no" && $a2wl_add_shipping_to_product){
-                set_setting('add_shipping_to_price', true);
+                set_setting(Settings::SETTING_ADD_SHIPPING_TO_PRICE, true);
                 set_setting('apply_price_rules_after_shipping_cost', true);
             } else {
-                set_setting('add_shipping_to_price', false);
+                set_setting(Settings::SETTING_ADD_SHIPPING_TO_PRICE, false);
                 set_setting('apply_price_rules_after_shipping_cost', false);
             }
 

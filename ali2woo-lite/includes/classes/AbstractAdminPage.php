@@ -276,6 +276,13 @@ abstract class AbstractAdminPage extends AbstractController
         return is_admin() && isset($_REQUEST['page']) && $_REQUEST['page'] && $this->menu_slug == $_REQUEST['page'];
     }
 
+    protected function modelPutArray(array $data): void
+    {
+        foreach ($data as $key => $value) {
+            $this->model_put($key, $value);
+        }
+    }
+
     private function addHiddenAdminPage(): string|false
     {
         // Добавляем страницу напрямую, но скрываем её из меню

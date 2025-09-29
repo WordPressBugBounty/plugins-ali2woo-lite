@@ -704,3 +704,52 @@ body[class*="page_a2w"]{
 .a2wl-toast-error {
     background: #dc3545;
 }
+
+@keyframes a2wFadeHighlight {
+    0% {
+        background-color: #fff8e1; /* светло-жёлтый */
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+.a2wl-highlighted {
+    animation: a2wFadeHighlight 1.5s ease-out;
+}
+
+.a2wl-content .small-input {
+    max-width: 200px;
+}
+
+.a2wl-content .medium-input {
+    max-width: 370px;
+}
+
+.a2wl-content .large-input {
+    max-width: 470px;
+}
+
+.a2wl-content .form-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.a2wl-content .form-inline .form-group {
+    flex: 1;
+}
+
+.a2wl-content .a2wl-placeholder-value-copy {
+    pointer-events: auto !important;
+    cursor: pointer;
+}
+
+.a2wl-placeholder-value-copy:hover {
+    color: #0073aa !important;
+}
+
+.a2wl-placeholder-value-copy.copied {
+    color: #46b450;
+    transition: color 0.3s ease;
+}

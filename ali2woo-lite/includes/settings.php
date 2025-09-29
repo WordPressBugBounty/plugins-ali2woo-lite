@@ -28,7 +28,30 @@ class Settings
 
 
     //shipping settings
+    public const SETTING_ADD_SHIPPING_TO_PRICE = 'add_shipping_to_price';
+    public const SETTING_ALLOW_SHIPPING_FRONTEND = 'aliship_frontend';
+    public const SETTING_SYNC_PRODUCT_SHIPPING = 'sync_product_shipping';
     public const SETTING_ASSIGN_SHIPPING_ON_IMPORT = 'assign_shipping_on_import';
+    public const SETTING_DELIVERY_INFO_DISPLAY_MODE = 'delivery_info_display_mode';
+
+    public const SETTING_DELIVERY_TIME_TEXT_FORMAT = 'delivery_time_text_format';
+    public const SETTING_DELIVERY_TIME_FALLBACK_MIN  = 'delivery_time_fallback_min';
+    public const SETTING_DELIVERY_TIME_FALLBACK_MAX = 'delivery_time_fallback_max';
+
+    public const SETTING_SHIPPING_ON_PRODUCT_PAGE = 'aliship_product_enable';
+
+
+    public const DEFAULTS = [
+        self::SETTING_ADD_SHIPPING_TO_PRICE => false,
+        self::SETTING_ALLOW_SHIPPING_FRONTEND => false,
+        self::SETTING_SYNC_PRODUCT_SHIPPING => false,
+        self::SETTING_DELIVERY_INFO_DISPLAY_MODE => 'default',
+        self::SETTING_DELIVERY_TIME_TEXT_FORMAT => 'Estimated delivery: {delivery_time}',
+        self::SETTING_DELIVERY_TIME_FALLBACK_MIN => 20,
+        self::SETTING_DELIVERY_TIME_FALLBACK_MAX => 30,
+        self::SETTING_SHIPPING_ON_PRODUCT_PAGE => false,
+    ];
+
 
     /**
      * Value in percents from 25 to 100
@@ -129,7 +152,7 @@ class Settings
         'price_compared_cents' => -1,
         'default_formula' => false,
         'formula_list' => [],
-        'add_shipping_to_price' => false,
+        self::SETTING_ADD_SHIPPING_TO_PRICE => self::DEFAULTS[self::SETTING_ADD_SHIPPING_TO_PRICE],
         'apply_price_rules_after_shipping_cost' => false,
 
         'phrase_list' => [],
@@ -155,14 +178,20 @@ class Settings
         //'aliship_shipfrom' - rudiment setting, use 'aliexpress_region' now
         'aliship_shipfrom' => 'CN',
         'default_shipping_class' => false,
-        'aliship_frontend' => false,
+        self::SETTING_ALLOW_SHIPPING_FRONTEND => self::DEFAULTS[self::SETTING_ALLOW_SHIPPING_FRONTEND],
+        self::SETTING_SYNC_PRODUCT_SHIPPING => self::DEFAULTS[self::SETTING_SYNC_PRODUCT_SHIPPING],
         self::SETTING_ASSIGN_SHIPPING_ON_IMPORT => false,
+        self::SETTING_DELIVERY_INFO_DISPLAY_MODE => self::DEFAULTS[self::SETTING_DELIVERY_INFO_DISPLAY_MODE],
+        self::SETTING_DELIVERY_TIME_TEXT_FORMAT => self::DEFAULTS[self::SETTING_DELIVERY_TIME_TEXT_FORMAT],
+        self::SETTING_DELIVERY_TIME_FALLBACK_MIN => self::DEFAULTS[self::SETTING_DELIVERY_TIME_FALLBACK_MIN],
+        self::SETTING_DELIVERY_TIME_FALLBACK_MAX => self::DEFAULTS[self::SETTING_DELIVERY_TIME_FALLBACK_MAX],
+        'aliship_shipping_method' => 'default',
         'aliship_selection_type' => 'popup',
         'aliship_shipping_type' => 'new',
         'aliship_shipping_option_text' => '[{shipping_cost}] {shipping_company} ({delivery_time}) - {country}',
         'aliship_shipping_label' => 'Shipping',
         'aliship_free_shipping_label' => 'Free Shipping',
-        'aliship_product_enable' => false,
+        self::SETTING_SHIPPING_ON_PRODUCT_PAGE => self::DEFAULTS[self::SETTING_SHIPPING_ON_PRODUCT_PAGE],
         'aliship_product_not_available_message' => 'This product can not be delivered to {country}.',
         'aliship_product_position' => 'after_cart',
         'aliship_not_available_remove' => false,
@@ -315,6 +344,10 @@ if (!function_exists('settings')) {
 if (!function_exists('get_setting')) {
     function get_setting($setting, $default = '')
     {
+        if (!$default && isset(Settings::DEFAULTS[$setting])) {
+            $default = Settings::DEFAULTS[$setting];
+        }
+
         return settings()->get($setting, $default);
     }
 }

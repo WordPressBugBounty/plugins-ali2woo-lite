@@ -350,7 +350,6 @@ class Aliexpress
         $notAvailableProducts = [];
 
         foreach ($product_ids as $product_id) {
-
             $product_id_parts = explode(';', $product_id);
             $params['lang'] = $product_id_parts[1];
 

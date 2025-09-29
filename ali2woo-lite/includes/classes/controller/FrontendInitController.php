@@ -39,12 +39,18 @@ class FrontendInitController extends AbstractController
         add_action('wp_ajax_a2wl_frontend_load_shipping_info', [$this, 'ajax_frontend_load_shipping_info']);
         add_action('wp_ajax_nopriv_a2wl_frontend_load_shipping_info', [$this, 'ajax_frontend_load_shipping_info']);
 
-        add_filter('wcml_multi_currency_ajax_actions', 'add_action_to_multi_currency_ajax', 10, 1);
+        add_filter('wcml_multi_currency_ajax_actions', [$this,'add_action_to_multi_currency_ajax'], 10, 1);
 
         add_action('wp_ajax_a2wl_frontend_update_shipping_list', [$this, 'ajax_frontend_update_shipping_list']);
         add_action('wp_ajax_nopriv_a2wl_frontend_update_shipping_list', [$this, 'ajax_frontend_update_shipping_list']);
 
-        if (get_setting('aliship_frontend')) {
+        $shippingOnCheckoutPage = get_setting(Settings::SETTING_ALLOW_SHIPPING_FRONTEND) &&
+            get_setting(Settings::SETTING_DELIVERY_INFO_DISPLAY_MODE) === 'default';
+
+        $shippingOnProductPage = $shippingOnCheckoutPage &&
+            get_setting(Settings::SETTING_SHIPPING_ON_PRODUCT_PAGE);
+
+        if ($shippingOnCheckoutPage) {
             add_action(
                 'wp_ajax_a2wl_update_shipping_method_in_cart_item',
                 [$this, 'ajax_frontend_update_shipping_method_in_cart_item']
@@ -54,32 +60,33 @@ class FrontendInitController extends AbstractController
                 [$this, 'ajax_frontend_update_shipping_method_in_cart_item']
             );
 
-            if (get_setting('aliship_product_enable')) {
+            if ($shippingOnProductPage) {
                 add_action('woocommerce_add_to_cart_validation', array($this, 'product_shipping_fields_validation'), 10, 3);
                 add_filter('woocommerce_add_cart_item_data', array($this, 'add_cart_item_data'), 10, 2);
 
                 //set country to the last added (to cart) item
                 add_action('woocommerce_add_to_cart', array($this, 'set_default_cart_country'), 10, 6);
             }
-        }
-
-        if (get_setting('aliship_frontend')) {
 
             //calculate shipping total in the cart and checkout page
             add_filter('woocommerce_package_rates', [$this, 'woocommerce_package_rates'], 10, 2);
-        }
 
-        //this hook is fired on frontend and backend.
-        //show shipping information on the order edit page (admin) and do not show on frontend for user (complete order page)
-        //also do not show in the customers emails
-        add_filter('woocommerce_order_item_get_formatted_meta_data',
-            [$this, 'woocommerce_order_item_get_formatted_meta_data'], 10, 2
-        );
+            /**
+             * this hook is fired on frontend and backend.
+             * show shipping information on the order edit page (admin) and do not show on frontend for user (complete order page)
+             * also do not show in the customers emails
+             */
+            add_filter('woocommerce_order_item_get_formatted_meta_data',
+                [$this, 'woocommerce_order_item_get_formatted_meta_data'], 10, 2
+            );
+        }
 
     }
 
-    function add_action_to_multi_currency_ajax( $ajax_actions ) {
-        $ajax_actions[] = 'a2wl_frontend_load_shipping_info'; // Add a AJAX action to the array            
+    function add_action_to_multi_currency_ajax($ajax_actions)
+    {
+        $ajax_actions[] = 'a2wl_frontend_load_shipping_info';
+
         return $ajax_actions;
     }
 

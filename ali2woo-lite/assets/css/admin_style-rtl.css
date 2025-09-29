@@ -439,11 +439,6 @@ body .a2wl-content {
     -moz-animation: a2wl-loader-spin 1325ms infinite linear;
 }
 
-.a2wl-content .a2wl-table-of-placeholders .a2wl-placeholder-value-copy {
-    pointer-events: auto;
-    cursor: pointer;
-}
-
 .a2wl-content .a2wl-table-of-placeholders .a2wl-placeholder-value-container+td{
     vertical-align: middle;
 }
@@ -904,18 +899,6 @@ body .a2wl-content {
 }
 
 /** Shared setting styles */
-
-.a2wl-content .small-input {
-    max-width: 200px;    
-}
-
-.a2wl-content .medium-input {
-    max-width: 370px;    
-}
-
-.a2wl-content .large-input {
-    max-width: 470px;    
-}
 
 .a2wl-content  .border-top {
     border-top: 1px solid #e1e8f0;    

@@ -110,8 +110,11 @@ class Review {
                         }
 
                         $review_cache = md5(
-                            $post_id . $external_id . $item['buyer']['buyerTitle'] .
-                            ( $item['review']['reviewContent'] ?? "" ) . $item['review']['reviewDate']
+                            $post_id . $external_id .
+                            ($item['buyer']['buyerTitle'] ?? '') .
+                            ($item['review']['reviewContent'] ?? '') .
+                            ($item['review']['itemSpecInfo'] ?? '') .
+                            ($item['review']['itemLogistics'] ?? '')
                         );
 
                         $queryTemplate = "SELECT count(c.comment_ID) FROM {$wpdb->comments} c " .

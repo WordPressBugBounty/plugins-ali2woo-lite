@@ -255,7 +255,10 @@ class SettingPageAjaxController extends AbstractController
             set_setting('use_extended_price_markup', $use_extended_price_markup);
             set_setting('use_compared_price_markup', $use_compared_price_markup);
 
-            set_setting('add_shipping_to_price', !empty($_POST['add_shipping_to_price']) ? filter_var($_POST['add_shipping_to_price'], FILTER_VALIDATE_BOOLEAN) : false);
+            set_setting(
+                Settings::SETTING_ADD_SHIPPING_TO_PRICE,
+                isset($_POST[Settings::SETTING_ADD_SHIPPING_TO_PRICE])
+            );
             set_setting('apply_price_rules_after_shipping_cost', !empty($_POST['apply_price_rules_after_shipping_cost']) ? filter_var($_POST['apply_price_rules_after_shipping_cost'], FILTER_VALIDATE_BOOLEAN) : false);
 
             settings()->commit();

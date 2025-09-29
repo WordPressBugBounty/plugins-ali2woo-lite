@@ -394,4 +394,13 @@
 * Improved shipping data accuracy for products with quantity greater than 1
 * Applied minor bug fixes and performance optimizations
 
+3.6.3
+* Premium: Added "delivery time only" option in shipping settings  
+* Premium: Fixed duplicate review import issue  
+* Premium: Added feature to sync assigned shipping option with WooCommerce products  
+* Premium: Added ZA – South Africa region support  
+* Security: Added nonce protection and saved selected sort option in cookie for import list  
+* Refactored legacy modules and functions for better performance  
+* Fixed minor issues and corrected typos in plugin texts
+
 

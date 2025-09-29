@@ -24,7 +24,7 @@ use AliNext_Lite\Utils;
         <?php include_once A2WL()->plugin_path() . '/view/permanent_alert.php'; ?>
         
         
-        <div id="a2wl-import-empty" class="panel panel-default margin-top"<?php if ($serach_query || count($product_list) !== 0): ?> style="display:none;"<?php endif; ?>>
+        <div id="a2wl-import-empty" class="panel panel-default margin-top"<?php if ($search_query || count($product_list) !== 0): ?> style="display:none;"<?php endif; ?>>
             <div class="panel-body">
                 <?php  esc_html_e('Your Import List is Empty.', 'ali2woo'); ?>
                 <br/>
@@ -33,8 +33,7 @@ use AliNext_Lite\Utils;
             </div>
         </div>
 
-
-        <div id="a2wl-import-content"<?php if (!$serach_query && count($product_list) === 0): ?> style="display:none;"<?php endif; ?>>
+        <div id="a2wl-import-content"<?php if (!$search_query && count($product_list) === 0): ?> style="display:none;"<?php endif; ?>>
             <div id="a2wl-import-filter">
                 <div class="grid grid_default grid_import-filter">
                     <div class="grid__col">
@@ -51,7 +50,7 @@ use AliNext_Lite\Utils;
                                             <?php foreach ($sort_list as $k => $v): ?><option value="<?php echo $k; ?>"<?php if ($sort_query === $k): ?> selected="selected"<?php endif; ?>><?php echo $v; ?></option><?php endforeach; ?>
                                         </select>
                                     </td>
-                                    <td class="padding-small-right"><input type="search" name="s" class="form-control" value="<?php echo $serach_query; ?>"></td>
+                                    <td class="padding-small-right"><input type="search" name="s" class="form-control" value="<?php echo $search_query; ?>"></td>
                                     <td><input type="submit" class="btn btn-default" value="<?php  esc_html_e('Search products', 'ali2woo'); ?>"></td>
                                 </tr>
                             </table>
@@ -619,29 +618,7 @@ use AliNext_Lite\Utils;
             <?php include_once 'includes/split_modal.php'; ?>
             <?php include_once 'includes/override_modal.php'; ?>
         </div>
-
-
-        <?php if ($paginator['total_pages'] > 1): ?>
-            <div class="pagination">
-                <div class="pagination__wrapper">
-                    <ul class="pagination__list">
-                        <li <?php if (1 == $paginator['cur_page']): ?>class="disabled"<?php endif; ?>><a href="<?php echo admin_url('admin.php?page=a2wl_import&cur_page=' . ($paginator['cur_page'] - 1)) ?>">«</a></li>
-                        <?php foreach ($paginator['pages_list'] as $p): ?>
-                            <?php if ($p): ?>
-                                <?php if ($p == $paginator['cur_page']): ?>
-                                    <li class="active"><span><?php echo $p; ?></span></li>
-                                <?php else: ?>
-                                    <li><a href="<?php echo admin_url('admin.php?page=a2wl_import&cur_page=' . $p) ?>"><?php echo $p; ?></a></li>
-                                <?php endif; ?>
-                            <?php else: ?>
-                                <li class="disabled"><span>...</span></li>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
-                        <li <?php if ($paginator['total_pages'] <= $paginator['cur_page']): ?>class="disabled"<?php endif; ?>><a href="<?php echo admin_url('admin.php?page=a2wl_import&cur_page=' . ($paginator['cur_page'] + 1)) ?>">»</a></li>
-                    </ul>
-                </div>
-            </div>
-        <?php endif; ?>
+        <?php include_once 'includes/import/pagination.php'; ?>
     </div>
 
     <script>

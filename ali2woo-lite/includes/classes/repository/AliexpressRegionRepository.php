@@ -33,6 +33,7 @@ class AliexpressRegionRepository
             'UK' => 'United Kingdom',
             'AE' => 'United Arab Emirates',
             'SA' => 'Saudi Arabia',
+            'ZA' => 'South Africa',
             'AU' => 'Australia',
             'CA' => 'Canada',
             'FR' => 'France',
