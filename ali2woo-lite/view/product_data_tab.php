@@ -245,7 +245,7 @@ use AliNext_Lite\Attachment;
                             <?php echo wp_json_encode($variationList); ?>,
                             '<?php echo $variationExternalId; ?>',
                             <?php echo wp_json_encode($shipping_country_from_list); ?>,
-                            country_from, country_to, [], 'product', shipping_method, onSelectCallback
+                            country_from, country_to, [], 1, 'product', shipping_method, onSelectCallback
                         );
                    } else {
                        $('.modal-shipping .shipping-method').html(

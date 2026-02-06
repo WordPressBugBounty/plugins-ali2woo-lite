@@ -779,9 +779,9 @@ var Utils = new Utils();
             width: '300px',
         });
 
-        $("#a2wl_aliexpress_region").select2({
-            width: '300px',
-        });
+        $("#a2wl_aliexpress_region").select2();
+        $("#a2w_local_currency").select2();
+        $("#a2w_import_language").select2();
 
         $("img.lazy").lazyload && $("img.lazy").lazyload({ effect: "fadeIn" });
 
@@ -889,7 +889,10 @@ var Utils = new Utils();
                 $('.modal-override-product .override-order-variations').html('');
                 if(!changeSupplier) { 
                     let total_orders = 0;
-                    $.each(oldVariations, function (i, variation) { total_orders += parseInt(variation.cnt); });
+                    $.each(oldVariations, function (i, variation) {
+                        total_orders += parseInt(variation.cnt);
+                    });
+
                     $('.modal-override-product .override-order-variations').html('<div class="a2wl-info" style="margin-top: 12px;">You have <b>' + total_orders + ' unfulfilled orders</b> of the product are you trying to override</div>');                                
                 }
 
@@ -1062,10 +1065,17 @@ var Utils = new Utils();
             return false;
         });
 
-        $('.a2wl-system-message .notice-dismiss').on('click', function(event) {
-            event.preventDefault();
-            $(this).parent().hide();
-        })
+        $(document).on('click', '.a2wl-critical-message .notice-dismiss', function() {
+            const $notice = jQuery(this).closest('.a2wl-critical-message');
+            const code = $notice.data('code');
+            if (code) {
+                $.post(a2wl_admin_script.ajaxurl, {
+                    action: 'a2wl_remove_critical_message',
+                    code: code,
+                    ali2woo_nonce: a2wl_admin_script.nonce_action,
+                });
+            }
+        });
 
         /* ====================================================== */
 
@@ -3232,7 +3242,7 @@ var Utils = new Utils();
             alert(a2wl_product_info_data.lang.video_shortcode_copied);
         });
 
-        $('.ф2ц-show-product-video-tab').on('change', function () {
+        $('.a2wl-show-product-video-tab').on('change', function () {
             let $video_full_tab = $('.vi-wad-product-video-full-tab').closest('tr');
             let $video_tab_priority = $('.vi-wad-product-video-tab-priority').closest('tr');
             if ($(this).prop('checked')) {

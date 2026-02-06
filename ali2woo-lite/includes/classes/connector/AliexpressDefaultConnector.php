@@ -12,45 +12,57 @@ use Exception;
 
 class AliexpressDefaultConnector extends AbstractConnector
 {
-    //todo: fix product description loading
-    public function load_product($product_id, $params = [])
+    public function load_product(string $product_id, array $params = []): array
     {
-        $params['product_id'] = $product_id;
-        $request_url = RequestHelper::build_request('get_product', $params);
-        $request = a2wl_remote_get($request_url);
+        try {
+            $this->get_access_token();
 
-        if (is_wp_error($request)) {
-            $result = ResultBuilder::buildError($request->get_error_message());
-        } else if (intval($request['response']['code']) != 200) {
-            $errorMessage = $request['response']['code'];
-            if (!empty($request['response']['message'])) {
-                $errorMessage .= " " . $request['response']['message'];
+            $params['product_id'] = $product_id;
+            $request_url = RequestHelper::build_request('get_product', $params);
+            $request = a2wl_remote_get($request_url);
+
+            if (is_wp_error($request)) {
+                $result = ResultBuilder::buildError($request->get_error_message());
+            } else if (intval($request['response']['code']) != 200) {
+                $errorMessage = $request['response']['code'];
+                if (!empty($request['response']['message'])) {
+                    $errorMessage .= " " . $request['response']['message'];
+                }
+                $result = ResultBuilder::buildError($errorMessage);
+            } else {
+                $result = json_decode($request['body'], true);
             }
-            $result = ResultBuilder::buildError($errorMessage);
-        } else {
-            $result = json_decode($request['body'], true);
+        } catch (Exception $Exception) {
+            $result = ResultBuilder::buildError($Exception->getMessage());
         }
 
         return $result;
     }
 
-    public function loadCategory($categoryId): array
+    public function loadCategory(int $categoryId): array
     {
-        $params = [
-            'category_id' => $categoryId,
-        ];
+        try {
+            $this->get_access_token();
 
-        $request_url = RequestHelper::build_request('get_category', $params);
-        $request = a2wl_remote_get($request_url);
+            $params = [
+                'category_id' => $categoryId,
+            ];
 
-        if (is_wp_error($request)) {
-            $result = ResultBuilder::buildError($request->get_error_message());
-        } else if (intval($request['response']['code']) != 200) {
-            $result = ResultBuilder::buildError(
-                $request['response']['code'] . " " . $request['response']['message']
-            );
-        } else {
-            $result = json_decode($request['body'], true);
+            $request_url = RequestHelper::build_request('get_category', $params);
+            $request = a2wl_remote_get($request_url);
+
+            if (is_wp_error($request)) {
+                $result = ResultBuilder::buildError($request->get_error_message());
+            } else if (intval($request['response']['code']) != 200) {
+                $result = ResultBuilder::buildError(
+                    $request['response']['code'] . " " . $request['response']['message']
+                );
+            } else {
+                $result = json_decode($request['body'], true);
+            }
+        }
+        catch (Exception $Exception) {
+            $result = ResultBuilder::buildError($Exception->getMessage());
         }
 
         return $result;
@@ -58,18 +70,25 @@ class AliexpressDefaultConnector extends AbstractConnector
 
     public function load_products(array $filter, $page = 1, $per_page = 20, $params = [])
     {
-        $request_url = RequestHelper::build_request(
-            'get_products',
-            array_merge(['page' => $page, 'per_page' => $per_page], $filter)
-        );
-        $request = a2wl_remote_get($request_url);
+        try {
+            $this->get_access_token();
 
-        if (is_wp_error($request)) {
-            $result = ResultBuilder::buildError($request->get_error_message());
-        } else if (intval($request['response']['code']) != 200) {
-            $result = ResultBuilder::buildError($request['response']['code'] . " " . $request['response']['message']);
-        } else {
-            $result = json_decode($request['body'], true);
+            $request_url = RequestHelper::build_request(
+                'get_products',
+                array_merge(['page' => $page, 'per_page' => $per_page], $filter)
+            );
+            $request = a2wl_remote_get($request_url);
+
+            if (is_wp_error($request)) {
+                $result = ResultBuilder::buildError($request->get_error_message());
+            } else if (intval($request['response']['code']) != 200) {
+                $result = ResultBuilder::buildError($request['response']['code'] . " " . $request['response']['message']);
+            } else {
+                $result = json_decode($request['body'], true);
+            }
+        }
+        catch (Exception $Exception) {
+            $result = ResultBuilder::buildError($Exception->getMessage());
         }
 
         return $result;
@@ -132,38 +151,47 @@ class AliexpressDefaultConnector extends AbstractConnector
     }
 
     public function load_shipping_info(
-        $product_id, $quantity, $country_code, $country_code_from = 'CN',
-        $min_price = '', $max_price = '', $province = '', $city = '', $extra_data = '', $sku_id = ''
-    ) {
-        $params = [
-            'product_id' => $product_id,
-            'sku_id' => $sku_id,
-            'quantity' => $quantity,
-            'country_code' => $country_code,
-            'country_code_from' => $country_code_from,
-            'extra_data' => $extra_data,
-        ];
+        string $product_id, int $quantity, string $country_code, string $country_code_from = 'CN',
+        string $min_price = '', string $max_price = '', string $province = '', string $city = '',
+        string $extra_data = '', string $sku_id = ''
+    ) : array {
+        try {
+            $this->get_access_token();
 
-        $request_url = RequestHelper::build_request('get_shipping_info', $params);
-        $request = a2wl_remote_get($request_url);
-        if (is_wp_error($request)) {
-            $result = ResultBuilder::buildError($request->get_error_message());
-        } else {
-            if (intval($request['response']['code']) == 200) {
-                $result = json_decode($request['body'], true);
-                if ($result['state'] != 'error') {
-                    $result = ResultBuilder::buildOk([
-                        'items' => $result['items'],
-                        'from_cach' => $result['from_cach']
-                    ]);
-                } else {
-                    $result = ResultBuilder::buildError($result['message']);
-                }
+            $params = [
+                'product_id' => $product_id,
+                'sku_id' => $sku_id,
+                'quantity' => $quantity,
+                'country_code' => $country_code,
+                'country_code_from' => $country_code_from,
+                'extra_data' => $extra_data,
+            ];
+
+            $request_url = RequestHelper::build_request('get_shipping_info', $params);
+            $request = a2wl_remote_get($request_url);
+            if (is_wp_error($request)) {
+                $result = ResultBuilder::buildError($request->get_error_message());
             } else {
-                $result = ResultBuilder::buildError(
-                    $request['response']['code'] . ' - ' . $request['response']['message']
-                );
+                if (intval($request['response']['code']) == 200) {
+                    $result = json_decode($request['body'], true);
+                    if ($result['state'] != 'error') {
+                        $result = ResultBuilder::buildOk([
+                            'items' => $result['items'],
+                            'from_cach' => $result['from_cach']
+                        ]);
+                    } else {
+                        $result = ResultBuilder::buildError(
+                            sprintf('[%d]%s', $result['error_code'], $result['message'])
+                        );
+                    }
+                } else {
+                    $result = ResultBuilder::buildError(
+                        $request['response']['code'] . ' - ' . $request['response']['message']
+                    );
+                }
             }
+        } catch (Exception $Exception) {
+            $result = ResultBuilder::buildError($Exception->getMessage());
         }
 
         return $result;
@@ -213,33 +241,34 @@ class AliexpressDefaultConnector extends AbstractConnector
     {
         try {
             $this->get_access_token();
+
+            $params = [
+                'order_id' => $order_id,
+            ];
+
+            $request_url = RequestHelper::build_request('load_order',$params);
+            $request = a2wl_remote_get($request_url);
+            $result = $this->handleRequestResult($request);
+
+            if ($result['state'] !== 'error') {
+                $result = ResultBuilder::buildOk([
+                    'order' => $result['order'],
+                ]);
+            }
+
         } catch (Exception $Exception) {
             return ResultBuilder::buildError($Exception->getMessage());
-        }
-
-        $params = [
-            'order_id' => $order_id,
-        ];
-
-        $request_url = RequestHelper::build_request('load_order',$params);
-        $request = a2wl_remote_get($request_url);
-        $result = $this->handleRequestResult($request);
-
-        if ($result['state'] !== 'error') {
-            $result = ResultBuilder::buildOk([
-                'order' => $result['order'],
-            ]);
         }
 
         return $result;
     }
 
-    public static function get_images_from_description($product)
+    public static function get_images_from_description(array $data): array
     {
-        $src_result = array();
+        $src_result = [];
 
-        if (isset($product['desc_meta']) && isset($product['desc_meta']['images']) && is_array($product['desc_meta']['images'])) {
-            foreach ($product['desc_meta']['images'] as $image_src) {
+        if (!empty($data['desc_meta']['images']) && is_array($data['desc_meta']['images'])) {
+            foreach ($data['desc_meta']['images'] as $image_src) {
                 $image_key = Utils::buildImageIdFromPath($image_src);
                 $src_result[$image_key] = $image_src;
             }
@@ -413,31 +442,28 @@ class AliexpressDefaultConnector extends AbstractConnector
     /**
      * @throws Exception
      */
-    private function get_access_token()
+    private function get_access_token(): string
     {
-        $GlobalSystemMessageService = A2WL()->getDI()->get('AliNext_Lite\GlobalSystemMessageService');
-        $GlobalSystemMessageService->clear();
-
+        //todo: use DI
         $token = AliexpressToken::getInstance()->defaultToken();
 
-        if (!$token) {
-            $linkText = _x('Please check our instruction.','settings', 'ali2woo');
+        if (!$token || $token->isExpired()) {
+            $statusMessage = !$token
+                ? _x('AliExpress access token is not found.', 'settings', 'ali2woo')
+                : _x('AliExpress access token has expired.', 'settings', 'ali2woo');
 
-            $text2 = sprintf(
-                '<a target="_blank" href="%s">%s</a>.',
-                'https://help.ali2woo.com/codex/how-to-get-access-token-from-aliexpress/',
-                $linkText
+            $instructionLink = sprintf(
+                '<a target="_blank" href="%s">%s</a>',
+                esc_url('https://help.ali2woo.com/codex/how-to-get-access-token-from-aliexpress/'),
+                _x('using our instruction.', 'settings', 'ali2woo')
             );
 
-            $text = _x('AliExpress access token is not found.','settings', 'ali2woo');
+            $generateMessage = _x('Please generate a new token', 'settings', 'ali2woo');
 
-            $GlobalSystemMessageService->addErrorMessage($text . $text2);
-
-            //todo: add here a check whether token has expired
-
-            throw new Exception($text);
+            throw new Exception($statusMessage . '<br/>' . $generateMessage . ' ' . $instructionLink);
         }
 
-        return $token['access_token'];
+        return $token->accessToken;
     }
+
 }

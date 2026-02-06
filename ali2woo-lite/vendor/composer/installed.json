@@ -319,6 +319,6 @@
             "install-path": "../psr/container"
         }
     ],
-    "dev": false,
+    "dev": true,
     "dev-package-names": []
 }

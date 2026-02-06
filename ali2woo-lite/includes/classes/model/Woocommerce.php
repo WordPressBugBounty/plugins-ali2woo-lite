@@ -326,6 +326,11 @@ class Woocommerce
                 $product_id = wp_insert_post($post);
             }
 
+            if (!is_wp_error($product_id) && $product_id) {
+                // Explicitly set the product type taxonomy because 'tax_input' may not reliably save it in newer WooCommerce versions
+                wp_set_object_terms($product_id, $product_type, 'product_type');
+            }
+
             if (a2wl_check_defined('A2WL_ON_UPDATE_LOG_AFFILIATE_URL')) {
                 $infoLogMessage = sprintf(
                     '(new import) Product (ID: %d) affiliate url: %s', $product_id, $product['affiliate_url']
@@ -523,59 +528,7 @@ class Woocommerce
             }
 
             if ($override_product && !$override_supplier && $override_variations) {
-                $variations_to_override = array();
-                foreach ($override_variations as $v) {
-                    $variations_to_override[$v['external_variation_id']] = $v['variation_id'];
-                }
-
-                $in_data = implode(",", array_map(function ($v) {global $wpdb;return "'" . $wpdb->_real_escape($v) . "'";}, array_keys($variations_to_override)));
-
-                /**
-                 * Above we have already updated original product with new override-product in db.
-                 * And here we check if it has variant, then update that order.
-                 * But if override-product is simple and original was variable
-                 * Then query below will not return anything and related order item will not be updated
-                 * Perhaps it's ok? However, each order item should have correct data for order fulfillment...
-                 * Need to check this deeper
-                 * I think in this case we should remove '_variation_id' in each order item meta,
-                 * because it doesn't have variants anymore
-                 */
-                $new_variations_query = "SELECT pm.post_id as variation_id, pm.meta_value as external_variation_id FROM {$wpdb->postmeta} pm " .
-                                        "INNER JOIN {$wpdb->posts} p on (p.ID=pm.post_id) " .
-                                        "WHERE p.post_parent=%d and pm.meta_key='external_variation_id' and pm.meta_value in ($in_data)";
-
-                $new_variations = $wpdb->get_results(
-                    // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-                    $wpdb->prepare($new_variations_query, $product_id), ARRAY_A
-                );
-
-                foreach ($new_variations as $v) {
-                    if (isset($variations_to_override[$v['external_variation_id']])) {
-                        if (OrderUtil::custom_orders_table_usage_is_enabled()) {
-                            $update_query = "UPDATE {$wpdb->prefix}woocommerce_order_itemmeta oim " .
-                                "INNER JOIN {$wpdb->prefix}woocommerce_order_items oi ON (oi.order_item_id=oim.order_item_id) " .
-                                "INNER JOIN {$wpdb->prefix}wc_orders p ON (p.ID=oi.order_id) " .
-                                "SET oim.meta_value=%d " .
-                                "WHERE oim.meta_key='_variation_id' AND oim.meta_value=%d and not p.status in ('wc-completed', 'wc-cancelled', 'wc-refunded')";
-                        } else {
-                            $update_query = "UPDATE {$wpdb->prefix}woocommerce_order_itemmeta oim " .
-                                "INNER JOIN {$wpdb->prefix}woocommerce_order_items oi ON (oi.order_item_id=oim.order_item_id) " .
-                                "INNER JOIN {$wpdb->posts} p ON (p.ID=oi.order_id) " .
-                                "SET oim.meta_value=%d " .
-                                "WHERE oim.meta_key='_variation_id' AND oim.meta_value=%d and not p.post_status in ('wc-completed', 'wc-cancelled', 'wc-refunded')";
-                        }
-
-                        $wpdb->query(
-                            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-                            $wpdb->prepare(
-                                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-                                $update_query,
-                                $v['variation_id'],
-                                $variations_to_override[$v['external_variation_id']]
-                                )
-                        );
-                    }
-                }
+                Override::updateOrderItemsOnOverride($product_id, $override_variations);
             }
 
             wp_update_post($post_arr);
@@ -609,7 +562,7 @@ class Woocommerce
     public function upd_product($product_id, $product, $params = array())
     {
         do_action('a2wl_woocommerce_upd_product', $product_id, $product, $params);
-        
+
         global $wpdb;
 
         $wc_product = wc_get_product($product_id);
@@ -784,11 +737,22 @@ class Woocommerce
         }
 
         if ($product_type != 'external') {
-            $new_product_type = $variations_active_cnt > 1 ? 'variable' : 'simple';
+            if (a2wl_check_defined('A2WL_FORCE_KEEP_PRODUCT_TYPE')) {
+                // keep the current product type unchanged
+                $new_product_type = $product_type;
+            } elseif (a2wl_check_defined('A2WL_FORCE_VARIABLE_PRODUCT')) {
+                // always force product type to "variable"
+                $new_product_type = 'variable';
+            } else {
+                // default smart behavior: "variable" if more than one active variation, otherwise "simple"
+                $new_product_type = $variations_active_cnt > 1 ? 'variable' : 'simple';
+            }
+
             if ($new_product_type != $product_type) {
                 $this->changeProductType($product_id, $new_product_type);
                 /**
-                 * reload product here because when we change product type in woocommerce, the product is changed and setters are changed too
+                 * Reload product here because when we change product type in WooCommerce,
+                 * the product object is updated and its setters/methods are changed too
                  */
                 $wc_product = wc_get_product($product_id);
             }
@@ -1160,6 +1124,18 @@ class Woocommerce
                 $regular_price = $variation['calc_regular_price'] ?? $price;
             }
 
+            // Check: if the sale price is greater than the regular price
+            if ($price > $regular_price) {
+                a2wl_info_log(sprintf(
+                    "ERROR: Skip updating product_id=%s, variation_external_id=%s because sale price (%s) > regular price (%s)",
+                    $wc_product->get_id(),
+                    $variation['sku_id'] ?? $variation['id'] ?? 'n/a',
+                    $price,
+                    $regular_price
+                ));
+                return;
+            }
+
             $wc_product->set_regular_price($regular_price);
             if (round(abs($regular_price - $price), 2) == 0) {
                 $wc_product->set_price($regular_price);
@@ -1176,6 +1152,15 @@ class Woocommerce
             $wc_product->delete_meta_data('_aliexpress_regular_price');
             $wc_product->delete_meta_data('_aliexpress_price');
         }
+
+        a2wl_info_log(sprintf(
+            "Update price: product_id=%s, variation_external_id=%s, regular_price=%s, price=%s, sale_price=%s",
+            $wc_product->get_id(),
+            $variation['sku_id'] ?? $variation['id'] ?? 'n/a',
+            $wc_product->get_regular_price(),
+            $wc_product->get_price(),
+            $wc_product->get_sale_price()
+        ));
 
         $wc_product->save();
     }

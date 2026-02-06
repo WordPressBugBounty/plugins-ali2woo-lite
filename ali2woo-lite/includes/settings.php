@@ -16,6 +16,7 @@ class Settings
 
     public const SETTING_ALIEXPRESS_REGION = 'aliexpress_region';
     public const SETTING_SYSTEM_MESSAGE = 'system_message';
+    public const SETTING_CRITICAL_MESSAGES = 'critical_messages';
     public const SETTING_TIP_OF_DAY = 'tip_of_day';
     public const SETTING_TIP_OF_DAY_LAST_DATE = 'tip_of_day_last_date';
     public const SETTING_IMPORT_VIDEO = 'import_video';
@@ -205,6 +206,7 @@ class Settings
 
         'system_message_last_update' => 0,
         self::SETTING_SYSTEM_MESSAGE => [],
+        self::SETTING_CRITICAL_MESSAGES => [],
         self::SETTING_TIP_OF_DAY => [],
         self::SETTING_TIP_OF_DAY_LAST_DATE => null,
 

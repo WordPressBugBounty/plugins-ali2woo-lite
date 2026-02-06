@@ -27,7 +27,7 @@ class SettingPageAjaxController extends AbstractController
     public function __construct(
         ProductShippingDataRepository $ProductShippingDataRepository,
         PurchaseCodeInfoService $PurchaseCodeInfoService,
-        BackgroundProcessFactory $BackgroundProcessFactory
+        BackgroundProcessFactory $BackgroundProcessFactory,
     ) {
         parent::__construct();
 
@@ -50,10 +50,6 @@ class SettingPageAjaxController extends AbstractController
         add_action('wp_ajax_a2wl_load_external_image', [$this, 'ajax_load_external_image']);
 
         add_action('wp_ajax_a2wl_purchase_code_info', [$this, 'ajax_purchase_code_info']);
-
-        add_action('wp_ajax_a2wl_build_aliexpress_api_auth_url', [$this, 'ajax_build_aliexpress_api_auth_url']);
-        add_action('wp_ajax_a2wl_save_access_token', [$this, 'ajax_save_access_token']);
-        add_action('wp_ajax_a2wl_delete_access_token', [$this, 'ajax_delete_access_token']);
         add_action('wp_ajax_a2wl_import_cancel_process_action', [$this, 'ajax_import_cancel_process_action']);
         add_action('wp_ajax_a2wl_push_process_action', [$this, 'ajax_push_process_action']);
     }
@@ -257,9 +253,12 @@ class SettingPageAjaxController extends AbstractController
 
             set_setting(
                 Settings::SETTING_ADD_SHIPPING_TO_PRICE,
-                isset($_POST[Settings::SETTING_ADD_SHIPPING_TO_PRICE])
+                !empty($_POST[Settings::SETTING_ADD_SHIPPING_TO_PRICE]) ? filter_var($_POST[Settings::SETTING_ADD_SHIPPING_TO_PRICE], FILTER_VALIDATE_BOOLEAN) : false
             );
-            set_setting('apply_price_rules_after_shipping_cost', !empty($_POST['apply_price_rules_after_shipping_cost']) ? filter_var($_POST['apply_price_rules_after_shipping_cost'], FILTER_VALIDATE_BOOLEAN) : false);
+            set_setting(
+                'apply_price_rules_after_shipping_cost',
+                !empty($_POST['apply_price_rules_after_shipping_cost']) ? filter_var($_POST['apply_price_rules_after_shipping_cost'], FILTER_VALIDATE_BOOLEAN) : false
+            );
 
             settings()->commit();
             settings()->auto_commit(true);
@@ -508,96 +507,4 @@ class SettingPageAjaxController extends AbstractController
         wp_die();
     }
 
-    public function ajax_build_aliexpress_api_auth_url(): void
-    {
-        check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
-
-        if (!PageGuardHelper::canAccessPage(Pages::SETTINGS)) {
-            $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
-            echo wp_json_encode($result);
-            wp_die();
-        }
-
-        $state = urlencode(trailingslashit(get_bloginfo('wpurl')));
-
-        $result = [
-            'state' => 'ok',
-            'url' => $this->buildAuthEndpointUrl($state)
-        ];
-    
-        
-
-        echo wp_json_encode($result);
-        wp_die();
-    }
-
-    private function buildAuthEndpointUrl(string $state): string
-    {
-        $authEndpoint = 'https://api-sg.aliexpress.com/oauth/authorize';
-        $redirectUri = get_setting('api_endpoint').'auth.php&state=' . $state;
-        $clientId = get_setting('client_id');
-
-        return sprintf(
-            '%s?response_type=code&force_auth=true&redirect_uri=%s&client_id=%s',
-            $authEndpoint,
-            $redirectUri,
-            $clientId
-        );
-    }
-
-    public function ajax_save_access_token(): void
-    {
-        check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
-
-        if (!PageGuardHelper::canAccessPage(Pages::SETTINGS)) {
-            $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
-            echo wp_json_encode($result);
-            wp_die();
-        }
-
-        $result = array('state' => 'error', 'message' => 'Wrong params');
-        if (isset($_POST['token'])) {
-            $token = AliexpressToken::getInstance();
-            $token->add($_POST['token']);
-			//todo: have to think about this method, perhaps it should be refactored
-            $GlobalSystemMessageService = A2WL()->getDI()->get('AliNext_Lite\GlobalSystemMessageService');
-            $GlobalSystemMessageService->clear();
-
-            $tokens = $token->tokens();
-            $data = '';
-            foreach ($tokens as $t) {
-                $data .= '<tr>';
-                $data .= '<td>' . esc_attr($t['user_nick']) . '</td>';
-                $data .= '<td>' . esc_attr(gmdate("F j, Y, H:i:s", round($t['expire_time'] / 1000))) . '</td>';
-                $data .= '<td><input type="checkbox" class="default" value="yes" ' . (isset($t['default']) && $t['default'] ? " checked" : "") . '/></td>';
-                $data .= '<td><a href="#" data-token-id="' . $t['user_id'] . '">Delete</a></td>';
-                $data .= '</tr>';
-            }
-            $result = array('state' => 'ok', 'data' => $data);
-        }
-
-        echo wp_json_encode($result);
-        wp_die();
-    }
-
-    public function ajax_delete_access_token(): void
-    {
-        check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
-
-        if (!PageGuardHelper::canAccessPage(Pages::SETTINGS)) {
-            $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
-            echo wp_json_encode($result);
-            wp_die();
-        }
-
-        $result = array('state' => 'error', 'message' => 'Wrong params');
-        if (isset($_POST['id'])) {
-            $token = AliexpressToken::getInstance();
-            $token->del($_POST['id']);
-            $result = array('state' => 'ok');
-        }
-
-        echo wp_json_encode($result);
-        wp_die();
-    }
 }

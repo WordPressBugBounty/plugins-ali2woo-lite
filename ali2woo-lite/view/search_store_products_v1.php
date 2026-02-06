@@ -20,7 +20,6 @@ use AliNext_Lite\TipOfDay;
         <?php include_once A2WL()->plugin_path() . '/view/permanent_alert.php'; ?>
         
 
-        <?php include_once A2WL()->plugin_path() . '/view/setup_wizard_notify.php';?>
         <form class="search-panel" method="GET" id="a2wl-search-form">
             <?php wp_nonce_field(AbstractAdminPage::PAGE_NONCE_ACTION, AbstractAdminPage::NONCE); ?>
             <input type="hidden" name="page" id="page" value="<?php echo $page; ?>" />

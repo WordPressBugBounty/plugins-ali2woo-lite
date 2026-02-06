@@ -63,7 +63,7 @@ use function AliNext_Lite\get_setting;
                          data-title="<?php _ex("This feature enables you to select the AliExpress region for your website. It automatically adjusts the imported prices, stock levels, and shipping information based on the chosen region.", 'setting description', 'ali2woo'); ?>"
                     ></div>
                 </div>
-                <div class="field__input-wrap">
+                <div class="field__input-wrap select2-fixed">
                     <select name="a2wl_aliexpress_region" id="a2wl_aliexpress_region" class="field__input form-control small-input">
                         <?php foreach ($aliexpressRegions as $regionCode => $text): ?>
                             <option value="<?php echo $regionCode; ?>" <?php if ($aliexpressRegion == $regionCode): ?>selected="selected"<?php endif;?>><?php echo $text; ?></option>
@@ -80,7 +80,7 @@ use function AliNext_Lite\get_setting;
                 </label>
                 <div class="info-box" data-toggle="tooltip" data-title="<?php _ex("It's applied to Product title, description, attributes and reviews", 'setting description', 'ali2woo'); ?>"></div>
             </div>
-            <div class="field__input-wrap">
+            <div class="field__input-wrap select2-fixed">
                 <?php $cur_language = get_setting('import_language');?>
                 <select name="a2w_import_language" id="a2w_import_language" class="field__input form-control small-input">
                 <?php foreach ($languages as $code => $text): ?>
@@ -97,7 +97,7 @@ use function AliNext_Lite\get_setting;
                 </label>
                 <div class="info-box" data-toggle="tooltip" data-title="<?php _ex("Default currency that used on a product import", 'setting description', 'ali2woo'); ?>"></div>
             </div>
-            <div class="field__input-wrap">
+            <div class="field__input-wrap select2-fixed">
                     <?php $cur_a2w_local_currency = strtoupper(get_setting('local_currency'));?>
                     <select name="a2w_local_currency" id="a2w_local_currency" class="field__input form-control small-input">
                         <?php foreach ($currencies as $code => $name): ?><option value="<?php echo $code; ?>" <?php if ($cur_a2w_local_currency == $code): ?>selected="selected"<?php endif;?>><?php echo $name; ?></option><?php endforeach;?>
@@ -772,8 +772,6 @@ function handleAllowShopManagerLogic() {
     });
 
 
-    $("#a2w_local_currency").select2();
-    $("#a2w_import_language").select2();
     $("#a2w_fulfillment_prefship").select2();
 
     if($.fn.tooltip) { $('[data-toggle="tooltip"]').tooltip({"placement": "top"}); }

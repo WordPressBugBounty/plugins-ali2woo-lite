@@ -353,6 +353,8 @@ class Utils
         if ($description_images) {
             $connector = AliexpressDefaultConnector::getInstance();
             $desc_images = $connector::get_images_from_description($product);
+
+            //add description image only if it's not already available as image of other type
             foreach ($desc_images as $img_id => $img) {
                 if (!isset($tmp_all_images[$img_id])) {
                     if (!is_string($img)) {

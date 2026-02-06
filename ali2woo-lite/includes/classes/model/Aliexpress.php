@@ -469,15 +469,25 @@ class Aliexpress
             $countryCodeFrom = $this->AliexpressHelper->convertToAliexpressCountryCode($countryCodeFrom);
         }
 
-        $result = $this->connector->load_shipping_info($externalProductId, $quantity, $countryCodeTo,
-            $countryCodeFrom, '', '', '', '', $extraData ?? '', $externalSkuId ?? ''
-        );
+        try {
+            $result = $this->connector->load_shipping_info($externalProductId, $quantity, $countryCodeTo,
+                $countryCodeFrom, '', '', '', '',
+                $extraData ?? '', $externalSkuId ?? ''
+            );
+        } catch (Exception $e) {
+            throw new ServiceException($e->getMessage());
+        }
 
         if (!empty($result['state']) && $result['state'] !== 'error') {
             return $result['items'];
         }
 
         if (empty($result['message']) || str_starts_with($result['message'], '[1004]')) {
+
+            return [];
+        }
+
+        if (empty($result['message']) || str_starts_with($result['message'], '[1005]')) {
 
             return [];
         }

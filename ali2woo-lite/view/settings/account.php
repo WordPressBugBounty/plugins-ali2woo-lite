@@ -1,5 +1,11 @@
 <?php
 use AliNext_Lite\AbstractController;
+use AliNext_Lite\AliexpressTokenDto;
+
+/**
+ * @var array|AliexpressTokenDto[] $tokens
+ */
+
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
 ?>
 <form method="post">
@@ -169,30 +175,48 @@ use AliNext_Lite\AbstractController;
                         <thead>
                             <tr class="active">
                                 <th scope="col">User name</th>
+                                <th scope="col">Token region</th>
                                 <th scope="col">Expire time</th>
                                 <th scope="col" style="width: 100px">Default</th>
                                 <th scope="col" style="width: 100px"></th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if (empty($tokens)): ?>
-                                <tr><td colspan="4" style="text-align: center;"><?php esc_html_e('Press "Get Access Token" to add new aliexpress access token', 'ali2woo');?></td></tr>
-                            <?php else: ?>
-                                <?php foreach ($tokens as $token): ?>
-                                    <tr>
-                                        <td><?php echo esc_attr($token['user_nick']); ?></td>
-                                        <td><?php echo esc_attr(gmdate("F j, Y, H:i:s", round($token['expire_time'] / 1000))); ?></td>
-                                        <td><input type="checkbox" class="default" value="yes" <?php if (isset($token['default']) && $token['default']): ?>checked<?php endif;?>/></td>
-                                        <td><a href="#" data-token-id="<?php echo esc_attr($token['user_id']); ?>">Delete</a></td>
-                                    </tr>
-                                <?php endforeach;?>
-                            <?php endif;?>
+                        <?php if (empty($tokens)): ?>
+                            <tr>
+                                <td colspan="4" style="text-align: center;">
+                                    <?php esc_html_e('Press "Get Access Token" to add new aliexpress access token', 'ali2woo'); ?>
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($tokens as $token): ?>
+                                <tr>
+                                    <td><?php echo esc_attr($token->userNick ?? '—'); ?></td>
+                                    <td><?php echo esc_attr($token->getTokenRegionCode()); ?></td>
+                                    <td><?php echo esc_attr($token->getExpireDateFormatted()); ?></td>
+                                    <td>
+                                        <input type="checkbox" class="default" value="yes"
+                                               <?php if ($token->default): ?>checked<?php endif; ?>/>
+                                    </td>
+                                    <td>
+                                        <a href="#" data-token-id="<?php echo esc_attr($token->userId); ?>">
+                                            Delete
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                         </tbody>
                     </table>
                     </div>
                 </div>
-
-
+                <div class="row mt10">
+                    <div class="col-xs-12">
+                        <div class="row-comments">
+                            <?php esc_html_e('After the first token generation, the plugin will automatically renew it before expiration for your convenience.', 'ali2woo'); ?>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

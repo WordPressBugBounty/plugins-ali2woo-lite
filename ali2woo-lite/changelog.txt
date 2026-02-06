@@ -403,4 +403,19 @@
 * Refactored legacy modules and functions for better performance  
 * Fixed minor issues and corrected typos in plugin texts
 
+3.6.4
+* Fix: Prevent price update when the calculated sale price exceeds the regular price due to an incorrect formula
+* Fix: Resolved issue where product variations were not loaded on certain WordPress installations during import
+* Fix: Various minor bug fixes
+
+3.6.5
+* Premium: fixed js get shipping method bug in A2W data tab on product editing page
+* Premium: fixed stop syncing product shipping if no available variation exists
+* Add: automatically renew AliExpress access token when the current token is close to expiring
+* Show setup wizard on plugin activation
+* Add Cloudflare protection error handling to ping check
+* Improve product override feature to account for delivered option from plugin settings
+* Fix attribute columns padding in import list
+* Fix: alinext style is not connected on the cart page
+* Fix: Various minor bug fixes
 

@@ -333,7 +333,7 @@ use AliNext_Lite\Utils;
                                         <table class="specs-table">
                                             <thead>
                                                 <tr>
-                                                    <th></th>
+                                                    <th colspan="2"></th>
                                                     <th><?php  esc_html_e('Name', 'ali2woo'); ?></th>
                                                     <th><?php  esc_html_e('Value', 'ali2woo'); ?></th>
                                                 </tr>

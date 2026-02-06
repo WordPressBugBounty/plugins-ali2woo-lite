@@ -2,18 +2,27 @@
 
 use AliNext_Lite\AddProductToImportListProcess;
 use AliNext_Lite\AffiliateCheckProcess;
+use AliNext_Lite\AfterProductImportHook;
 use AliNext_Lite\Aliexpress;
 use AliNext_Lite\AliexpressHelper;
+use AliNext_Lite\AliexpressLocalizator;
 use AliNext_Lite\AliexpressRegionRepository;
+use AliNext_Lite\AliexpressToken;
+use AliNext_Lite\AliexpressTokenAjaxController;
+use AliNext_Lite\AliexpressTokenService;
+use AliNext_Lite\AliexpressTokenValidationService;
+use AliNext_Lite\ApplyShippingMethodBulkProcess;
 use AliNext_Lite\Attachment;
 use AliNext_Lite\BackgroundProcessFactory;
-use AliNext_Lite\AfterProductImportHook;
 use AliNext_Lite\CommonSettingService;
 use AliNext_Lite\Country;
+use AliNext_Lite\CriticalMessageService;
+use AliNext_Lite\DeliveryTimeController;
 use AliNext_Lite\ExternalOrderFactory;
 use AliNext_Lite\FrontendInitController;
 use AliNext_Lite\FrontendShippingController;
 use AliNext_Lite\FulfillmentClient;
+use AliNext_Lite\GlobalMessageAjaxController;
 use AliNext_Lite\GlobalSystemMessageService;
 use AliNext_Lite\Helper;
 use AliNext_Lite\ImportAjaxController;
@@ -50,6 +59,7 @@ use AliNext_Lite\ProductShippingDataRepository;
 use AliNext_Lite\ProductShippingDataService;
 use AliNext_Lite\ProductValidatorService;
 use AliNext_Lite\ProductVideoController;
+use AliNext_Lite\PromoService;
 use AliNext_Lite\PurchaseCodeInfoFactory;
 use AliNext_Lite\PurchaseCodeInfoRepository;
 use AliNext_Lite\PurchaseCodeInfoService;
@@ -59,6 +69,9 @@ use AliNext_Lite\SearchStoreProductsPageController;
 use AliNext_Lite\SettingPageAjaxController;
 use AliNext_Lite\SettingPageController;
 use AliNext_Lite\Settings;
+use AliNext_Lite\ShippingAssignerService;
+use AliNext_Lite\ShippingAssignerServiceInterface;
+use AliNext_Lite\ShippingDispatcherService;
 use AliNext_Lite\ShippingSettingService;
 use AliNext_Lite\SplitProductService;
 use AliNext_Lite\SynchProductController;
@@ -70,7 +83,10 @@ use AliNext_Lite\TipOfDayAjaxController;
 use AliNext_Lite\TipOfDayFactory;
 use AliNext_Lite\TipOfDayRepository;
 use AliNext_Lite\TipOfDayService;
+use AliNext_Lite\TokenValidatorController;
 use AliNext_Lite\VideoShortcodeService;
+use AliNext_Lite\WizardPageController;
+use AliNext_Lite\WizardService;
 use AliNext_Lite\Woocommerce;
 use AliNext_Lite\WoocommerceCategoryService;
 use AliNext_Lite\WooCommerceProductListController;
@@ -81,7 +97,6 @@ use function DI\factory;
 use function DI\get;
 
 
-use AliNext_Lite\PromoService;
 
 
 
@@ -165,7 +180,16 @@ return [
 
     /* services */
     
-
+    'AliNext_Lite\AliexpressToken' => factory([AliexpressToken::class, 'getInstance']),
+    'AliNext_Lite\Settings' => factory([Settings::class, 'instance']),
+    'AliNext_Lite\AliexpressLocalizator' => factory([AliexpressLocalizator::class, 'getInstance']),
+    'AliNext_Lite\WizardService' => create(WizardService::class)
+        ->constructor(
+            get(AliexpressRegionRepository::class),
+            get(AliexpressLocalizator::class),
+            get(PriceFormulaRepository::class),
+            get(PriceFormulaFactory::class),
+        ),
     'AliNext_Lite\ProductImportTransactionService' => create(ProductImportTransactionService::class)
         ->constructor(
             get(ProductSelectorService::class),
@@ -237,7 +261,7 @@ return [
         ->constructor(
             get(TipOfDayFactory::class),
             get(TipOfDayRepository::class),
-            Settings::instance()
+            get(Settings::class),
         ),
     'AliNext_Lite\ProductShippingDataService' => create(ProductShippingDataService::class)
         ->constructor(
@@ -274,6 +298,20 @@ return [
             get(ProductService::class),
             get(ProductShippingDataService::class),
         ),
+    'AliNext_Lite\CriticalMessageService' => create(CriticalMessageService::class)
+        ->constructor(
+            get(Settings::class),
+        ),
+    'AliNext_Lite\AliexpressTokenService' => create(AliexpressTokenService::class)
+        ->constructor(
+            get(AliexpressToken::class),
+            get(PlatformClient::class)
+        ),
+    'alinext-lite\includes\classes\service\token\AliexpressTokenValidationService' => create(AliexpressTokenValidationService::class)
+        ->constructor(
+            get(AliexpressToken::class),
+            get(CriticalMessageService::class),
+        ),
     
     
     'AliNext_Lite\PromoService' => create(PromoService::class),
@@ -287,6 +325,10 @@ return [
         ),
 
     /* controllers */
+    'AliNext_Lite\WizardPageController' => create(WizardPageController::class)
+        ->constructor(
+            get(WizardService::class),
+        ),
     'AliNext_Lite\SettingPageController' => create(SettingPageController::class)
         ->constructor(
             get(LocalService::class),
@@ -310,7 +352,11 @@ return [
             get(BackgroundProcessFactory::class),
             get(ProductImportTransactionService::class),
         ),
-
+    'AliNext_Lite\AliexpressTokenAjaxController' => create(AliexpressTokenAjaxController::class)
+    ->constructor(
+        get(AliexpressToken::class),
+        get(GlobalSystemMessageService::class),
+    ),
     'AliNext_Lite\PriceFormulaSetAjaxController' => create(PriceFormulaSetAjaxController::class)
         ->constructor(
             get(PriceFormulaSetRepository::class),
@@ -364,6 +410,10 @@ return [
             get(ImportedProductServiceFactory::class),
         ),
 
+    'AliNext_Lite\GlobalMessageAjaxController' => create(GlobalMessageAjaxController::class)
+        ->constructor(
+            get(GlobalSystemMessageService::class),
+        ),
     'AliNext_Lite\SettingPageAjaxController' => create(SettingPageAjaxController::class)
         ->constructor(
             get(ProductShippingDataRepository::class),
@@ -423,6 +473,10 @@ return [
             
             get(PromoService::class),
             
+        ),
+    'AliNext_Lite\TokenValidatorController' => create(TokenValidatorController::class)
+        ->constructor(
+            get(AliexpressTokenValidationService::class),
         ),
     /* libs */
     'AliNext_Lite\JSON_API_Core_Controller' => create(JSON_API_Core_Controller::class)

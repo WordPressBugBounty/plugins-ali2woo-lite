@@ -117,6 +117,7 @@ class ApplyPricingRulesProcess extends BaseJob implements ApplyPricingRulesJobIn
                                 }
                             }
                             wc_delete_product_transients($product_id);
+                            clean_post_cache($product_id);
                         }
                     } else {
                         a2wl_info_log(sprintf(

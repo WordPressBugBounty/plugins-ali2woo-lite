@@ -740,6 +740,10 @@ body[class*="page_a2w"]{
     flex: 1;
 }
 
+.a2wl-content  .select2-fixed {
+    width: 300px !important;
+}
+
 .a2wl-content .a2wl-placeholder-value-copy {
     pointer-events: auto !important;
     cursor: pointer;

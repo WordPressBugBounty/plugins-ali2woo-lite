@@ -53,23 +53,72 @@ class SystemInfo
 
     public static function ping(): ?array
     {
+        // Keep cookies as they are required on some servers
         $args = [
             'cookies' => $_COOKIE,
         ];
 
-        $request = wp_remote_post( admin_url('admin-ajax.php')."?action=a2wl_ping", $args);
+        $url = admin_url('admin-ajax.php') . '?action=a2wl_ping';
+        $request = wp_remote_post($url, $args);
 
+        // WP-level error (DNS, SSL, timeout, etc.)
         if (is_wp_error($request)) {
-            $result = ResultBuilder::buildError($request->get_error_message());
-        } else if (intval($request['response']['code']) != 200) {
-            $result = ResultBuilder::buildError(
-                $request['response']['code'] . " " . $request['response']['message']
-            );
-        } else {
-            $result = json_decode($request['body'], true);
+            return ResultBuilder::buildError($request->get_error_message());
         }
 
-        return $result;
+        $code = intval($request['response']['code']);
+        $body = isset($request['body']) ? $request['body'] : '';
+
+        // Detect Cloudflare challenge page
+        if ($code === 403 && self::isCloudflareChallenge($body)) {
+            return ResultBuilder::buildError(
+                'Cloudflare is blocking this AJAX request. '
+                . 'To fix this, please add a Firewall Rule in Cloudflare that allows POST '
+                . 'requests to /wp-admin/admin-ajax.php. '
+                . 'This is required for WordPress AJAX to work correctly.'
+            );
+        }
+
+        // Non-200 HTTP response
+        if ($code !== 200) {
+            return ResultBuilder::buildError(
+                $code . ' ' . $request['response']['message']
+            );
+        }
+
+        // Decode JSON response
+        return json_decode($body, true);
+    }
+
+    /**
+     * Detects Cloudflare challenge pages by scanning the HTML body.
+     *
+     * @param string $body
+     * @return bool
+     */
+    private static function isCloudflareChallenge(string $body): bool
+    {
+        if ($body === '') {
+            return false;
+        }
+
+        // Common Cloudflare challenge markers
+        $markers = [
+            'Just a moment...',
+            'cf_chl_',
+            '__cf_chl_',
+            '/cdn-cgi/challenge-platform/',
+            'Ray ID',
+            'cloudflare'
+        ];
+
+        foreach ($markers as $marker) {
+            if (stripos($body, $marker) !== false) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static function server_ping(): ?array

@@ -19,6 +19,7 @@ class JSON_API_Core_Controller
     protected Aliexpress $AliexpressModel;
     protected PriceFormulaService $PriceFormulaService;
     protected ProductImportTransactionService $ProductImportTransactionService;
+    protected PurchaseCodeInfoService $PurchaseCodeInfoService;
 
     public function __construct(
         GlobalSystemMessageService $GlobalSystemMessageService,
@@ -27,7 +28,8 @@ class JSON_API_Core_Controller
         ProductService $ProductService,
         Aliexpress $AliexpressModel,
         PriceFormulaService $PriceFormulaService,
-        ProductImportTransactionService $ProductImportTransactionService
+        ProductImportTransactionService $ProductImportTransactionService,
+        PurchaseCodeInfoService $PurchaseCodeInfoService
     ) {
 
         $this->GlobalSystemMessageService = $GlobalSystemMessageService;
@@ -37,6 +39,7 @@ class JSON_API_Core_Controller
         $this->AliexpressModel = $AliexpressModel;
         $this->PriceFormulaService = $PriceFormulaService;
         $this->ProductImportTransactionService = $ProductImportTransactionService;
+        $this->PurchaseCodeInfoService = $PurchaseCodeInfoService;
 
         //todo: perhaps it would be better to move this call to some other controller
         $this->GlobalSystemMessageService->clear();
@@ -330,21 +333,31 @@ class JSON_API_Core_Controller
 
     }
 
-    public function get_settings()
+    public function get_settings(): array
     {
         global $a2wl_json_api;
 
         $localizator = AliexpressLocalizator::getInstance();
 
-        $settings = array('a2w_fulfillment_prefship' => get_setting('fulfillment_prefship', 'ePacket'),
+        $settings = [
+            'a2w_fulfillment_prefship' => get_setting('fulfillment_prefship', 'ePacket'),
             'a2w_aliship_shipto' => get_setting('aliship_shipto', 'US'),
             'a2w_import_language' => $localizator->language,
             'a2w_import_locale' => $localizator->getLangCode(),
             'a2w_local_currency' => $localizator->currency,
             'a2wl_chrome_ext_import' => a2wl_check_defined('A2WL_CHROME_EXT_IMPORT'),
-        );
+            'a2wl_premium' => false
+        ];
 
-        return array('settings' => $settings);
+        if (EditionHelper::isFull()) {
+            $PurchaseCodeInfo = $this->PurchaseCodeInfoService->getFromCache();
+            $supportedUntilTimestamp = $PurchaseCodeInfo->getSupportedUntilStamp();
+            if ($supportedUntilTimestamp && $supportedUntilTimestamp >= time()) {
+                $settings['a2wl_premium'] = true;
+            }
+        }
+
+        return ['settings' => $settings];
     }
 
 }

@@ -370,6 +370,33 @@ class ProductService
         return $this->findDefaultFromShippingItems($shippingItems, $product);
     }
 
+    public function getFirstAvailableVariation(array $importedProduct, string $countryFromCode): array
+    {
+        $defaultVariation = [];
+
+        if (isset($importedProduct['sku_products']['variations'])) {
+            foreach ($importedProduct['sku_products']['variations'] as $variation) {
+
+                $shipFrom = $variation[ImportedProductService::FIELD_COUNTRY_CODE] ?? 'CN';
+                $inStock = $variation[ImportedProductService::FIELD_QUANTITY] ?? 0;
+
+                if ($inStock < 1) {
+                    continue;
+                }
+
+                if ($shipFrom === 'CN') {
+                    $defaultVariation = $variation;
+                }
+
+                if ($shipFrom === $countryFromCode) {
+                    return $variation;
+                }
+            }
+        }
+
+        return $defaultVariation;
+    }
+
     private function getExtraDataFromProduct(array $product, ?string $externalSkuId = null): ?string
     {
         $extraData = $product[ImportedProductService::FIELD_EXTRA_DATA] ?? null;

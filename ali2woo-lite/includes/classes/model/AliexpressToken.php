@@ -1,18 +1,20 @@
 <?php
 
 /**
- * Description of AliexpressToken
+ * Token storage service for Aliexpress accounts.
  *
- * @author Ali2Woo Team
+ * Works with AliexpressTokenDto instead of raw arrays.
+ *
+ * @author Ali2Woo
  */
 
 namespace AliNext_Lite;;
 
 class AliexpressToken
 {
-    protected static $_instance = null;
+    protected static ?AliexpressToken $_instance = null;
 
-    public static function getInstance()
+    public static function getInstance(): AliexpressToken
     {
         if (is_null(self::$_instance)) {
             self::$_instance = new self();
@@ -20,66 +22,123 @@ class AliexpressToken
         return self::$_instance;
     }
 
-    public function tokens()
+    /**
+     * Get all stored tokens as DTO objects.
+     *
+     * @return AliexpressTokenDto[]
+     */
+    public function tokens(): array
     {
-        return get_setting('aliexpress_access_tokens', array());
+        $rawTokens = get_setting('aliexpress_access_tokens', []);
+
+        return array_map(fn($t) => AliexpressTokenDto::build($t), $rawTokens);
     }
 
-    public function save($tokens)
+    /**
+     * Save all tokens back to storage.
+     *
+     * @param AliexpressTokenDto[] $tokens
+     */
+    public function save(array $tokens): void
     {
-        set_setting('aliexpress_access_tokens', $tokens);
+        $rawTokens = array_map(fn($dto) => $dto->toArray(), $tokens);
+        set_setting('aliexpress_access_tokens', $rawTokens);
     }
 
-    public function add($token)
+    /**
+     * Add a new token if it does not already exist.
+     *
+     * @param AliexpressTokenDto $token
+     */
+    public function add(AliexpressTokenDto $token): void
     {
         $tokens = $this->tokens();
         foreach ($tokens as $t) {
-            if ($token['user_id'] == $t['user_id']) {
+            if ($token->userId === $t->userId) {
                 return;
             }
         }
-        $token['default'] = empty($tokens);
+        // mark first token as default
+        if (empty($tokens)) {
+            $token->default = true;
+        }
         $tokens[] = $token;
 
         $this->save($tokens);
     }
 
-    public function del($id)
+    /**
+     * Delete a token by user_id.
+     *
+     * @param string $id
+     */
+    public function del(string $id): void
     {
-        $tokens = $this->tokens();
-        foreach ($tokens as $k => $t) {
-            if ($id == $t['user_id']) {
-                unset($tokens[$k]);
-            }
-        }
+        $tokens = array_filter($this->tokens(), fn($t) => $t->userId !== $id);
         $this->save($tokens);
     }
 
-    public function token($token_id)
+    /**
+     * Get a token by user_id.
+     *
+     * @param string $id
+     * @return AliexpressTokenDto|false
+     */
+    public function token(string $id): AliexpressTokenDto|false
     {
-        $tokens = $this->tokens();
-        foreach ($tokens as $k => $t) {
-            if ($id == $t['user_id']) {
+        foreach ($this->tokens() as $t) {
+            if ($id === $t->userId) {
+
                 return $t;
             }
         }
+
         return false;
     }
 
-    public function defaultToken()
+    /**
+     * Get the default token.
+     *
+     * @return AliexpressTokenDto|false
+     */
+    public function defaultToken(): AliexpressTokenDto|false
     {
         $tokens = $this->tokens();
-        $any_available_token = false;
-        foreach ($tokens as $k => $t) {
-            $any_available_token = $t;
-            if ($t['default']) {
+        $anyAvailable = false;
+        foreach ($tokens as $t) {
+            $anyAvailable = $t;
+            if ($t->default) {
                 return $t;
             }
         }
-        if ($any_available_token !== false) {
-            return $any_available_token;
-        }
-        return false;
+        return $anyAvailable ?: false;
     }
 
+    /**
+     * Update an existing token by user_id.
+     *
+     * @param string $userId
+     * @param AliexpressTokenDto $newToken
+     * @return AliexpressTokenDto|false updated token if found, false otherwise
+     */
+    public function update(string $userId, AliexpressTokenDto $newToken): AliexpressTokenDto|false
+    {
+        $tokens = $this->tokens();
+        $updated = false;
+
+        foreach ($tokens as $k => $t) {
+            if ($t->userId === $userId) {
+                $tokens[$k] = $newToken;
+                $updated = true;
+                break;
+            }
+        }
+
+        if ($updated) {
+            $this->save($tokens);
+            return $newToken;
+        }
+
+        return false;
+    }
 }

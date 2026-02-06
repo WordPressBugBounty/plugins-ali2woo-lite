@@ -18,4 +18,15 @@ class PlatformClient extends AbstractClient
         return $this->convertResponse($request);
     }
 
+    public function refreshToken(string $renewalToken): ApiResponse
+    {
+        $url = RequestHelper::build_request('refresh_access_token', [
+            'renewal_token' => $renewalToken,
+        ]);
+
+        $request = a2wl_remote_post($url);
+
+        return $this->convertResponse($request);
+    }
+
 }

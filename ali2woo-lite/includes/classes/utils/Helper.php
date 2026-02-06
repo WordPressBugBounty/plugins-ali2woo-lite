@@ -551,7 +551,7 @@ class Helper {
 
         if ($checkSize) {
             // limit to 32 characters (database/ table wp_term_taxonomy/ field taxonomy/ is limited to varchar(32) )
-            if (seems_utf8($ret)) {
+            if (wp_is_valid_utf8($ret)) {
                 $limit_max = $withPrefix ? 18 : 15; // utf8: 3 + 29/2
                 if (function_exists('mb_substr')) {
                     $ret = mb_substr($ret, 0, $limit_max);

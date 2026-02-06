@@ -813,16 +813,15 @@ class ImportAjaxController extends AbstractController
 
         $product_id = $_REQUEST['product_id'];
 
-        $result = array("state" => "ok");
+        $result = ResultBuilder::buildOk();
 
         if (!$product_id) {
-            $result = array("state" => "error", "message" => "Wrong params.");
+            $result = ResultBuilder::buildError("Customize Toolbar…");
         }
 
         if ($result['state'] != 'error') {
-            $override_model = $this->OverrideModel;
-            $result['order_variations'] = $override_model->find_orders($product_id);
-            $result['variations'] = $override_model->find_variations($product_id);
+            $result['order_variations'] = $this->OverrideModel->find_orders($product_id);
+            $result['variations'] = $this->OverrideModel->find_variations($product_id);
         }
 
         echo wp_json_encode($result);
@@ -1075,7 +1074,7 @@ class ImportAjaxController extends AbstractController
         try {
             $importedProduct = $this->WoocommerceService->getProductWithVariations($wcProductId);
         } catch (RepositoryException|ServiceException $Exception) {
-            $errorText = _x('Product does`t have imported data from AliExpress', 'error', 'ali2woo');
+            $errorText = _x('Product doesn`t have imported data from AliExpress', 'error', 'ali2woo');
             $result = ResultBuilder::buildError($errorText);
 
             echo wp_json_encode($result);
@@ -1108,8 +1107,10 @@ class ImportAjaxController extends AbstractController
                 $importedProduct, $countryToCode, $countryFromCode
             );
         } catch (ServiceException $ServiceException) {
-            a2wl_error_log($ServiceException->getMessage());
             $shippingItems = [];
+            $response = ResultBuilder::buildError($ServiceException->getMessage());
+            echo wp_json_encode($response);
+            wp_die();
         }
 
         if ($quantity < 2) {
@@ -1234,8 +1235,11 @@ class ImportAjaxController extends AbstractController
 
             wp_die();
         } catch (ServiceException $ServiceException) {
-            a2wl_error_log($ServiceException->getMessage());
             $shippingItems = [];
+
+            $response = ResultBuilder::buildError($ServiceException->getMessage());
+            echo wp_json_encode($response);
+            wp_die();
         }
 
         $product = $this->PriceFormulaService->applyFormula($importedProduct);
@@ -1277,7 +1281,8 @@ class ImportAjaxController extends AbstractController
         try {
             $importedProduct = $this->ProductImportModel->getProduct($externalProductId);
         } catch (ServiceException $Exception) {
-            echo wp_json_encode($Exception->getMessage());
+            $response = ResultBuilder::buildError($Exception->getMessage());
+            echo wp_json_encode($response);
             wp_die();
         }
 
@@ -1310,8 +1315,10 @@ class ImportAjaxController extends AbstractController
                 $importedProduct, $countryToCode, $countryFromCode
             );
         } catch (ServiceException $ServiceException) {
-            a2wl_error_log($ServiceException->getMessage());
             $shippingItems = [];
+            $response = ResultBuilder::buildError($ServiceException->getMessage());
+            echo wp_json_encode($response);
+            wp_die();
         }
 
         $importedProduct = $this->PriceFormulaService->applyFormula($importedProduct);
