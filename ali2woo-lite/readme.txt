@@ -1,175 +1,212 @@
-=== AliExpress Dropshipping Plugin for WooCommerce – AliNext ===
+=== AliExpress Dropshipping Plugin for WooCommerce & WordPress ===
 Contributors: ali2woo
-Tags: aliexpress dropshipping plugin, dropshipping plugin, aliexpress dropshipping
+Tags: aliexpress dropshipping plugin, dropshipping plugin, aliexpress dropshipping, woocommerce dropshipping​
 Requires at least: 5.9
 Tested up to: 6.9
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Stable tag: trunk
 Requires PHP: 8.0
-WC tested up to: 10.2
+WC tested up to: 10.4
 WC requires at least: 5.0
 
-AliExpress Dropshipping Plugin for WooCommerce lets you import products, reviews, images, set rules, and automate orders
+Use the WooCommerce Dropshipping Plugin for AliExpress to import products, reviews, set flexible pricing rules, and automate order fulfillment.
 
 == Description ==
-WooCommerce Dropshipping Plugin for AliExpress lets you import products, reviews, images, set rules, and automate fulfillment.
+Use the WooCommerce Dropshipping Plugin for AliExpress to import products, reviews, set flexible pricing rules, and automate order fulfillment.
 
-Whether you’re starting your first dropshipping store or scaling an established business, use our reliable dropshipping plugin for WordPress that saves time, protects margins, and boosts conversions.
+Whether you're launching your first dropshipping store or scaling an established business, our reliable WordPress plugin (called AliNext) helps you save time, protect margins, and boost conversions.
 
-**Advantages of the dropshipping plugin WordPress store owners love by AliNext**
-- 🚀 **Fast Product Import** – Add products by URL, ID, category, or store page, or use our free chrome extension  
-- ⭐ **Boost Conversions** – Import authentic reviews, videos, and translated content  
-- 💰 **Protect Margins** – Apply flexible global pricing rules with shipping cost formulas  
-- 🔄 **Automate Orders** – Sync and fulfill orders via AliExpress API in real time  
-- 🖼️ **Brand Control** – Remove watermarks with the built-in image editor  
-- 📝 **Clean Data** – Use phrase filtering to remove unwanted text in titles, descriptions, and reviews  
+**Advantages of the aliexpress dropshipping plugin WooCommerce store owners love**
+- **Fast Product Import** – Add goods by URL, ID, category, or store page, or use our free Chrome add-on.
+- **Boost Conversions** – Import authentic customer reviews, videos, and translated content.
+- **Set Your Own Margins** – Apply flexible general pricing rules with shipping cost formulas.
+- **Automate Orders** – Sync and fulfill orders directly on AliExpress with just a few clicks.
+- **Clean Data** – Use phrase filtering to remove unwanted text in titles, descriptions, and reviews. 
 
-👉 Want more? [Upgrade to AliNext Pro](https://ali2woo.com/dropshipping-plugin/) for unlimited API calls, advanced shipping automation, staff access control, automatic product sync, and premium support.
+👉 Want more? [Upgrade to AliNext Pro](https://ali2woo.com/dropshipping-plugin/) for unlimited API calls, extended shipping automation, staff permissions, automatic product sync, and priority support.
+
+Please note: this plugin uses the official AliExpress Dropshipping API, so you need to connect your account to place and synchronize orders. You can also use the plugin with your own WordPress theme to sell products. The plugin requires PHP version 8.0 or higher, and it runs very fast thanks to the performance improvements of the latest PHP core.
+
+Typically, this plugin is used in two main scenarios:
+
+=== Dropshipping Scenario ===
+
+AliNext works as a complete WooCommerce dropshipping plugin for WordPress, letting you import AliExpress goods directly into your store. You can set markups, sell items, and receive customer payments in your account.
+
+When an order is placed, the plugin automatically submits it to AliExpress with the buyer's shipping address, so the supplier sends the package directly to your customer. Your profit comes from the difference between the original cost and the retail price you set in your store.
+
+=== Affiliate Scenario ===
+
+AliNext can also be used as an affiliate plugin, available in the premium version. This mode connects you to the official AliExpress affiliate program. Instead of processing payments yourself, you simply list affiliate items in your WooCommerce store, each with your unique affiliate link.
+
+When a visitor clicks an affiliate link and completes the purchase on AliExpress, you earn a commission credited to your affiliate account. In this model, the platform handles all payments and fulfillment, while you generate revenue through referrals.
 
 == Installation ==
 = From within WordPress =
 1. Visit **Plugins > Add New**  
 2. Search for "AliNext Lite"
-3. Activate AliNext Lite from your Plugins page  
-4. Go to **AliNext Lite → Settings** to connect your AliExpress API token
+3. Activate the plugin from your Plugins page  
+4. Go to **AliNext Lite > Settings** to connect your AliExpress API token
 
 = Manually =
 1. Upload the `alinext-lite` folder to `/wp-content/plugins/`  
-2. Activate AliNext Lite from the “Plugins” menu in WordPress  
-3. Go to **AliNext Lite → Settings** and configure import, pricing, and fulfillment options
+2. Activate the plugin from the Plugins menu in WordPress  
+3. Go to **AliNext Lite > Settings** and configure import, pricing, and fulfillment options
 
 ⚠️ Important: Your permalink structure must NOT be set to "Plain" for proper product URLs.
 
 == Features ==
 
 === Lite (Free) Features ===
-- 🔍 Built‑in product search with basic options for AliExpress products  
-- 🌐 Import products by AliExpress URL, product ID, category, seller store page, or using our free Chrome extension  
-- ✂️ Split or remove unwanted variants (e.g., "Ship From" options)  
-- 📝 Edit product titles, descriptions, and attributes before publishing to WooCommerce  
-- 🎬 Import AliExpress product videos and place them via shortcode  
-- 🧹 Phrase‑based filtering for clean titles, descriptions, attributes, and reviews  
-- 💰 Global pricing rules: fixed markup, percentage, or formula‑based  
-- 🚚 Add shipping costs into pricing automatically  
-- 🎲 Randomize stock levels for natural‑looking availability  
-- ⚡ Apply pricing rules to existing products in bulk  
-- 🔄 Automate order placement and sync order status in real time via AliExpress API (10 free operations/day)  
-- 📋 Customize order status mapping and add notes  
-- 🔡 Auto‑transliterate customer data for AliExpress checkout compatibility  
-- 🖼️ Option to use external AliExpress image URLs to save your hosting space  
+1. Built‑in search with basic options for AliExpress products
+2. Import by product URL, ID, category, seller store page, or using our free Chrome add-on
+3. Split or remove unwanted variants (e.g., "Ship From" options)
+4. Edit item titles, descriptions, and attributes before publishing to WooCommerce
+5. Import product videos and place them via shortcode
+6. Phrase‑based filtering for clean titles, descriptions, attributes, and reviews
+7. Global pricing configuration: fixed markup, percentage, or formula‑based
+8. Add shipping costs into pricing automatically
+9. Randomize stock levels for natural‑looking availability
+10. Apply pricing settings to existing WooCommerce products in bulk
+11. Automate order fulfillment and sync order updates in real time via AliExpress API (10 free operations/day)
+12. Customize order status mapping and add notes
+13. Auto‑transliterate customer data for checkout compatibility
+14. Option to use external image URLs to save your hosting space 
 
 === Pro (Premium) Features ===
-- 🔍 Built‑in product search with advanced filters for AliExpress products  
-- 📥 Bulk product import using CSV file  
-- 🗂️ Automatic AliExpress category mapping to WooCommerce categories  
-- ⭐ Import and synchronize reviews with ratings and customer images  
-- 🌎 Translate reviews into multiple languages for global audiences  
-- 🚚 Import and synchronize product shipping data from AliExpress  
-- 🚀 Advanced shipping automation (auto‑assign cheapest or default shipping)  
-- 🔄 Unlimited API operations (no daily limits for order placement and sync)  
-- 👥 Staff access control for teams and multi‑user stores  
-- 📦 Automatic product sync (prices, stock, and details updated in real time)  
-- 📧 Email alerts for failed imports, API errors, or order issues  
-- 🛠️ Priority support with faster response times  
-- ⚡ Performance optimizations for faster bulk imports and caching  
-- 🖌️ Built‑in image editor to remove AliExpress watermarks  
-- 🔗 Affiliate integration with the AliExpress Affiliate Program  
+1. Built‑in search with advanced filters for AliExpress product import
+2. Bulk import using CSV file
+3. Automatic AliExpress category mapping to WooCommerce categories
+4. Retrieve and synchronize reviews with ratings and customer images
+5. Translate reviews into multiple languages for global audiences
+6. Fetch and synchronize product shipping data from AliExpress
+7. Advanced shipping automation (auto‑assign cheapest or default shipping)
+8. Unlimited API operations (no daily limits for order placement and sync)
+9. Staff access control for teams and multi‑user stores
+10. Automatic product sync (prices, stock, and details updated in real time)
+11. Email alerts for failed imports, API errors, or order issues
+12. Priority support with faster response times
+13. Performance optimizations for faster bulk load and caching
+14. Built‑in image editor to remove seller watermarks
+15. Affiliate integration with the Portal Affiliate Program 
 
 👉 [Upgrade to AliNext Pro](https://ali2woo.com/dropshipping-plugin/) to unlock all premium features.
 
 == Lite vs Pro Comparison ==
 
-- Built‑in product search: Lite Basic | Pro Advanced filters  
-- Product import (URL, ID, category, store, Chrome extension): Lite ✅ | Pro ✅  
-- Bulk product import via CSV: Lite ❌ | Pro ✅  
-- Variant management (split/remove unwanted options): Lite ✅ | Pro ✅  
-- Edit product data before publishing: Lite ✅ | Pro ✅  
-- Import product videos: Lite ✅ | Pro ✅  
-- Import & synchronize reviews with ratings/images: Lite ❌ | Pro ✅ 
-- Mass product import: Lite ❌ | Pro ✅   
-- Translate reviews into multiple languages: Lite ❌ | Pro ✅  
-- Phrase‑based filtering (titles, descriptions, reviews): Lite ✅ | Pro ✅  
-- Global pricing rules (fixed, % or formula): Lite ✅ | Pro ✅  
-- Apply pricing rules to existing products: Lite ✅ | Pro ✅  
-- Add shipping cost into pricing: Lite ✅ | Pro ✅  
-- Randomize stock levels: Lite ✅ | Pro ✅  
-- Order automation via AliExpress API: Lite Limited (10 ops/day) | Pro Unlimited  
-- Order status sync via API: Lite Limited | Pro Unlimited  
-- Customize order status mapping & notes: Lite ✅ | Pro ✅  
-- Auto‑transliterate customer data: Lite ✅ | Pro ✅  
-- Import & synchronize shipping data: Lite ❌ | Pro ✅  
-- Advanced shipping automation (auto‑assign cheapest/default): Lite ❌ | Pro ✅  
-- Automatic product sync (prices, stock, details): Lite ❌ | Pro ✅  
-- Built‑in image editor (remove watermarks): Lite ❌ | Pro ✅  
-- Use external AliExpress image URLs: Lite ✅ | Pro ✅  
-- Affiliate integration (AliExpress Affiliate Program): Lite ❌ | Pro ✅  
-- Staff access control: Lite ❌ | Pro ✅  
-- Email alerts for errors or failed imports: Lite ❌ | Pro ✅  
-- Premium support & faster response: Lite ❌ | Pro ✅  
-- Performance optimizations (bulk imports, caching): Lite ❌ | Pro ✅  
+=== Search & product Import ===
+Lite: Built‑in search (Basic), Import by product URL/ID/category/store/Chrome extension ✅, Bulk load via CSV ❌
+
+Pro: Built‑in search (Advanced filters), Import by product URL/ID/category/store/Chrome extension ✅, Bulk load via CSV ✅, Mass import ✅, Automatic category mapping ✅
+
+=== Product & Content Management ===
+Lite: Variant management ✅, Edit item data before publishing ✅, Phrase‑based filtering ✅, Fetch product videos ✅
+
+Pro: Variant management ✅, Edit item data ✅, Phrase‑based filtering ✅, Fetch product videos ✅, Automatic product sync ✅, Built‑in image editor ✅, Use external image URLs ✅
+
+=== Reviews & Localization ===
+Lite: Import & synchronize reviews ❌, Translate reviews ❌
+
+Pro: Import & synchronize reviews ✅, Translate reviews ✅
+
+=== Pricing & Stock ===
+Lite: General pricing settings✅, Apply rules to existing products ✅, Add shipping cost into pricing ✅, Randomize stock levels ✅
+
+Pro: General pricing settings✅, Apply rules ✅, Add shipping cost ✅, Randomize stock ✅
+
+=== Shipping & Orders ===
+Lite: Order automation via AliExpress API (10 ops/day), Order updates sync (Limited), Customize order status mapping & notes ✅, Auto‑transliterate customer data ✅, Load & synchronize shipping data ❌, Advanced shipping automation ❌
+
+Pro: Order automation via AliExpress API (Unlimited), Order updates sync (Unlimited), Customize order status mapping & notes ✅, Auto‑transliterate customer data ✅, Load & synchronize shipping data ✅, Advanced shipping automation ✅
+
+=== Team & Support ===
+Lite: Staff access control ❌, Email alerts ❌, Premium support ❌, Performance optimizations ❌
+
+Pro: Staff access control ✅, Email alerts ✅, Premium support ✅, Performance optimizations ✅
+
+=== Integrations ===
+Lite: Affiliate integration ❌
+
+Pro: Affiliate integration ✅
+
+== Enhance AliNext with Chrome Extension ==
+
+You can also enhance AliNext with our free browser extension, available from the official Google Chrome Web Store. Once installed in your browser, this companion app allows you to browse the ali express dropshipping portal and retrieve items directly from the catalog into your WooCommerce store where AliNext is active.
+
+The extension can even highlight items that support specific shipping methods, helping you quickly identify the best options for your shop. This makes product import faster and more efficient, especially when you want to filter by delivery options.
+
+Please note that using the Chrome add-on is optional. You can still load goods through the built‑in AliNext search without installing the extension at all.
+
+== Smooth Migration from Other Dropshipping Tools ==
+
+If you are currently using another solution and want not only to load new items but also to transfer your existing catalog under AliNext management, our premium version can help. In most cases, we provide a converter that allows you to migrate listings seamlessly. Please contact our support center in advance to confirm the availability of a converter for your specific product setup.
 
 == Frequently Asked Questions ==
 
-= How do I import AliExpress products into WooCommerce with AliNext Lite? =  
-Go to **AliNext → Import** and paste the AliExpress product URL or ID. You can also use the free Chrome extension to add products directly while browsing AliExpress.
+= How do I fetch AliExpress products into WooCommerce with AliNext? =
+Go to AliNext > Import and paste the item URL or ID. You can also use the free browser extension to add items directly browsing the marketplace.
 
-= Can I bulk import products from AliExpress? =  
-Yes. In Lite you can import products one by one or in small batches. In Pro you can bulk import using CSV files, advanced filters, or entire AliExpress categories.
+= Can I bulk load items from AliExpress? =
+Yes. In Lite you can retrieve items one by one or in small batches. In Pro you can bulk load using CSV files, advanced filters, or entire categories.
 
-= How do I set up global pricing rules for AliExpress products? =  
-Navigate to **AliNext → Settings → Pricing Rules**. You can create fixed markups, percentage increases, or formula‑based rules. Pro users can also apply rules automatically to existing products.
+= How do I set up global pricing formulas for product import? =
+Navigate to AliNext > Settings > Pricing Rules. You can create fixed markups, percentage increases, or formula‑based rules. Pro users can also apply rules automatically to existing items.
 
-= Can I import AliExpress reviews and videos into WooCommerce? =  
-Lite allows you to import product videos and display them via shortcode. In Pro, you can import and synchronize reviews with ratings, images, and translations into multiple languages.
+= Can I load AliExpress reviews and videos into WooCommerce? =
+Lite allows you to import product videos and display them via shortcode. In Pro, you can fetch and synchronize reviews with ratings, images, and translations into multiple languages.
 
-= How does AliNext handle AliExpress order fulfillment? =  
-Lite automates order placement and order status sync via the AliExpress API with limited daily operations. Pro removes these limits and adds advanced shipping automation, automatic product sync, and email alerts.
+= How does AliNext handle order fulfillment? =
+Lite automates order placement and order status sync via the AliExpress Dropshipping API with limited daily operations. Pro removes these limits and adds advanced shipping automation, automatic product sync, and email alerts.
 
-= Is AliNext compatible with the AliExpress Affiliate Program? =  
-Yes. AliNext Pro integrates with the AliExpress Affiliate Program. Imported products can include affiliate links so you earn commissions on sales.
+= Is AliNext compatible with the AliExpress Affiliate Program? =
+Yes. AliNext Pro integrates with the Affiliate Program. Imported products can include affiliate links so you earn commissions on sales.
 
-= Can I remove AliExpress watermarks from product images? =  
-Yes. The Pro version includes a built‑in image editor that lets you crop, edit, and remove watermarks from AliExpress product images.
+= Can I remove supplier watermarks from product images? =
+Yes. The Pro version includes a built‑in image editor that lets you crop, edit, and remove watermarks from AliExpress images.
 
-= Is AliExpress dropshipping legal and allowed in WooCommerce? =  
-Yes. AliExpress dropshipping is legal and widely used. WooCommerce fully supports it, and AliNext works as a dropshipping helper that helps you comply by automating imports, pricing, and order fulfillment.
+= Is AliExpress dropshipping legal and allowed in WooCommerce? =
+Yes. This type of business is legal and widely practiced. The WooCommerce dropshipping plugin fully supports it, and AliNext works as a dropshipping helper that automates imports, pricing, and order fulfillment to keep you compliant.
 
-= What’s the difference between Lite and Pro? =  
-Lite includes core features like product import, pricing rules, phrase filtering, and limited API automation. Pro unlocks advanced features such as bulk CSV import, review sync and translation, shipping data sync, unlimited API operations, staff access control, automatic product sync, and premium support.
+= What’s the difference between Lite and Pro? =
+Lite includes core features like item import, pricing formulas, phrase filtering, and limited API automation. Pro unlocks advanced features such as bulk CSV load, review sync and translation, shipping data sync, unlimited API operations, staff access control, automatic product sync, and premium support.
 
-= Can I use AliNext Lite to build a WooCommerce AliExpress dropshipping store for free? =  
-Yes. This ali dropshipping plugin includes all the essential features to start a WooCommerce AliExpress dropshipping store at no cost. It’s powerful and reliable dropshipping solution for WooCommerce, letting you import products, set pricing rules, and automate orders with limited daily API operations.
+= Can I use AliNext to build a WooCommerce dropshipping store for free? =
+Yes. This ali dropshipping plugin includes all the essential features to start a WooCommerce AliExpress dropshipping store at no cost. It’s powerful and reliable dropshipping solution for WooCommerce, letting you import products, set pricing formulas, and automate orders with limited daily API operations.
 
-= Does AliNext support AliExpress order tracking numbers? =  
-Yes. AliNext Pro automatically synchronizes AliExpress order status updates. Tracking numbers are imported and attached to WooCommerce orders so your customers can follow their shipments.
+= Does AliNext support order tracking numbers? =
+Yes. AliNext Pro automatically synchronizes AliExpress order updates. Tracking numbers are imported and attached to WooCommerce orders so your customers can follow their shipments.
 
 == Screenshots ==
-1. AliExpress product search and import dashboard  
+1. Built‑in search and import dashboard
 2. Import queue with inline WooCommerce product editing – see how the dropshipping plugin WooCommerce workflow looks in practice
-3. Built‑in image editor for removing AliExpress watermarks  
-4. General settings page for plugin configuration  
-5. Global pricing rules setup interface  
-6. Phrase filtering rule builder for titles, descriptions, and reviews  
-7. Store‑level search for products from a specific AliExpress seller  
-8. Quick search feature to import all products from the same AliExpress store  
-9. Video management interface for AliExpress product videos  
+3. Built‑in image editor for removing AliExpress watermarks
+4. General settings page for plugin configuration
+5. Global pricing settings
+6. Phrase filtering rule builder for titles, descriptions, and reviews
+7. Store‑level search for items from a specific seller
+8. Quick search feature to import all goods from the same AliExpress store
+9. Video management interface for product videos 
 
 == Video Tutorials ==
 
-= How to Import Products from AliExpress using the Chrome Extension =
-Learn how to use the AliNext Chrome extension to import AliExpress products directly into WooCommerce.
+= How to import items from AliExpress using our browser extension =
+Learn how to use the AliNext Chrome extension to import goods directly into WooCommerce.
 [youtube https://youtu.be/Lbq-_3j4vwk]
 
-= How to Use Global Pricing Rules =
-Discover how to configure global pricing rules in the AliNext. This tutorial shows how to set fixed, percentage, or formula‑based markups and apply them to existing products.
+= How to Use Global Pricing Configuration =
+Discover how to configure global pricing rules in the aliexpress dropshipping woocommerce plugin. This tutorial shows how to set fixed, percentage, or formula‑based markups and apply them to existing items.
 [youtube https://youtu.be/N-GZ3EpJYiw]
 
 = How to Fulfill AliExpress Orders in Bulk =
-See how AliNext automates AliExpress order fulfillment in WooCommerce. Learn how to place multiple orders at once, sync order status, and streamline your dropshipping workflow.
+Discover how AliNext automates order fulfillment in WooCommerce dropshipping store. Learn how to place multiple orders at once, sync order status, and simplify your business workflow.
 [youtube https://youtu.be/S5368Pvo_F0]
  
 == Changelog ==
+= 3.6.7 - 2026-04-26 =
+* Added compatibility AliNext with WooCommerce 10.4
+* Fix: Various minor bug fixes
+
 = 3.6.5 - 2026-01-25 =
 * Premium: fixed js get shipping method bug in A2W data tab on product editing page
 * Premium: fixed stop syncing product shipping if no available variation exists
@@ -205,11 +242,6 @@ See how AliNext automates AliExpress order fulfillment in WooCommerce. Learn how
 * Premium: Auto-applied default or lowest-cost shipping on import.  
 * Premium: New "Mass Apply Shipping Method" modal for bulk updates.  
 * Minor UI and performance tweaks.
-
-= 3.5.9 – 2025-02-07 =
-* Premium: Advanced Access Control enhancements.  
-* Premium: UX improvements in purchase-code visibility toggle.  
-* Resolved order-fulfillment popup edit bug and PHP notices.
 
 == Upgrade Notice ==
 = 3.6.3 =

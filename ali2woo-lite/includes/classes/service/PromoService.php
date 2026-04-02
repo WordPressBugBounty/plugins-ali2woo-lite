@@ -33,7 +33,7 @@ class PromoService
             'local_regular_price' => '24.00',
             'currency' => 'EUR',
             'evaluateScore' => 4.8,
-            'purchases' => 67156,
+            'purchases' => 71368,
             'button_cta' => 'Get Full Version',
         ];
     }

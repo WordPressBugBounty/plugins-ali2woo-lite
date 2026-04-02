@@ -419,3 +419,7 @@
 * Fix: alinext style is not connected on the cart page
 * Fix: Various minor bug fixes
 
+3.6.7
+* Added compatibility AliNext with WooCommerce 10.4
+* Fix: Various minor bug fixes
+

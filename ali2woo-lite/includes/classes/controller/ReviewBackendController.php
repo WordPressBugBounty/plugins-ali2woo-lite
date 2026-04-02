@@ -24,9 +24,7 @@ class ReviewBackendController extends AbstractController
         parent::__construct();
 
         add_action('admin_enqueue_scripts', [$this, 'assets']);
-
-        add_action('wp_ajax_a2wl_arvi_remove_reviews', [$this, 'ajax_remove_all_reviews']);
-
+        
         add_action('wp_ajax_a2wl_arvi_remove_product_reviews', [$this, 'ajax_remove_product_reviews']);
         add_action('wp_ajax_a2wl_arvi_get_comment_photos', [$this, 'ajax_get_comment_photos']);
         add_action('wp_ajax_a2wl_arvi_save_comment_photos', [$this, 'ajax_save_comment_photos']);
@@ -103,28 +101,7 @@ class ReviewBackendController extends AbstractController
 
         return $content;
     }
-
-    public function ajax_remove_all_reviews(): void
-    {
-        check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
-
-        a2wl_init_error_handler();
-        $result = ResultBuilder::buildOk();
-
-        try {
-            $comments = Review::get_all_review_ids();
-            Review::remove_reviews_by_ids($comments);
-
-            restore_error_handler();
-        } catch (Throwable $e) {
-            a2wl_print_throwable($e);
-            $result = ResultBuilder::buildError($e->getMessage());
-        }
-
-        echo wp_json_encode($result);
-        wp_die();
-    }
-
+    
     public function ajax_remove_product_reviews(): void
     {
         check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);

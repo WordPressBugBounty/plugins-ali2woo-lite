@@ -51,20 +51,12 @@ jQuery(function($) {
                 if (!hasOrders) {
                     $("#fulfillment-auto").attr('disabled', 'disabled');
                     $("#fulfillment-chrome").attr('disabled', 'disabled');
-                } else {
-                   /* $('.modal-fulfillment .additional-fulfillment-service').load(
-                        a2wl_ali_orderfulfill_js.ajaxurl, {
-                            'action': 'a2wl_load_fulfillment_orders_service',
-                            ids,
-                            'ali2woo_nonce': a2wl_ali_orderfulfill_js.nonce_action,
-                        },
-                        function() {
-
-                        }
-                    )*/
                 }
-                $( '.modal-fulfillment .js_field-country' ).selectWoo()
-                $( '.modal-fulfillment .js_field-country' ).trigger('change', [ true ]);
+
+                $('.modal-fulfillment .js_field-country').selectWoo()
+                $('.modal-fulfillment .js_field-country').trigger('change', [true]);
+
+                $('.modal-fulfillment .current-shipping-company').trigger('change');
         });
     }
 

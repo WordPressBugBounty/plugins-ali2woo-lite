@@ -12,8 +12,8 @@ $load_review = get_setting('load_review');
         <div class="panel-heading">
             <h3 class="display-inline"><?php echo esc_html_x('Reviews settings', 'Setting title', 'ali2woo'); ?></h3>
         </div>
-
-        <div class="panel-body">
+        <div class="_a2wfo a2wl-info"><div>This feature is available in full version of the plugin.</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>
+        <div class="panel-body _a2wfv">
             <div class="field field_inline">
                 <div class="field__label">
                     <label>
@@ -26,7 +26,17 @@ $load_review = get_setting('load_review');
                 </div>
             </div>
 
-            
+            <div class="field field_inline review_option" <?php if (!$load_review): ?>style="display: none;"<?php endif; ?>>
+                <div class="field__label">
+                    <label>
+                        <strong><?php echo esc_html_x('Import more reviews automatically', 'Setting title', 'ali2woo'); ?></strong>
+                    </label>
+                    <div class="info-box" data-toggle="tooltip" data-title="<?php echo esc_html_x('Import more reviews periodically if they are on AliExpress', 'setting description', 'ali2woo'); ?>"></div>
+                </div>
+                <div class="field__input-wrap">
+                    <input type="checkbox" class="field__input form-control" id="a2wl_review_status" name="a2wl_review_status" value="yes" <?php if (get_setting('review_status')): ?>checked<?php endif; ?>/>
+                </div>
+            </div>
 
             <div class="field field_inline review_option" <?php if (!$load_review): ?>style="display: none;"<?php endif; ?>>
                 <div class="field__label">
@@ -121,9 +131,7 @@ $load_review = get_setting('load_review');
                     <?php
                     $cur_a2wl_review_noavatar_photo = get_setting('review_noavatar_photo', A2WL()->plugin_url() . '/assets/img/noavatar.png');
                     ?>
-                    <?php /* <div href="#" class="thumbnail"> */ ?>
                     <img style="height: 80px; width: 80px; display: block;" src="<?php echo $cur_a2wl_review_noavatar_photo ?>"/>
-                    <?php /* </div>  */ ?>
                 </div>
                 <div class="field__input-wrap">
                     <label class="btn btn-default btn-file">
@@ -234,8 +242,8 @@ $load_review = get_setting('load_review');
     <div class="container-fluid">
         <div class="row pt20 border-top">
             <div class="col-sm-12">
-                <input id="a2wl_remove_all_reviews" class="btn btn-default" type="button" value="<?php esc_html_e('Remove all reviews', 'ali2woo'); ?>"/>
-                <input class="btn btn-success" type="submit" value="<?php esc_html_e('Save settings', 'ali2woo'); ?>"/>
+                <input id="a2wl_remove_all_reviews" class="btn btn-default _a2wfv" type="button" value="<?php esc_html_e('Remove all reviews', 'ali2woo'); ?>"/>
+                <input class="btn btn-success _a2wfv" type="submit" value="<?php esc_html_e('Save settings', 'ali2woo'); ?>"/>
             </div>
         </div>
     </div>
@@ -373,31 +381,7 @@ $load_review = get_setting('load_review');
 
             }, 1000);
         });
-
-        //form buttons  
-        $('#a2wl_remove_all_reviews').click(function () {
-            if (
-                confirm('<?php esc_html_e('Are you sure you want to delete all reviews?', 'ali2woo'); ?>')
-            ) {
-                let e = $(this);
-                e.val('<?php  esc_html_e('Processing', 'ali2woo'); ?>...');
-                let data = {
-                    'action': 'a2wl_arvi_remove_reviews',
-                    'ali2woo_nonce': nonce_action,
-                };
-                $.post(ajaxurl, data, function (response) {
-                    let json = JSON.parse(response);
-
-                    if (json.state === 'error') {
-                        console.log(json);
-                        e.val('<?php esc_html_e('Error', 'ali2woo'); ?>');
-                    } else {
-                        e.val('<?php esc_html_e('Done', 'ali2woo'); ?>!');
-                    }
-                });
-            }
-        });
-
+        
 
         $('.a2wl-content form').on('submit', function () {
             if ($(this).find('.has-error').length > 0)
