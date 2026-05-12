@@ -2,6 +2,8 @@
 // phpcs:ignoreFile WordPress.Security.NonceVerification.Recommended
 namespace AliNext_Lite;;
 
+use function mb_convert_encoding;
+
 if (!class_exists('JSON_API_Response')) {
 
     class JSON_API_Response {

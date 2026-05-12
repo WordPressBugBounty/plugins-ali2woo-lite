@@ -118,4 +118,45 @@ class AliexpressTokenService
 
         return $token;
     }
+
+
+    /**
+     * Get access token data from the server by a token key
+     * @param string $tokenKey
+     * @return AliexpressTokenDto|null
+     */
+    public function getTokenDataFromServer(string $tokenKey): ?AliexpressTokenDto
+    {
+        $payload = [
+            'token-key' => $tokenKey,
+        ];
+
+        $args = [];
+
+        $requestUrl = RequestHelper::build_request('get_ae_token_data');
+        $request = a2wl_remote_post($requestUrl, $payload, $args);
+
+        if (is_wp_error($request)) {
+            return null;
+        }
+
+        if ((int)$request['response']['code'] !== 200) {
+            return null;
+        }
+
+        $result = json_decode($request['body'], true);
+
+        if (!is_array($result) || !isset($result['state'])) {
+            return null;
+        }
+
+        if ($result['state'] !== 'ok' || !isset($result['data']['data'])) {
+            return null;
+        }
+
+        $rawTokens = (array)$result['data']['data'];
+
+        return AliexpressTokenDto::build($rawTokens);
+    }
+
 }

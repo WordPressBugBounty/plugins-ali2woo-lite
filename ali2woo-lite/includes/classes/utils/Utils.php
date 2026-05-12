@@ -8,6 +8,8 @@
 
 namespace AliNext_Lite;;
 
+use function mb_convert_encoding;
+
 class Utils
 {
 

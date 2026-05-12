@@ -29,7 +29,7 @@ class CommonSettingService
 
         set_setting('import_language', isset($_POST['a2w_import_language']) ? wp_unslash($_POST['a2w_import_language']) : 'en');
         set_setting(
-            SETTINGS::SETTING_ALIEXPRESS_REGION,
+            Settings::SETTING_ALIEXPRESS_REGION,
             isset($_POST['a2wl_aliexpress_region']) ? wp_unslash($_POST['a2wl_aliexpress_region']) : 'US'
         );
 

@@ -17,7 +17,7 @@ class LocalService
         $ncpu = 1; // Default to 1 processor
 
         // Check for Linux
-        if (is_file('/proc/cpuinfo')) {
+        if (@is_file('/proc/cpuinfo')) {
             $cpuinfo = file_get_contents('/proc/cpuinfo');
             preg_match_all('/^processor/m', $cpuinfo, $matches);
             $ncpu = count($matches[0]);

@@ -4,6 +4,7 @@ namespace AliNext_Lite;;
 //if (!function_exists('a2w_global_template_redirect')) {
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
 use Pages;
+use Throwable;
 
 function a2w_global_template_redirect()
 {
@@ -343,12 +344,22 @@ class JSON_API
         return explode(',', get_setting('json_api_controllers', $default));
     }
 
-    function check_directory_for_controllers($dir, &$controllers)
+    function check_directory_for_controllers($dir, &$controllers): void
     {
         a2wl_init_error_handler();
         try {
+            if (!is_dir($dir) || !is_readable($dir)) {
+                a2wl_error_log("JSON_API: Directory '$dir' does not exist or is not readable.");
+                return;
+            }
+
             $dh = opendir($dir);
-            while ($file = readdir($dh)) {
+            if ($dh === false) {
+                a2wl_error_log("JSON_API: Failed to open directory '$dir'.");
+                return;
+            }
+
+            while (($file = readdir($dh)) !== false) {
                 if (preg_match('/(.+)\.php$/i', $file, $matches)) {
                     // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
                     $src = file_get_contents("$dir/$file");
@@ -357,8 +368,11 @@ class JSON_API
                     }
                 }
             }
+
+            closedir($dh);
         } catch (Throwable $e) {
-            a2wl_print_throwable( $e );
+            a2wl_error_log("JSON_API: Exception while scanning '$dir' — " . $e->getMessage());
+            a2wl_print_throwable($e);
         }
     }
 

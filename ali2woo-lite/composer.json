@@ -15,9 +15,22 @@
         "automattic/jetpack-autoloader": "^2",
         "psr/container": "1.1.0"
     },
+    "autoload": {
+        "classmap": [
+            "includes/"
+        ],
+        "files": [
+            "includes/functions.php",
+            "includes/settings.php"
+        ]
+    },
     "config": {
         "allow-plugins": {
             "automattic/jetpack-autoloader": true
         }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.6",
+        "yoast/phpunit-polyfills": "^1.0"
     }
 }

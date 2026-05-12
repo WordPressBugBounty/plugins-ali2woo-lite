@@ -14,6 +14,7 @@ use WC_Product_Factory;
 use Automattic\WooCommerce\Utilities\OrderUtil;
 use WC_Product_Variable;
 use WP_Error;
+use function mb_convert_encoding;
 
 class Woocommerce
 {
@@ -959,7 +960,7 @@ class Woocommerce
     public function build_description(int $product_id, array $product): string
     {
         // Ensure proper UTF-8 encoding before processing
-        $html = mb_convert_encoding($product['description'], 'UTF-8', 'auto');
+        $html = \mb_convert_encoding($product['description'], 'UTF-8', 'auto');
 
         // Convert special characters safely
         $html = htmlspecialchars($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');

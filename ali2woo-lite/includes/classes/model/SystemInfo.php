@@ -143,8 +143,22 @@ class SystemInfo
 
         return $result;
     }
-    
-    public static function php_check(){
+
+    public static function hasMbstring(): bool
+    {
+        return extension_loaded('mbstring') && function_exists('mb_convert_encoding');
+    }
+
+    public static function php_check(): array
+    {
+        if (PHP_VERSION_ID < 80000) {
+            return ResultBuilder::buildError('PHP version must be 8.0 or higher.');
+        }
+
+        if (!self::hasMbstring()) {
+            return ResultBuilder::buildError('mbstring extension is not available. Please enable it.');
+        }
+
         return ResultBuilder::buildOk();
     }
 

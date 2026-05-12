@@ -265,46 +265,78 @@ use AliNext_Lite\AliexpressTokenDto;
                 action: 'a2wl_build_aliexpress_api_auth_url',
                 ali2woo_nonce: nonce_action,
             }).done(function (response) {
-                let json = JSON.parse(response);
+                let json = (typeof response === 'string') ? JSON.parse(response) : response;
 
-                if (json.state != 'ok') {
+                if (json.state !== 'ok') {
                     show_notification(json.message, true);
-                } else {
-                    window.open(json.url, "_blank", "width=868,height=686");
+                    $button.removeAttr('disabled');
+                    return;
+                }
 
-                    function handleMessageEvent(event) {
-                        const data = event.data;
+                let authPopup = window.open(json.url, "a2wl_auth_window", "width=868,height=686");
+                if (window.focus) authPopup.focus();
 
-                        if (typeof event.data.from === "undefined" || event.data.from !== 'a2w') {
-                            return;
-                        }
+                let gotMessage = false;
+                let fallbackTimer;
 
-                        if (event.data.state !== 'ok') {
-                            console.log('data', data)
-                            show_notification(data.message, true);
-                        } else {
-                            const token = event.data.data;
+                function handleMessageEvent(event) {
+                    const data = event.data;
+                    if (!data.from || data.from !== 'a2w') return;
+
+                    gotMessage = true;
+                    clearTimeout(fallbackTimer);
+
+                    if (data.state !== 'ok') {
+                        show_notification(data.message, true);
+                    } else {
+                        // теперь сразу сохраняем через новый метод
+                        $.post(ajaxurl, {
+                            action: 'a2wl_save_access_token',
+                            token: data.data,
+                            ali2woo_nonce: nonce_action,
+                        }).done(function (response) {
+                            response = (typeof response === 'string') ? JSON.parse(response) : response;
+                            $('.a2wl-tokens tbody').html(response.data);
+                        }).fail(function () {
+                            show_notification('Can not save access token', true);
+                        });
+                    }
+
+                    $button.removeAttr('disabled');
+                    window.removeEventListener("message", handleMessageEvent);
+                }
+
+                window.addEventListener('message', handleMessageEvent);
+
+                // Fallback: if no message in a few seconds
+                fallbackTimer = setInterval(function () {
+                    if (authPopup.closed) {
+                        clearInterval(fallbackTimer);
+                        if (!gotMessage) {
                             $.post(ajaxurl, {
-                                action: 'a2wl_save_access_token',
-                                token,
+                                action: 'a2wl_save_access_token_from_server', // новый метод
+                                token_key: json.tokenKey,
                                 ali2woo_nonce: nonce_action,
                             }).done(function (response) {
-                                response = JSON.parse(response);
-                                $('.a2wl-tokens tbody').html(response.data);
-                            }).fail(function (xhr, status, error) {
-                                show_notification('Can not save access token', true);
+                                response = (typeof response === 'string') ? JSON.parse(response) : response;
+                                if (response.state === 'ok') {
+                                    $('.a2wl-tokens tbody').html(response.data);
+                                } else {
+                                    show_notification(response.message, true);
+                                }
+                                $button.removeAttr('disabled');
+                            }).fail(function () {
+                                show_notification('Save Access Token from server failed', true);
+                                $button.removeAttr('disabled');
                             });
                         }
-                        $button.removeAttr('disabled')
-                        window.removeEventListener("message", handleMessageEvent);
                     }
-                    window.addEventListener('message', handleMessageEvent)
-                }
+                }, 2000);
+
             }).fail(function (xhr, status, error) {
                 console.log(error);
-                $button.removeAttr('disabled')
+                $button.removeAttr('disabled');
             });
-
         });
 
         $('.a2wl-tokens').on('click', 'a[data-token-id]', function (event) {

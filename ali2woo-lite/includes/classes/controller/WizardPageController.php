@@ -64,12 +64,14 @@ class WizardPageController extends AbstractAdminPage {
 
     protected function showWizardOnActivation(): void
     {
-        if (get_option(self::WIZARD_ACTIVATION_KEY)) {
-            delete_option(self::WIZARD_ACTIVATION_KEY);
+        add_action('admin_init', function () {
+            if (get_option(self::WIZARD_ACTIVATION_KEY)) {
+                delete_option(self::WIZARD_ACTIVATION_KEY);
 
-            wp_safe_redirect(admin_url('admin.php?page=a2wl_wizard'));
-            exit;
-        }
+                wp_safe_redirect(admin_url('admin.php?page=a2wl_wizard'));
+                exit;
+            }
+        });
     }
 
     protected function showNotification(): void

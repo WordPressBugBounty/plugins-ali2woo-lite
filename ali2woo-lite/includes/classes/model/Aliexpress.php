@@ -11,6 +11,7 @@ namespace AliNext_Lite;;
 use DOMDocument;
 use Throwable;
 use wpdb;
+use function mb_convert_encoding;
 
 class Aliexpress
 {

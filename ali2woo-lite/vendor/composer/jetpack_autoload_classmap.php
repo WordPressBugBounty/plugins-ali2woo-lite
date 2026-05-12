@@ -6,8 +6,1168 @@ $vendorDir = dirname(__DIR__);
 $baseDir   = dirname($vendorDir);
 
 return array(
+	'AliNext_Lite\\AbstractAccount' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/AbstractAccount.php'
+	),
+	'AliNext_Lite\\AbstractAdminPage' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/AbstractAdminPage.php'
+	),
+	'AliNext_Lite\\AbstractClient' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/api/AbstractClient.php'
+	),
+	'AliNext_Lite\\AbstractConnector' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/connector/AbstractConnector.php'
+	),
+	'AliNext_Lite\\AbstractController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/AbstractController.php'
+	),
+	'AliNext_Lite\\Account' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/Account.php'
+	),
+	'AliNext_Lite\\AddProductToImportListInterface' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/interfaces/job/AddProductToImportListInterface.php'
+	),
+	'AliNext_Lite\\AddProductToImportListProcess' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/job/AddProductToImportListProcess.php'
+	),
+	'AliNext_Lite\\AddonsController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/AddonsController.php'
+	),
+	'AliNext_Lite\\AdmitadAccount' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/AdmitadAccount.php'
+	),
+	'AliNext_Lite\\AffiliateCheckProcess' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/job/AffiliateCheckProcess.php'
+	),
+	'AliNext_Lite\\AfterProductImportHook' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/hook/product/AfterProductImportHook.php'
+	),
+	'AliNext_Lite\\Aliexpress' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/Aliexpress.php'
+	),
+	'AliNext_Lite\\AliexpressAccount' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/AliexpressAccount.php'
+	),
+	'AliNext_Lite\\AliexpressCategoryDto' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/dto/model/AliexpressCategoryDto.php'
+	),
+	'AliNext_Lite\\AliexpressDefaultConnector' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/connector/AliexpressDefaultConnector.php'
+	),
+	'AliNext_Lite\\AliexpressError' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/utils/AliexpressError.php'
+	),
+	'AliNext_Lite\\AliexpressHelper' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/utils/AliexpressHelper.php'
+	),
+	'AliNext_Lite\\AliexpressLocalizator' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/utils/AliexpressLocalizator.php'
+	),
+	'AliNext_Lite\\AliexpressRegionRepository' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/repository/AliexpressRegionRepository.php'
+	),
+	'AliNext_Lite\\AliexpressToken' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/AliexpressToken.php'
+	),
+	'AliNext_Lite\\AliexpressTokenAjaxController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/ajax/AliexpressTokenAjaxController.php'
+	),
+	'AliNext_Lite\\AliexpressTokenDto' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/dto/AliexpressTokenDto.php'
+	),
+	'AliNext_Lite\\AliexpressTokenService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/token/AliexpressTokenService.php'
+	),
+	'AliNext_Lite\\AliexpressTokenValidationService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/token/AliexpressTokenValidationService.php'
+	),
+	'AliNext_Lite\\ApiException' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/exception/ApiException.php'
+	),
+	'AliNext_Lite\\ApiResponse' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/object/ApiResponse.php'
+	),
+	'AliNext_Lite\\ApplyPricingRulesJobInterface' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/interfaces/job/ApplyPricingRulesJobInterface.php'
+	),
+	'AliNext_Lite\\ApplyPricingRulesProcess' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/job/ApplyPricingRulesProcess.php'
+	),
+	'AliNext_Lite\\ApplyShippingMethodBulkInterface' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/interfaces/job/ApplyShippingMethodBulkInterface.php'
+	),
+	'AliNext_Lite\\ApplyShippingMethodBulkProcess' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/job/ApplyShippingMethodBulkProcess.php'
+	),
+	'AliNext_Lite\\Attachment' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/Attachment.php'
+	),
+	'AliNext_Lite\\AttachmentController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/AttachmentController.php'
+	),
+	'AliNext_Lite\\BackendException' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/exception/BackendException.php'
+	),
+	'AliNext_Lite\\BackgroundProcessFactory' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/factory/BackgroundProcessFactory.php'
+	),
+	'AliNext_Lite\\BaseJob' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/job/BaseJob.php'
+	),
+	'AliNext_Lite\\BaseJobInterface' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/interfaces/job/BaseJobInterface.php'
+	),
+	'AliNext_Lite\\BlankConverter' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/BlankConverter.php'
+	),
+	'AliNext_Lite\\Capability' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/enum/Capability.php'
+	),
+	'AliNext_Lite\\CommonSettingService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/setting/CommonSettingService.php'
+	),
+	'AliNext_Lite\\Constants' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/utils/Constants.php'
+	),
+	'AliNext_Lite\\Country' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/Country.php'
+	),
+	'AliNext_Lite\\CriticalMessageService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/CriticalMessageService.php'
+	),
+	'AliNext_Lite\\DebugPageController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/DebugPageController.php'
+	),
+	'AliNext_Lite\\DeliveryTimeController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/DeliveryTimeController.php'
+	),
+	'AliNext_Lite\\EditionHelper' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/utils/EditionHelper.php'
+	),
+	'AliNext_Lite\\EpnAccount' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/EpnAccount.php'
+	),
+	'AliNext_Lite\\ExternalOrder' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/object/ExternalOrder.php'
+	),
+	'AliNext_Lite\\ExternalOrderFactory' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/factory/ExternalOrderFactory.php'
+	),
+	'AliNext_Lite\\ExternalOrderItem' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/object/ExternalOrderItem.php'
+	),
+	'AliNext_Lite\\ExternalOrderItemAttribute' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/object/ExternalOrderItemAttribute.php'
+	),
+	'AliNext_Lite\\ExternalOrderShippingAddress' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/object/ExternalOrderShippingAddress.php'
+	),
+	'AliNext_Lite\\FactoryException' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/exception/FactoryException.php'
+	),
+	'AliNext_Lite\\FrontendInitController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/FrontendInitController.php'
+	),
+	'AliNext_Lite\\FrontendShippingController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/shipping/FrontendShippingController.php'
+	),
+	'AliNext_Lite\\FulfillmentClient' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/api/FulfillmentClient.php'
+	),
+	'AliNext_Lite\\FulfillmentClientInterface' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/interfaces/api/FulfillmentClientInterface.php'
+	),
+	'AliNext_Lite\\GetExtendedFormulasGroupedResult' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/dto/repository/GetExtendedFormulasGroupedResult.php'
+	),
+	'AliNext_Lite\\GlobalMessageAjaxController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/ajax/GlobalMessageAjaxController.php'
+	),
+	'AliNext_Lite\\GlobalSystemMessageService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/GlobalSystemMessageService.php'
+	),
+	'AliNext_Lite\\HelpController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/HelpController.php'
+	),
+	'AliNext_Lite\\Helper' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/utils/Helper.php'
+	),
+	'AliNext_Lite\\ImportAjaxController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/ImportAjaxController.php'
+	),
+	'AliNext_Lite\\ImportJobInterface' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/interfaces/job/ImportJobInterface.php'
+	),
+	'AliNext_Lite\\ImportListService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/ImportListService.php'
+	),
+	'AliNext_Lite\\ImportPageController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/ImportPageController.php'
+	),
+	'AliNext_Lite\\ImportProcess' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/job/ImportProcess.php'
+	),
+	'AliNext_Lite\\ImportedProductService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/ImportedProductService.php'
+	),
+	'AliNext_Lite\\ImportedProductServiceFactory' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/factory/ImportedProductServiceFactory.php'
+	),
+	'AliNext_Lite\\JSON_API' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/libs/json_api/singletons/api.php'
+	),
+	'AliNext_Lite\\JSON_API_Auth_Controller' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/libs/json_api/controllers/auth.php'
+	),
+	'AliNext_Lite\\JSON_API_Core_Controller' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/libs/json_api/controllers/core.php'
+	),
+	'AliNext_Lite\\JSON_API_Query' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/libs/json_api/singletons/query.php'
+	),
+	'AliNext_Lite\\JSON_API_Response' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/libs/json_api/singletons/response.php'
+	),
+	'AliNext_Lite\\Json_Api_Configurator' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/libs/json_api/json_api.php'
+	),
+	'AliNext_Lite\\Language' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/Language.php'
+	),
+	'AliNext_Lite\\Library\\BackgroundProcessing\\WP_Async_Request' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/libs/wp-background-processing/classes/wp-async-request.php'
+	),
+	'AliNext_Lite\\Library\\BackgroundProcessing\\WP_Background_Process' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/libs/wp-background-processing/classes/wp-background-process.php'
+	),
+	'AliNext_Lite\\Loader' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/loader.php'
+	),
+	'AliNext_Lite\\LocalService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/LocalService.php'
+	),
+	'AliNext_Lite\\Logs' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/utils/Logs.php'
+	),
+	'AliNext_Lite\\MigrateService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/MigrateService.php'
+	),
+	'AliNext_Lite\\OrderDataTabController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/OrderDataTabController.php'
+	),
+	'AliNext_Lite\\OrderFulfillmentController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/OrderFulfillmentController.php'
+	),
+	'AliNext_Lite\\OrderFulfillmentService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/OrderFulfillmentService.php'
+	),
+	'AliNext_Lite\\OrderItemShippingDto' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/dto/OrderItemShippingDto.php'
+	),
+	'AliNext_Lite\\OrderPreviewDataDto' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/dto/api/OrderPreviewDataDto.php'
+	),
+	'AliNext_Lite\\OrderPreviewItemDto' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/dto/api/OrderPreviewItemDto.php'
+	),
+	'AliNext_Lite\\OrderPreviewResultDto' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/dto/api/OrderPreviewResultDto.php'
+	),
+	'AliNext_Lite\\OrderPreviewResultItemDto' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/dto/api/OrderPreviewResultItemDto.php'
+	),
+	'AliNext_Lite\\Override' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/Override.php'
+	),
+	'AliNext_Lite\\PageGuardHelper' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/utils/PageGuardHelper.php'
+	),
+	'AliNext_Lite\\Paginator' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/utils/Paginator.php'
+	),
+	'AliNext_Lite\\PermanentAlert' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/dto/PermanentAlert.php'
+	),
+	'AliNext_Lite\\PermanentAlertService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/PermanentAlertService.php'
+	),
+	'AliNext_Lite\\PhraseFilter' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/PhraseFilter.php'
+	),
+	'AliNext_Lite\\PlatformClient' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/api/PlatformClient.php'
+	),
+	'AliNext_Lite\\PlatformException' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/exception/PlatformException.php'
+	),
+	'AliNext_Lite\\PluginController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/PluginController.php'
+	),
+	'AliNext_Lite\\PluginUpdateController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/PluginUpdateController.php'
+	),
+	'AliNext_Lite\\PriceFormula' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/PriceFormula.php'
+	),
+	'AliNext_Lite\\PriceFormulaFactory' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/factory/PriceFormulaFactory.php'
+	),
+	'AliNext_Lite\\PriceFormulaRepository' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/repository/PriceFormulaRepository.php'
+	),
+	'AliNext_Lite\\PriceFormulaService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/PriceFormulaService.php'
+	),
+	'AliNext_Lite\\PriceFormulaSet' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/PriceFormulaSet.php'
+	),
+	'AliNext_Lite\\PriceFormulaSetAjaxController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/ajax/PriceFormulaSetAjaxController.php'
+	),
+	'AliNext_Lite\\PriceFormulaSetFactory' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/factory/PriceFormulaSetFactory.php'
+	),
+	'AliNext_Lite\\PriceFormulaSetRepository' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/repository/PriceFormulaSetRepository.php'
+	),
+	'AliNext_Lite\\PriceFormulaSetService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/PriceFormulaSetService.php'
+	),
+	'AliNext_Lite\\PriceFormulaSettingsRepository' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/repository/PriceFormulaSettingsRepository.php'
+	),
+	'AliNext_Lite\\ProductChange' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/ProductChange.php'
+	),
+	'AliNext_Lite\\ProductDataTabController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/ProductDataTabController.php'
+	),
+	'AliNext_Lite\\ProductImport' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/ProductImport.php'
+	),
+	'AliNext_Lite\\ProductImportResultDTO' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/dto/service/ProductImportResultDTO.php'
+	),
+	'AliNext_Lite\\ProductImportTransactionService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/product/ProductImportTransactionService.php'
+	),
+	'AliNext_Lite\\ProductInfoWidgetController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/ProductInfoWidgetController.php'
+	),
+	'AliNext_Lite\\ProductReviewsService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/ProductReviewsService.php'
+	),
+	'AliNext_Lite\\ProductSelectorService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/product/ProductSelectorService.php'
+	),
+	'AliNext_Lite\\ProductService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/ProductService.php'
+	),
+	'AliNext_Lite\\ProductServiceController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/ProductServiceController.php'
+	),
+	'AliNext_Lite\\ProductShippingData' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/object/ProductShippingData.php'
+	),
+	'AliNext_Lite\\ProductShippingDataFactory' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/factory/ProductShippingDataFactory.php'
+	),
+	'AliNext_Lite\\ProductShippingDataRepository' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/repository/ProductShippingDataRepository.php'
+	),
+	'AliNext_Lite\\ProductShippingDataService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/ProductShippingDataService.php'
+	),
+	'AliNext_Lite\\ProductValidatorService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/product/ProductValidatorService.php'
+	),
+	'AliNext_Lite\\ProductVideoController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/ProductVideoController.php'
+	),
+	'AliNext_Lite\\ProductsFromFileResult' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/dto/ProductsFromFileResult.php'
+	),
+	'AliNext_Lite\\PromoService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/PromoService.php'
+	),
+	'AliNext_Lite\\PurchaseCodeInfo' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/object/PurchaseCodeInfo.php'
+	),
+	'AliNext_Lite\\PurchaseCodeInfoCount' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/object/PurchaseCodeInfoCount.php'
+	),
+	'AliNext_Lite\\PurchaseCodeInfoFactory' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/factory/PurchaseCodeInfoFactory.php'
+	),
+	'AliNext_Lite\\PurchaseCodeInfoLimits' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/object/PurchaseCodeInfoLimits.php'
+	),
+	'AliNext_Lite\\PurchaseCodeInfoRepository' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/repository/PurchaseCodeInfoRepository.php'
+	),
+	'AliNext_Lite\\PurchaseCodeInfoService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/PurchaseCodeInfoService.php'
+	),
+	'AliNext_Lite\\RepositoryException' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/exception/RepositoryException.php'
+	),
+	'AliNext_Lite\\RequestHelper' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/utils/RequestHelper.php'
+	),
+	'AliNext_Lite\\Requests_Response' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/Requests_Response.php'
+	),
+	'AliNext_Lite\\RestApi' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/utils/RestApi.php'
+	),
+	'AliNext_Lite\\ResultBuilder' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/ResultBuilder.php'
+	),
+	'AliNext_Lite\\Review' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/Review.php'
+	),
+	'AliNext_Lite\\ReviewBackendController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/ReviewBackendController.php'
+	),
+	'AliNext_Lite\\ReviewFrontendController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/ReviewFrontendController.php'
+	),
+	'AliNext_Lite\\SearchPageController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/SearchPageController.php'
+	),
+	'AliNext_Lite\\SearchStoreProductsPageController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/SearchStoreProductsPageController.php'
+	),
+	'AliNext_Lite\\ServiceException' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/exception/ServiceException.php'
+	),
+	'AliNext_Lite\\SettingPageAjaxController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/SettingPageAjaxController.php'
+	),
+	'AliNext_Lite\\SettingPageController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/SettingPageController.php'
+	),
+	'AliNext_Lite\\Settings' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/settings.php'
+	),
+	'AliNext_Lite\\Shipping' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/utils/Shipping.php'
+	),
+	'AliNext_Lite\\ShippingAssignerService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/ShippingAssignerService.php'
+	),
+	'AliNext_Lite\\ShippingAssignerServiceInterface' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/interfaces/service/ShippingAssignerServiceInterface.php'
+	),
+	'AliNext_Lite\\ShippingDispatcherService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/shipping/ShippingDispatcherService.php'
+	),
+	'AliNext_Lite\\ShippingItemDto' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/dto/ShippingItemDto.php'
+	),
+	'AliNext_Lite\\ShippingMethod' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/shipping/ShippingMethod.php'
+	),
+	'AliNext_Lite\\ShippingPageController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/shipping/ShippingPageController.php'
+	),
+	'AliNext_Lite\\ShippingPostType' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/shipping/ShippingPostType.php'
+	),
+	'AliNext_Lite\\ShippingPriceFormula' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/ShippingPriceFormula.php'
+	),
+	'AliNext_Lite\\ShippingSettingService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/setting/ShippingSettingService.php'
+	),
+	'AliNext_Lite\\ShouldShowVideoTab' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/constant/ShouldShowVideoTab.php'
+	),
+	'AliNext_Lite\\SplitProductService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/SplitProductService.php'
+	),
+	'AliNext_Lite\\SynchProductController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/SynchProductController.php'
+	),
+	'AliNext_Lite\\Synchronize' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/Synchronize.php'
+	),
+	'AliNext_Lite\\SynchronizePluginDataController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/SynchronizePluginDataController.php'
+	),
+	'AliNext_Lite\\SynchronizePurchaseCodeInfoInterface' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/interfaces/job/SynchronizePurchaseCodeInfoInterface.php'
+	),
+	'AliNext_Lite\\SynchronizePurchaseCodeInfoProcess' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/job/SynchronizePurchaseCodeInfoProcess.php'
+	),
+	'AliNext_Lite\\SynchronizePurchaseCodeInfoService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/SynchronizePurchaseCodeInfoService.php'
+	),
+	'AliNext_Lite\\SystemInfo' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/SystemInfo.php'
+	),
+	'AliNext_Lite\\ThirdNameFieldController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/ThirdNameFieldController.php'
+	),
+	'AliNext_Lite\\TipOfDay' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/TipOfDay.php'
+	),
+	'AliNext_Lite\\TipOfDayAjaxController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/ajax/TipOfDayAjaxController.php'
+	),
+	'AliNext_Lite\\TipOfDayFactory' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/factory/TipOfDayFactory.php'
+	),
+	'AliNext_Lite\\TipOfDayRepository' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/repository/TipOfDayRepository.php'
+	),
+	'AliNext_Lite\\TipOfDayService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/TipOfDayService.php'
+	),
+	'AliNext_Lite\\TokenValidatorController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/TokenValidatorController.php'
+	),
+	'AliNext_Lite\\TransferPageController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/TransferPageController.php'
+	),
+	'AliNext_Lite\\Update' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/utils/Update.php'
+	),
+	'AliNext_Lite\\UpdateFulfillmentShippingResult' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/dto/UpdateFulfillmentShippingResult.php'
+	),
+	'AliNext_Lite\\Utils' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/utils/Utils.php'
+	),
+	'AliNext_Lite\\VideoShortcodeService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/VideoShortcodeService.php'
+	),
+	'AliNext_Lite\\WizardPageController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/WizardPageController.php'
+	),
+	'AliNext_Lite\\WizardService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/WizardService.php'
+	),
+	'AliNext_Lite\\WooCommerceOrderItem' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/WooCommerceOrderItem.php'
+	),
+	'AliNext_Lite\\WooCommerceOrderListController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/WooCommerceOrderListController.php'
+	),
+	'AliNext_Lite\\WooCommerceProductEditController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/WooCommerceProductEditController.php'
+	),
+	'AliNext_Lite\\WooCommerceProductListController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/WooCommerceProductListController.php'
+	),
+	'AliNext_Lite\\Woocommerce' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/model/Woocommerce.php'
+	),
+	'AliNext_Lite\\WoocommerceCategoryService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/WoocommerceCategoryService.php'
+	),
+	'AliNext_Lite\\WoocommerceService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/WoocommerceService.php'
+	),
+	'AliNext_Lite\\WpmlController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/WpmlController.php'
+	),
+	'Automattic\\Jetpack\\Autoloader\\AutoloadFileWriter' => array(
+		'version' => '2.12.0',
+		'path'    => $vendorDir . '/automattic/jetpack-autoloader/src/AutoloadFileWriter.php'
+	),
 	'Automattic\\Jetpack\\Autoloader\\AutoloadGenerator' => array(
 		'version' => '2.12.0',
 		'path'    => $vendorDir . '/automattic/jetpack-autoloader/src/AutoloadGenerator.php'
+	),
+	'Automattic\\Jetpack\\Autoloader\\AutoloadProcessor' => array(
+		'version' => '2.12.0',
+		'path'    => $vendorDir . '/automattic/jetpack-autoloader/src/AutoloadProcessor.php'
+	),
+	'Automattic\\Jetpack\\Autoloader\\CustomAutoloaderPlugin' => array(
+		'version' => '2.12.0',
+		'path'    => $vendorDir . '/automattic/jetpack-autoloader/src/CustomAutoloaderPlugin.php'
+	),
+	'Automattic\\Jetpack\\Autoloader\\ManifestGenerator' => array(
+		'version' => '2.12.0',
+		'path'    => $vendorDir . '/automattic/jetpack-autoloader/src/ManifestGenerator.php'
+	),
+	'Constants' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/libs/ae-php-sdk/iop/Constants.php'
+	),
+	'DI\\Attribute\\Inject' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Attribute/Inject.php'
+	),
+	'DI\\Attribute\\Injectable' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Attribute/Injectable.php'
+	),
+	'DI\\CompiledContainer' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/CompiledContainer.php'
+	),
+	'DI\\Compiler\\Compiler' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Compiler/Compiler.php'
+	),
+	'DI\\Compiler\\ObjectCreationCompiler' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Compiler/ObjectCreationCompiler.php'
+	),
+	'DI\\Compiler\\RequestedEntryHolder' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Compiler/RequestedEntryHolder.php'
+	),
+	'DI\\Container' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Container.php'
+	),
+	'DI\\ContainerBuilder' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/ContainerBuilder.php'
+	),
+	'DI\\Definition\\ArrayDefinition' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/ArrayDefinition.php'
+	),
+	'DI\\Definition\\ArrayDefinitionExtension' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/ArrayDefinitionExtension.php'
+	),
+	'DI\\Definition\\AutowireDefinition' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/AutowireDefinition.php'
+	),
+	'DI\\Definition\\DecoratorDefinition' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/DecoratorDefinition.php'
+	),
+	'DI\\Definition\\Definition' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Definition.php'
+	),
+	'DI\\Definition\\Dumper\\ObjectDefinitionDumper' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Dumper/ObjectDefinitionDumper.php'
+	),
+	'DI\\Definition\\EnvironmentVariableDefinition' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/EnvironmentVariableDefinition.php'
+	),
+	'DI\\Definition\\Exception\\InvalidAttribute' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Exception/InvalidAttribute.php'
+	),
+	'DI\\Definition\\Exception\\InvalidDefinition' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Exception/InvalidDefinition.php'
+	),
+	'DI\\Definition\\ExtendsPreviousDefinition' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/ExtendsPreviousDefinition.php'
+	),
+	'DI\\Definition\\FactoryDefinition' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/FactoryDefinition.php'
+	),
+	'DI\\Definition\\Helper\\AutowireDefinitionHelper' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Helper/AutowireDefinitionHelper.php'
+	),
+	'DI\\Definition\\Helper\\CreateDefinitionHelper' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Helper/CreateDefinitionHelper.php'
+	),
+	'DI\\Definition\\Helper\\DefinitionHelper' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Helper/DefinitionHelper.php'
+	),
+	'DI\\Definition\\Helper\\FactoryDefinitionHelper' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Helper/FactoryDefinitionHelper.php'
+	),
+	'DI\\Definition\\InstanceDefinition' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/InstanceDefinition.php'
+	),
+	'DI\\Definition\\ObjectDefinition' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/ObjectDefinition.php'
+	),
+	'DI\\Definition\\ObjectDefinition\\MethodInjection' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/ObjectDefinition/MethodInjection.php'
+	),
+	'DI\\Definition\\ObjectDefinition\\PropertyInjection' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/ObjectDefinition/PropertyInjection.php'
+	),
+	'DI\\Definition\\Reference' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Reference.php'
+	),
+	'DI\\Definition\\Resolver\\ArrayResolver' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Resolver/ArrayResolver.php'
+	),
+	'DI\\Definition\\Resolver\\DecoratorResolver' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Resolver/DecoratorResolver.php'
+	),
+	'DI\\Definition\\Resolver\\DefinitionResolver' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Resolver/DefinitionResolver.php'
+	),
+	'DI\\Definition\\Resolver\\EnvironmentVariableResolver' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Resolver/EnvironmentVariableResolver.php'
+	),
+	'DI\\Definition\\Resolver\\FactoryResolver' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Resolver/FactoryResolver.php'
+	),
+	'DI\\Definition\\Resolver\\InstanceInjector' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Resolver/InstanceInjector.php'
+	),
+	'DI\\Definition\\Resolver\\ObjectCreator' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Resolver/ObjectCreator.php'
+	),
+	'DI\\Definition\\Resolver\\ParameterResolver' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Resolver/ParameterResolver.php'
+	),
+	'DI\\Definition\\Resolver\\ResolverDispatcher' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Resolver/ResolverDispatcher.php'
+	),
+	'DI\\Definition\\SelfResolvingDefinition' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/SelfResolvingDefinition.php'
+	),
+	'DI\\Definition\\Source\\AttributeBasedAutowiring' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Source/AttributeBasedAutowiring.php'
+	),
+	'DI\\Definition\\Source\\Autowiring' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Source/Autowiring.php'
+	),
+	'DI\\Definition\\Source\\DefinitionArray' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Source/DefinitionArray.php'
+	),
+	'DI\\Definition\\Source\\DefinitionFile' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Source/DefinitionFile.php'
+	),
+	'DI\\Definition\\Source\\DefinitionNormalizer' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Source/DefinitionNormalizer.php'
+	),
+	'DI\\Definition\\Source\\DefinitionSource' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Source/DefinitionSource.php'
+	),
+	'DI\\Definition\\Source\\MutableDefinitionSource' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Source/MutableDefinitionSource.php'
+	),
+	'DI\\Definition\\Source\\NoAutowiring' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Source/NoAutowiring.php'
+	),
+	'DI\\Definition\\Source\\ReflectionBasedAutowiring' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Source/ReflectionBasedAutowiring.php'
+	),
+	'DI\\Definition\\Source\\SourceCache' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Source/SourceCache.php'
+	),
+	'DI\\Definition\\Source\\SourceChain' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/Source/SourceChain.php'
+	),
+	'DI\\Definition\\StringDefinition' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/StringDefinition.php'
+	),
+	'DI\\Definition\\ValueDefinition' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Definition/ValueDefinition.php'
+	),
+	'DI\\DependencyException' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/DependencyException.php'
+	),
+	'DI\\FactoryInterface' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/FactoryInterface.php'
+	),
+	'DI\\Factory\\RequestedEntry' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Factory/RequestedEntry.php'
+	),
+	'DI\\Invoker\\DefinitionParameterResolver' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Invoker/DefinitionParameterResolver.php'
+	),
+	'DI\\Invoker\\FactoryParameterResolver' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Invoker/FactoryParameterResolver.php'
+	),
+	'DI\\NotFoundException' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/NotFoundException.php'
+	),
+	'DI\\Proxy\\NativeProxyFactory' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Proxy/NativeProxyFactory.php'
+	),
+	'DI\\Proxy\\ProxyFactory' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Proxy/ProxyFactory.php'
+	),
+	'DI\\Proxy\\ProxyFactoryInterface' => array(
+		'version' => '7.1.1.0',
+		'path'    => $vendorDir . '/php-di/php-di/src/Proxy/ProxyFactoryInterface.php'
+	),
+	'Invoker\\CallableResolver' => array(
+		'version' => '2.3.7.0',
+		'path'    => $vendorDir . '/php-di/invoker/src/CallableResolver.php'
+	),
+	'Invoker\\Exception\\InvocationException' => array(
+		'version' => '2.3.7.0',
+		'path'    => $vendorDir . '/php-di/invoker/src/Exception/InvocationException.php'
+	),
+	'Invoker\\Exception\\NotCallableException' => array(
+		'version' => '2.3.7.0',
+		'path'    => $vendorDir . '/php-di/invoker/src/Exception/NotCallableException.php'
+	),
+	'Invoker\\Exception\\NotEnoughParametersException' => array(
+		'version' => '2.3.7.0',
+		'path'    => $vendorDir . '/php-di/invoker/src/Exception/NotEnoughParametersException.php'
+	),
+	'Invoker\\Invoker' => array(
+		'version' => '2.3.7.0',
+		'path'    => $vendorDir . '/php-di/invoker/src/Invoker.php'
+	),
+	'Invoker\\InvokerInterface' => array(
+		'version' => '2.3.7.0',
+		'path'    => $vendorDir . '/php-di/invoker/src/InvokerInterface.php'
+	),
+	'Invoker\\ParameterResolver\\AssociativeArrayResolver' => array(
+		'version' => '2.3.7.0',
+		'path'    => $vendorDir . '/php-di/invoker/src/ParameterResolver/AssociativeArrayResolver.php'
+	),
+	'Invoker\\ParameterResolver\\Container\\ParameterNameContainerResolver' => array(
+		'version' => '2.3.7.0',
+		'path'    => $vendorDir . '/php-di/invoker/src/ParameterResolver/Container/ParameterNameContainerResolver.php'
+	),
+	'Invoker\\ParameterResolver\\Container\\TypeHintContainerResolver' => array(
+		'version' => '2.3.7.0',
+		'path'    => $vendorDir . '/php-di/invoker/src/ParameterResolver/Container/TypeHintContainerResolver.php'
+	),
+	'Invoker\\ParameterResolver\\DefaultValueResolver' => array(
+		'version' => '2.3.7.0',
+		'path'    => $vendorDir . '/php-di/invoker/src/ParameterResolver/DefaultValueResolver.php'
+	),
+	'Invoker\\ParameterResolver\\NumericArrayResolver' => array(
+		'version' => '2.3.7.0',
+		'path'    => $vendorDir . '/php-di/invoker/src/ParameterResolver/NumericArrayResolver.php'
+	),
+	'Invoker\\ParameterResolver\\ParameterResolver' => array(
+		'version' => '2.3.7.0',
+		'path'    => $vendorDir . '/php-di/invoker/src/ParameterResolver/ParameterResolver.php'
+	),
+	'Invoker\\ParameterResolver\\ResolverChain' => array(
+		'version' => '2.3.7.0',
+		'path'    => $vendorDir . '/php-di/invoker/src/ParameterResolver/ResolverChain.php'
+	),
+	'Invoker\\ParameterResolver\\TypeHintResolver' => array(
+		'version' => '2.3.7.0',
+		'path'    => $vendorDir . '/php-di/invoker/src/ParameterResolver/TypeHintResolver.php'
+	),
+	'Invoker\\Reflection\\CallableReflection' => array(
+		'version' => '2.3.7.0',
+		'path'    => $vendorDir . '/php-di/invoker/src/Reflection/CallableReflection.php'
+	),
+	'IopClient' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/libs/ae-php-sdk/iop/IopClient.php'
+	),
+	'IopLogger' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/libs/ae-php-sdk/iop/IopLogger.php'
+	),
+	'IopRequest' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/libs/ae-php-sdk/iop/IopRequest.php'
+	),
+	'Laravel\\SerializableClosure\\Contracts\\Serializable' => array(
+		'version' => '2.0.12.0',
+		'path'    => $vendorDir . '/laravel/serializable-closure/src/Contracts/Serializable.php'
+	),
+	'Laravel\\SerializableClosure\\Contracts\\Signer' => array(
+		'version' => '2.0.12.0',
+		'path'    => $vendorDir . '/laravel/serializable-closure/src/Contracts/Signer.php'
+	),
+	'Laravel\\SerializableClosure\\Exceptions\\InvalidSignatureException' => array(
+		'version' => '2.0.12.0',
+		'path'    => $vendorDir . '/laravel/serializable-closure/src/Exceptions/InvalidSignatureException.php'
+	),
+	'Laravel\\SerializableClosure\\Exceptions\\MissingSecretKeyException' => array(
+		'version' => '2.0.12.0',
+		'path'    => $vendorDir . '/laravel/serializable-closure/src/Exceptions/MissingSecretKeyException.php'
+	),
+	'Laravel\\SerializableClosure\\SerializableClosure' => array(
+		'version' => '2.0.12.0',
+		'path'    => $vendorDir . '/laravel/serializable-closure/src/SerializableClosure.php'
+	),
+	'Laravel\\SerializableClosure\\Serializers\\Native' => array(
+		'version' => '2.0.12.0',
+		'path'    => $vendorDir . '/laravel/serializable-closure/src/Serializers/Native.php'
+	),
+	'Laravel\\SerializableClosure\\Serializers\\Signed' => array(
+		'version' => '2.0.12.0',
+		'path'    => $vendorDir . '/laravel/serializable-closure/src/Serializers/Signed.php'
+	),
+	'Laravel\\SerializableClosure\\Signers\\Hmac' => array(
+		'version' => '2.0.12.0',
+		'path'    => $vendorDir . '/laravel/serializable-closure/src/Signers/Hmac.php'
+	),
+	'Laravel\\SerializableClosure\\Support\\ClosureScope' => array(
+		'version' => '2.0.12.0',
+		'path'    => $vendorDir . '/laravel/serializable-closure/src/Support/ClosureScope.php'
+	),
+	'Laravel\\SerializableClosure\\Support\\ClosureStream' => array(
+		'version' => '2.0.12.0',
+		'path'    => $vendorDir . '/laravel/serializable-closure/src/Support/ClosureStream.php'
+	),
+	'Laravel\\SerializableClosure\\Support\\ReflectionClosure' => array(
+		'version' => '2.0.12.0',
+		'path'    => $vendorDir . '/laravel/serializable-closure/src/Support/ReflectionClosure.php'
+	),
+	'Laravel\\SerializableClosure\\Support\\SelfReference' => array(
+		'version' => '2.0.12.0',
+		'path'    => $vendorDir . '/laravel/serializable-closure/src/Support/SelfReference.php'
+	),
+	'Laravel\\SerializableClosure\\UnsignedSerializableClosure' => array(
+		'version' => '2.0.12.0',
+		'path'    => $vendorDir . '/laravel/serializable-closure/src/UnsignedSerializableClosure.php'
+	),
+	'Pages' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/enum/Pages.php'
+	),
+	'Psr\\Container\\ContainerExceptionInterface' => array(
+		'version' => '1.1.0.0',
+		'path'    => $vendorDir . '/psr/container/src/ContainerExceptionInterface.php'
+	),
+	'Psr\\Container\\ContainerInterface' => array(
+		'version' => '1.1.0.0',
+		'path'    => $vendorDir . '/psr/container/src/ContainerInterface.php'
+	),
+	'Psr\\Container\\NotFoundExceptionInterface' => array(
+		'version' => '1.1.0.0',
+		'path'    => $vendorDir . '/psr/container/src/NotFoundExceptionInterface.php'
+	),
+	'UrlConstants' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/libs/ae-php-sdk/iop/UrlConstants.php'
 	),
 );

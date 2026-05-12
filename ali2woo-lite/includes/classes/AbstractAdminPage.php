@@ -96,10 +96,11 @@ abstract class AbstractAdminPage extends AbstractController
             );
         }
         
-        add_action("load-${page_id}", [$this, 'configure_screen_options']);
+        add_action("load-{$page_id}", [$this, 'configure_screen_options']);
     }
 
-    public function before_render_action() {
+    public function before_render_action(): void
+    {
         if ($this->is_current_page()) {
             $this->before_admin_render();
         }

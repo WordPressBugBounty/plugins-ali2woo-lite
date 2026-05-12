@@ -14,41 +14,29 @@ class WizardService
         protected AliexpressRegionRepository $AliexpressRegionRepository,
         protected AliexpressLocalizator $AliexpressLocalizator,
         protected PriceFormulaRepository $PriceFormulaRepository,
-        protected PriceFormulaFactory $PriceFormulaFactory
+        protected PriceFormulaFactory $PriceFormulaFactory,
+        protected CommonSettingService $CommonSettingService
     ) {}
 
-    /**
-     * Обработка формы Wizard
-     */
     public function handle(array $post): array
     {
         $errors = [];
 
         settings()->auto_commit(false);
-
-        if (!empty($post['a2wl_item_purchase_code'])) {
-            set_setting('item_purchase_code', wp_unslash($post['a2wl_item_purchase_code']));
-        } else {
-            $errors['a2wl_item_purchase_code'] = esc_html__('required field', 'ali2woo');
-        }
+        
 
         if (isset($post['a2w_import_language'])) {
             set_setting('import_language', wp_unslash($post['a2w_import_language']));
         }
 
-        if (isset($post['a2wl_aliexpress_region'])) {
-            set_setting(
-                SETTINGS::SETTING_ALIEXPRESS_REGION,
-                isset($_POST['a2wl_aliexpress_region']) ? wp_unslash($_POST['a2wl_aliexpress_region']) : 'US'
-            );
-        }
+        
 
         if (isset($post['a2w_local_currency'])) {
             $currency = wp_unslash($post['a2w_local_currency']);
             set_setting('local_currency', $currency);
             update_option('woocommerce_currency', $currency);
         }
-
+        
         // description import mode
         $mode = $post['a2wl_description_import_mode'] ?? 'use_spec';
         set_setting('not_import_attributes', false);
@@ -73,10 +61,9 @@ class WizardService
         } else {
             $errors['a2wl_fulfillment_phone_block'] = esc_html__('required fields', 'ali2woo');
         }
+        
 
-        if (isset($post['a2wl_import_reviews'])) {
-            $this->setupReviews();
-        }
+        
 
         settings()->commit();
         settings()->auto_commit(true);
@@ -105,32 +92,9 @@ class WizardService
             $formula = $this->PriceFormulaFactory->createFormulaFromData($defaultRule);
             $this->PriceFormulaRepository->setDefaultFormula($formula);
         }
-
-        set_setting(Settings::SETTING_ADD_SHIPPING_TO_PRICE, $pricingRules !== 'no' && $addShipping);
-        set_setting('apply_price_rules_after_shipping_cost', $pricingRules !== 'no' && $addShipping);
+        
     }
-
-    protected function setupReviews(): void
-    {
-        set_setting('load_review', true);
-        set_setting('review_status', true);
-        set_setting('review_translated', true);
-        set_setting('review_min_per_product', 10);
-        set_setting('review_max_per_product', 20);
-        set_setting('review_raiting_from', 4);
-        set_setting('review_raiting_to', 5);
-        set_setting('review_thumb_width', 30);
-        set_setting('review_load_attributes', false);
-        set_setting('review_show_image_list', true);
-        set_setting('review_skip_keywords', '');
-        set_setting('review_skip_empty', true);
-        set_setting('review_country', []);
-        set_setting('moderation_reviews', false);
-    }
-
-    /**
-     * Сбор моделей для view
-     */
+    
     public function collectModel(): array
     {
         $language_model = new Language();

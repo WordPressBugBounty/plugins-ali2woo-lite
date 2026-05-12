@@ -298,7 +298,8 @@ use function AliNext_Lite\get_setting;
     <div class="panel-heading">
         <h3 class="display-inline"><?php _ex('Order Fulfillment settings', 'Setting title', 'ali2woo'); ?></h3>
     </div>
-    <div class="panel-body">
+    <div class="_a2wfo a2wl-info"><div>This feature is available in full version of the plugin.</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>
+    <div class="panel-body _a2wfv">
         <div class="field field_inline">
             <div class="field__label">
                 <label for="a2wl_delivered_order_status">

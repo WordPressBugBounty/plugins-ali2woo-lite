@@ -394,7 +394,8 @@ $a2w_local_currency = strtoupper(get_setting('local_currency'));
         <div class="panel-heading">
             <h3 class="panel__header-title"><?php echo esc_html_e('Add shipping cost', 'ali2woo'); ?></h3>
         </div>
-        <div class="panel-body">
+        <div class="_a2wfo a2wl-info"><div>This feature is available in full version of the plugin.</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>
+        <div class="panel-body _a2wfv">
             <div class="row">
                 <div class="col-md-12 col-lg-8">
                     <div class="grey-color mb20"><?php echo esc_html_e('You can add the shipping cost that you see in the import list to the product price.', 'ali2woo'); ?></div>

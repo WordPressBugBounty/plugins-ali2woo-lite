@@ -189,6 +189,7 @@ return [
             get(AliexpressLocalizator::class),
             get(PriceFormulaRepository::class),
             get(PriceFormulaFactory::class),
+            get(CommonSettingService::class),
         ),
     'AliNext_Lite\ProductImportTransactionService' => create(ProductImportTransactionService::class)
         ->constructor(
@@ -356,6 +357,7 @@ return [
     ->constructor(
         get(AliexpressToken::class),
         get(GlobalSystemMessageService::class),
+        get(AliexpressTokenService::class),
     ),
     'AliNext_Lite\PriceFormulaSetAjaxController' => create(PriceFormulaSetAjaxController::class)
         ->constructor(

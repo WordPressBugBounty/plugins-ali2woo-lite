@@ -127,8 +127,9 @@ class Helper {
         a2wl_delete_transient('wc_attribute_taxonomies');
     }
 
-    // add WooCommerce attribute values
-    public function add_attribute($post_id, $key, $value) {
+
+    public function add_attribute($post_id, $key, $value): void
+    {
         global $wpdb;
 
         // avoid object to be inserted in terms
@@ -136,38 +137,44 @@ class Helper {
             return;
         }
 
+        // log empty values of attribute (possible bug)
+        if (empty($value) || (is_array($value) && count(array_filter($value)) === 0)) {
+            a2wl_error_log(sprintf(
+                '[add_attribute] Empty value detected for product_id=%d, key=%s',
+                $post_id,
+                $key
+            ));
+        }
+
         $taxonomy = $this->cleanTaxonomyName($key);
 
-        // get attribute name, label
         $attribute_label = $key;
-
         //attribute name should be the same as taxonomy just without pa_
         $attribute_name = str_replace('pa_', '', $taxonomy);
-
-        // set attribute type
         $attribute_type = 'select';
 
-        // check for duplicates
         $attribute_taxonomies = $wpdb->get_var(
             "SELECT * FROM {$wpdb->prefix}woocommerce_attribute_taxonomies WHERE attribute_name = '" . esc_sql($attribute_name) . "'"
         );
 
         if ($attribute_taxonomies) {
-            // update existing attribute
+            // Update existing global attribute
+            // Set type to 'select' since this attribute is used for variations
             $wpdb->update(
-                    $wpdb->prefix . 'woocommerce_attribute_taxonomies', array(
-                        'attribute_name' => $attribute_name
-                    ), array('attribute_name' => $attribute_name)
+                $wpdb->prefix . 'woocommerce_attribute_taxonomies',
+                [
+                    'attribute_type' => $attribute_type
+                ],
+                ['attribute_name' => $attribute_name]
             );
         } else {
-            // add new attribute
             $wpdb->insert(
-                    $wpdb->prefix . 'woocommerce_attribute_taxonomies', array(
+                    $wpdb->prefix . 'woocommerce_attribute_taxonomies', [
                         'attribute_label' => $attribute_label,
                         'attribute_name' => $attribute_name,
                         'attribute_type' => $attribute_type,
                         'attribute_orderby' => 'name'
-                    )
+                    ]
             );
         }
 
@@ -185,29 +192,33 @@ class Helper {
                     // add term
                     $name = $this->cleanValue($attribute_value);
                     $slug = sanitize_title($name);
-                    
+
                     if (!term_exists($name)) {
-                        if (trim($slug) != '' && trim($name) != '') {
-                            $this->db_custom_insert($wpdb->terms, array('values' => array('name' => $name, 'slug' => $slug), 'format' => array('%s', '%s')), true);
-
-                            // add term taxonomy
-                            $term_id = $wpdb->insert_id;
-                            $this->db_custom_insert($wpdb->term_taxonomy, array('values' => array('term_id' => $term_id, 'taxonomy' => $taxonomy), 'format' => array('%d', '%s')), true);
-
-                            $term_taxonomy_id = $wpdb->insert_id;
-                        }
+                        $term_taxonomy_id = $this->createTermAndLinkTaxonomy($name, $taxonomy, $slug);
                     } else {
-                        // add term taxonomy
-                        $term_id = $wpdb->get_var("SELECT term_id FROM {$wpdb->terms} WHERE name = '" . esc_sql($name) . "'");
-                        $this->db_custom_insert(
-                            $wpdb->term_taxonomy,
-                            [
-                                'values' => ['term_id' => $term_id, 'taxonomy' => $taxonomy],
-                                'format' => ['%d', '%s']
-                            ],
-                            true
+                        $term_id = $wpdb->get_var(
+                            $wpdb->prepare(
+                                "SELECT term_id FROM {$wpdb->terms} WHERE name = %s",
+                                $name
+                            )
                         );
-                        $term_taxonomy_id = $wpdb->insert_id;
+
+                        $existing_tt_id = $wpdb->get_var(
+                            $wpdb->prepare(
+                                "SELECT term_taxonomy_id FROM {$wpdb->term_taxonomy} WHERE term_id = %d AND taxonomy = %s",
+                                $term_id,
+                                $taxonomy
+                            )
+                        );
+
+                        if ($existing_tt_id) {
+                            //term is connected to the taxonomy, do nothing
+                            $term_taxonomy_id = $existing_tt_id;
+                        } else {
+                            //need create a new token and connect it to the taxonomy
+                            $term_taxonomy_id = $this->createTermAndLinkTaxonomy($name, $taxonomy, $slug);
+
+                        }
                     }
                 }
             }
@@ -394,6 +405,56 @@ class Helper {
         $ret['term_taxonomy'] = $this->attrclean_remove_term_taxonomy($term_taxonomy_id, $taxonomy, $debug);
         // var_dump('<pre>',$ret,'</pre>');  
         return $ret;
+    }
+
+    /**
+     * Create a new term and link it to the given taxonomy.
+     *
+     * Normally each taxonomy should have its own terms, even if names/slugs match.
+     * This function uses wp_unique_term_slug() as a safeguard in case another process
+     * already inserted the same slug for this taxonomy, ensuring uniqueness and avoiding conflicts.
+     *
+     * @param string $termName  Term name (e.g. "white")
+     * @param string $taxonomy  Taxonomy name (e.g. "pa_color")
+     * @param string $slug      Base slug for the term
+     * @return int|false        term_taxonomy_id or false on failure
+     */
+    private function createTermAndLinkTaxonomy($termName, $taxonomy, $slug) {
+        global $wpdb;
+
+        if (trim($slug) !== '' && trim($termName) !== '') {
+
+            $term = (object) [
+                'taxonomy' => $taxonomy,
+                'parent'   => 0,
+                'term_id'  => 0,
+            ];
+            $unique_slug = wp_unique_term_slug($slug, $term);
+
+            $this->db_custom_insert(
+                $wpdb->terms,
+                [
+                    'values' => ['name' => $termName, 'slug' => $unique_slug],
+                    'format' => ['%s', '%s']
+                ],
+                true
+            );
+
+            $term_id = $wpdb->insert_id;
+
+            $this->db_custom_insert(
+                $wpdb->term_taxonomy,
+                [
+                    'values' => ['term_id' => $term_id, 'taxonomy' => $taxonomy],
+                    'format' => ['%d', '%s']
+                ],
+                true
+            );
+
+            return $wpdb->insert_id;
+        }
+
+        return false;
     }
 
     private function attrclean_remove_term_relationships($first_term, $term_taxonomy_id, $debug = false) {

@@ -7,7 +7,15 @@ $baseDir   = dirname($vendorDir);
 
 return array(
 	'b33e3d135e5d9e47d845c576147bda89' => array(
-		'version' => '7.0.6.0',
+		'version' => '7.1.1.0',
 		'path'    => $vendorDir . '/php-di/php-di/src/functions.php'
+	),
+	'49489f6d1fe29d2541a0ad5879e8f6d9' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/functions.php'
+	),
+	'8869741057b58fb5f1afd8a20a34f273' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/settings.php'
 	),
 );

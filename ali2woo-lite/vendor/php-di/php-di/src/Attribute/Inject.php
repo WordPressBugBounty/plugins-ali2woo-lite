@@ -17,7 +17,7 @@ use DI\Definition\Exception\InvalidAttribute;
  * @author Matthieu Napoli <matthieu@mnapoli.fr>
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_METHOD | Attribute::TARGET_PARAMETER)]
-final class Inject
+class Inject
 {
     /**
      * Entry name.
@@ -47,7 +47,7 @@ final class Inject
                 if (! is_string($value)) {
                     throw new InvalidAttribute(sprintf(
                         "#[Inject(['param' => 'value'])] expects \"value\" to be a string, %s given.",
-                        wp_json_encode($value, \JSON_THROW_ON_ERROR)
+                        json_encode($value, \JSON_THROW_ON_ERROR)
                     ));
                 }
 
@@ -59,7 +59,7 @@ final class Inject
     /**
      * @return string|null Name of the entry to inject
      */
-    public function getName() : string|null
+    public function getName() : ?string
     {
         return $this->name;
     }

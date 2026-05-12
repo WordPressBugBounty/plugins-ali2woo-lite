@@ -423,3 +423,10 @@
 * Added compatibility AliNext with WooCommerce 10.4
 * Fix: Various minor bug fixes
 
+3.6.8
+* Fix: prevent frontend display issues in variable products (rare variation bug fixed)
+* Fix: fix wizard on activation bug
+* Fix: chrome extension connection bug
+* Add: mbstring extension check to SystemInfo
+* Fix: Various minor bug fixes
+
