@@ -13,7 +13,7 @@ class Settings
 {
     public const DEFAULT_AUTO_UPDATE_MAX_QUOTA = '75';
 
-
+    public const SETTING_API_ENDPOINT_V6 = 'api_endpoint_v6';
     public const SETTING_ALIEXPRESS_REGION = 'aliexpress_region';
     public const SETTING_SYSTEM_MESSAGE = 'system_message';
     public const SETTING_CRITICAL_MESSAGES = 'critical_messages';
@@ -64,6 +64,7 @@ class Settings
 
     private $static_settings = [
         'api_endpoint' => 'https://api.ali2woo.com/v4/',
+        self::SETTING_API_ENDPOINT_V6 => 'https://api.ali2woo.com/v6/api/',
         'client_id' => 33446317,
         'image_editor_srickers' => [
             '/assets/img/stickers/stick-001.png',

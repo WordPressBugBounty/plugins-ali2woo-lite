@@ -1,0 +1,206 @@
+#a2wl-exit-survey-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9998;
+}
+
+#a2wl-exit-survey {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 6px;
+    padding: 24px;
+    width: 420px;
+    max-width: 90%;
+    z-index: 9999;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #1a1a1a;
+}
+
+.a2wl-exit-survey__subtitle {
+    font-size: 14px;
+    color: #374151;
+    margin: 8px 0 0;
+    line-height: 1.5;
+}
+
+.a2wl-exit-survey__close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 0;
+    transition: color .15s;
+}
+
+.a2wl-exit-survey__close:hover {
+    color: #111827;
+}
+
+.a2wl-exit-survey__header {
+    text-align: center;
+    border-bottom: 1px solid #f3f4f6;
+    padding: 12px 0;
+}
+
+.a2wl-exit-survey__header h2 {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.a2wl-exit-survey__logo {
+    max-height: 36px;
+    width: auto;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.a2wl-exit-survey__subtitle {
+    font-size: 13px;
+    color: #374151;
+    margin: 8px 0;
+    line-height: 1.4;
+    text-align: left;
+
+}
+
+#a2wl-exit-survey-form label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #374151;
+    cursor: pointer;
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+#a2wl-exit-survey-form input[type="text"] {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 13px;
+    margin: 10px 0 16px;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+#a2wl-exit-survey-form input[type="text"]:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 1px rgba(37,99,235,0.2);
+    outline: none;
+}
+
+#a2wl-exit-survey-other {
+    width: 100%;
+    padding: 5px 7px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 13px;
+    margin: 6px 0 12px;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+#a2wl-exit-survey-other:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 1px rgba(37,99,235,0.2);
+    outline: none;
+}
+
+#a2wl-exit-survey-form button {
+    padding: 8px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+    font-weight: 500;
+    transition: background .15s, color .15s;
+    margin-right: 8px;
+}
+
+#a2wl-exit-survey-form button[type="submit"] {
+    background: #10b981;
+    color: #fff;
+}
+
+#a2wl-exit-survey-form button[type="submit"]:hover {
+    background: #059669;
+}
+
+#a2wl-exit-survey-form button#a2wl-exit-survey-skip {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+#a2wl-exit-survey-form button#a2wl-exit-survey-skip:hover {
+    background: #d1d5db;
+}
+
+#a2wl-exit-survey-form input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 50%;
+    background-color: #fff;
+    cursor: pointer;
+    vertical-align: middle;
+    margin-right: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#a2wl-exit-survey-form input[type="radio"]:checked::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background-color: #10b981; /* зелёный */
+    border-radius: 50%;
+}
+
+.a2wl-exit-survey__contact {
+    margin-top: 20px;
+    border-top: 1px solid #f3f4f6;
+}
+
+.a2wl-exit-survey__contact h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    color: #111827;
+}
+
+.a2wl-exit-survey__contact p {
+    font-size: 13px;
+    color: #374151;
+    margin: 0 0 12px;
+    line-height: 1.5;
+}
+
+#a2wl-exit-survey-email {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 13px;
+    transition: border-color .15s, box-shadow .15s;
+    margin-bottom: 16px;
+}
+
+#a2wl-exit-survey-email:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 1px rgba(37,99,235,0.2);
+    outline: none;
+}

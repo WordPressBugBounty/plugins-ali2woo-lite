@@ -47,7 +47,7 @@ $pc_info = AliNext_Lite\SystemInfo::server_ping();
                     <div class="field__input-wrap">
                         <div class="form-group input-block no-margin clearfix">
                             <?php echo $server_ip;?>
-                        </div>                                                                     
+                        </div>
                     </div>
                 </div>
                 <div class="field field_inline">
@@ -66,7 +66,7 @@ $pc_info = AliNext_Lite\SystemInfo::server_ping();
                                 echo '<div class="info-box" data-toggle="tooltip" data-title="'.$result['message'].'"></div>';
                             }
                             ?>
-                        </div>                                                                     
+                        </div>
                     </div>
                 </div>
                 <div class="field field_inline">
@@ -185,7 +185,7 @@ $pc_info = AliNext_Lite\SystemInfo::server_ping();
                             <strong><?php esc_html_e('Php config', 'ali2woo'); ?></strong>
                         </label>
                     </div>
-                    
+
                     <div class="field__input-wrap">
                         <div class="php_ini_check_row">
                             <span><?php esc_html_e('allow_url_fopen', 'ali2woo'); ?>:</span>
@@ -213,7 +213,7 @@ $pc_info = AliNext_Lite\SystemInfo::server_ping();
                                 echo '<div class="info-box" data-toggle="tooltip" data-title="'.$result['message'].'"></div>';
                             }
                             ?>
-                        </div>                                                                     
+                        </div>
                     </div>
                 </div>
                 <div class="field field_inline">
@@ -229,7 +229,7 @@ $pc_info = AliNext_Lite\SystemInfo::server_ping();
                             echo ($pc_info['state']!=='ok'?'<span class="error">ERROR</span>':'<span class="ok">OK</span>');
                             if(!empty($pc_info['message'])){
                                 if ($pc_info['state']!=='ok') {
-                                    echo '<div class="row-comments">The error message is: <b>'.$pc_info['message'].'</b>'; 
+                                    echo '<div class="row-comments">The error message is: <b>'.$pc_info['message'].'</b>';
                                     if(strpos(strtolower($pc_info['message']) , 'curl') !== false) {
                                         echo '<br/>Please contact your server/hosting support and ask why it happens and how to fix the issue';
                                     }
@@ -239,7 +239,7 @@ $pc_info = AliNext_Lite\SystemInfo::server_ping();
                                 }
                             }
                             ?>
-                        </div>                                                                     
+                        </div>
                     </div>
                 </div>
                 <div class="field field_inline">
@@ -251,8 +251,8 @@ $pc_info = AliNext_Lite\SystemInfo::server_ping();
                     <div class="field__input-wrap">
                         <div class="form-group input-block no-margin clearfix">
                             <?php echo (defined('DISABLE_WP_CRON') && DISABLE_WP_CRON)?"Yes":"No";?>
-                            <div class="info-box" data-toggle="tooltip" data-title="<?php echo esc_html_x('We recommend to disable WP Cron and setup the cron on your server/hosting instead.', 'setting description', 'ali2woo'); ?>"></div>                            
-                        </div>                                                                     
+                            <div class="info-box" data-toggle="tooltip" data-title="<?php echo esc_html_x('We recommend to disable WP Cron and setup the cron on your server/hosting instead.', 'setting description', 'ali2woo'); ?>"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="field field_inline">
@@ -271,7 +271,7 @@ $pc_info = AliNext_Lite\SystemInfo::server_ping();
                                 echo '<div class="info-box" data-toggle="tooltip" data-title="'.$result['message'].'"></div>';
                             }
                             ?>
-                        </div>                                                                     
+                        </div>
                     </div>
                 </div>
 
@@ -284,18 +284,18 @@ $pc_info = AliNext_Lite\SystemInfo::server_ping();
                     </div>
                     <div class="field__input-wrap">
                         <div class="form-group input-block no-margin">
-                            <?php 
+                            <?php
                             $import_process = new ImportProcess();
                             $num_in_queue = $import_process->getSize();
                             ?>
-                            <span><?php echo $num_in_queue; ?></span> 
+                            <span><?php echo $num_in_queue; ?></span>
                             <?php if($num_in_queue>0):?>
                             <a class="a2wl-run-cron-queue" href="#"><?php esc_html_e('Run', 'ali2woo'); ?></a> | <a class="a2wl-clean-import-queue" href="#"><?php esc_html_e('Clean', 'ali2woo'); ?></a>
                             <?php endif; ?>
                         </div>
                     </div>
                 </div>
-
+                <?php  if (!a2wl_check_defined('A2WL_DEMO_MODE')): ?>
                 <div class="field field_inline">
                     <div class="field__label">
                         <label>
@@ -309,8 +309,8 @@ $pc_info = AliNext_Lite\SystemInfo::server_ping();
                         </div>
                     </div>
                 </div>
-
-            </div>       
+                <?php endif; ?>
+            </div>
         </div>
 
         <div class="container-fluid">
@@ -330,7 +330,7 @@ $pc_info = AliNext_Lite\SystemInfo::server_ping();
             if ($.fn.tooltip) {
                 $('[data-toggle="tooltip"]').tooltip({"placement": "top"});
             }
-            
+
             $('.a2wl-clean-log').on('click', function () {
                 $.post(ajaxurl, {action: 'a2wl_clear_log_file'}).done(function (response) {
                     let json = JSON.parse(response);
@@ -352,7 +352,7 @@ $pc_info = AliNext_Lite\SystemInfo::server_ping();
                         console.log(error);
                     });
                 }
-                
+
                 return false;
             });
 
@@ -365,7 +365,7 @@ $pc_info = AliNext_Lite\SystemInfo::server_ping();
                         console.log(error);
                     });
                 }
-                
+
                 return false;
             });
 

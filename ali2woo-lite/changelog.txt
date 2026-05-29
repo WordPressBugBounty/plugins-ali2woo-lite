@@ -430,3 +430,9 @@
 * Add: mbstring extension check to SystemInfo
 * Fix: Various minor bug fixes
 
+3.6.9
+* Add: Deactivation survey page, making it easy for you to share feedback and shape future updates
+* Fix: Wizard page is now clearer and faster to configure, saving you time during setup
+* Fix: Removed PHP warning messages on admin pages for a smoother experience
+* Fix: Various minor bugs resolved to improve overall stability and reliability
+

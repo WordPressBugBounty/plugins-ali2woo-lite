@@ -1,6 +1,7 @@
 <?php
 
 use AliNext_Lite\AddProductToImportListProcess;
+use AliNext_Lite\AdminMenuService;
 use AliNext_Lite\AffiliateCheckProcess;
 use AliNext_Lite\AfterProductImportHook;
 use AliNext_Lite\Aliexpress;
@@ -11,13 +12,16 @@ use AliNext_Lite\AliexpressToken;
 use AliNext_Lite\AliexpressTokenAjaxController;
 use AliNext_Lite\AliexpressTokenService;
 use AliNext_Lite\AliexpressTokenValidationService;
+use AliNext_Lite\ApiClient;
 use AliNext_Lite\ApplyShippingMethodBulkProcess;
+use AliNext_Lite\AssetService;
 use AliNext_Lite\Attachment;
 use AliNext_Lite\BackgroundProcessFactory;
 use AliNext_Lite\CommonSettingService;
 use AliNext_Lite\Country;
 use AliNext_Lite\CriticalMessageService;
 use AliNext_Lite\DeliveryTimeController;
+use AliNext_Lite\ExitSurveyService;
 use AliNext_Lite\ExternalOrderFactory;
 use AliNext_Lite\FrontendInitController;
 use AliNext_Lite\FrontendShippingController;
@@ -74,6 +78,7 @@ use AliNext_Lite\ShippingAssignerServiceInterface;
 use AliNext_Lite\ShippingDispatcherService;
 use AliNext_Lite\ShippingSettingService;
 use AliNext_Lite\SplitProductService;
+use AliNext_Lite\SurveyModalController;
 use AliNext_Lite\SynchProductController;
 use AliNext_Lite\Synchronize;
 use AliNext_Lite\SynchronizePluginDataController;
@@ -179,10 +184,20 @@ return [
         ),
 
     /* services */
+    'AliNext_Lite\AssetService' => create(AssetService::class)
+        ->constructor(
+            get(ApiClient::class),
+        ),
+    'AliNext_Lite\ApiClient' => create(ApiClient::class),
+    'AliNext_Lite\ExitSurveyService' => create(ExitSurveyService::class)
+        ->constructor(
+            get(ApiClient::class),
+        ),
     
     'AliNext_Lite\AliexpressToken' => factory([AliexpressToken::class, 'getInstance']),
     'AliNext_Lite\Settings' => factory([Settings::class, 'instance']),
     'AliNext_Lite\AliexpressLocalizator' => factory([AliexpressLocalizator::class, 'getInstance']),
+    'AliNext_Lite\AdminMenuService' => create(AdminMenuService::class),
     'AliNext_Lite\WizardService' => create(WizardService::class)
         ->constructor(
             get(AliexpressRegionRepository::class),
@@ -190,6 +205,7 @@ return [
             get(PriceFormulaRepository::class),
             get(PriceFormulaFactory::class),
             get(CommonSettingService::class),
+            get(AssetService::class),
         ),
     'AliNext_Lite\ProductImportTransactionService' => create(ProductImportTransactionService::class)
         ->constructor(
@@ -269,9 +285,9 @@ return [
             get(ProductShippingDataRepository::class),
         ),
     'AliNext_Lite\MigrateService' => create(MigrateService::class)
-      ->constructor(
+        ->constructor(
             get(ProductShippingDataRepository::class),
-      ),
+        ),
     'AliNext_Lite\ProductService' => create(ProductService::class)
         ->constructor(
             get(Aliexpress::class),
@@ -308,7 +324,9 @@ return [
             get(AliexpressToken::class),
             get(PlatformClient::class)
         ),
-    'alinext-lite\includes\classes\service\token\AliexpressTokenValidationService' => create(AliexpressTokenValidationService::class)
+    'alinext-lite\includes\classes\service\token\AliexpressTokenValidationService' => create(
+        AliexpressTokenValidationService::class
+    )
         ->constructor(
             get(AliexpressToken::class),
             get(CriticalMessageService::class),
@@ -322,13 +340,19 @@ return [
     'AliNext_Lite\AfterProductImportHook' => create(AfterProductImportHook::class)
         ->constructor(
             get(BackgroundProcessFactory::class),
-        
+            
         ),
 
     /* controllers */
+    'AliNext_Lite\SurveyModalController' => create(SurveyModalController::class)
+        ->constructor(
+            get(ExitSurveyService::class),
+            get(AssetService::class),
+        ),
     'AliNext_Lite\WizardPageController' => create(WizardPageController::class)
         ->constructor(
             get(WizardService::class),
+            get(AdminMenuService::class),
         ),
     'AliNext_Lite\SettingPageController' => create(SettingPageController::class)
         ->constructor(

@@ -4,34 +4,41 @@
  * Description of WizardPageController
  *
  * @author Ali2Woo Team
- * 
- * @autoload: a2wl_admin_init 
+ * @autoload: a2wl_admin_init
  */
 
 namespace AliNext_Lite;;
 
 use Pages;
 
-class WizardPageController extends AbstractAdminPage {
-
+class WizardPageController extends AbstractModernAdminPage
+{
     public const WIZARD_ACTIVATION_KEY = 'a2wl_show_wizard_on_activation';
 
+    private WizardService $WizardService;
+    private AdminMenuService $AdminMenuService;
+
     public function __construct(
-        protected WizardService $wizardService,
+        WizardService $WizardService,
+        AdminMenuService $AdminMenuService
     ) {
         parent::__construct(
             Pages::getLabel(Pages::WIZARD),
             Pages::getLabel(Pages::WIZARD),
             Capability::pluginAccess(),
-            Pages::WIZARD,
-            30,
-            2
+            Pages::WIZARD
         );
+
+        $this->WizardService = $WizardService;
+        $this->AdminMenuService = $AdminMenuService;
+
+        $this->add_style('a2wl-wizard-style', '/assets/css/pages/wizard.css?=2');
+
+        $AdminMenuService->registerPage($this, AdminMenuService::MENU_TYPE_HIDDEN_PAGE, 30);
 
         $this->showNotification();
         $this->showWizardOnActivation();
     }
-
 
     public function render($params = []): void
     {
@@ -45,13 +52,13 @@ class WizardPageController extends AbstractAdminPage {
 
         $errors = [];
         if (isset($_POST['wizard_form'])) {
-            $errors = $this->wizardService->handle($_POST);
+            $errors = $this->WizardService->handle($_POST);
             $redirect = add_query_arg('setup_wizard', 'success', admin_url('admin.php?page=a2wl_dashboard'));
             wp_redirect($redirect);
             exit;
         }
 
-        $model = $this->wizardService->collectModel();
+        $model = $this->WizardService->collectModel();
         $model['errors'] = $errors;
         $model['close_link'] = admin_url('admin.php?page=a2wl_dashboard');
 

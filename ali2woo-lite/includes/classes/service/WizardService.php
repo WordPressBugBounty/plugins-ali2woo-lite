@@ -15,8 +15,10 @@ class WizardService
         protected AliexpressLocalizator $AliexpressLocalizator,
         protected PriceFormulaRepository $PriceFormulaRepository,
         protected PriceFormulaFactory $PriceFormulaFactory,
-        protected CommonSettingService $CommonSettingService
-    ) {}
+        protected CommonSettingService $CommonSettingService,
+        protected AssetService $AssetService
+    ) {
+    }
 
     public function handle(array $post): array
     {
@@ -36,7 +38,9 @@ class WizardService
             set_setting('local_currency', $currency);
             update_option('woocommerce_currency', $currency);
         }
+
         
+
         // description import mode
         $mode = $post['a2wl_description_import_mode'] ?? 'use_spec';
         set_setting('not_import_attributes', false);
@@ -70,6 +74,8 @@ class WizardService
 
         return $errors;
     }
+
+    
 
     protected function setupPricingRules(string $pricingRules, bool $addShipping): void
     {
@@ -105,14 +111,20 @@ class WizardService
             'currencies' => $this->AliexpressLocalizator->getCurrencies(false),
             'custom_currencies' => $this->AliexpressLocalizator->getCurrencies(true),
             'description_import_modes' => [
-                'use_spec'   => esc_html_x('Use product specifications instead of description (recommended)', 'Wizard', 'ali2woo'),
-                'import_desc'=> esc_html_x('Import description from AliExpress', 'Wizard', 'ali2woo'),
+                'use_spec'   => esc_html_x('Use specifications only (recommended)', 'Wizard', 'ali2woo'),
+                'import_desc' => esc_html_x('Use AliExpress description', 'Wizard', 'ali2woo'),
             ],
             'pricing_rule_sets' => [
-                'no' => esc_html_x('No, I will set up prices myself later', 'Wizard', 'ali2woo'),
-                'low-ticket-fixed-3000' => esc_html_x('Set 300% fixed markup (for low-ticket products)', 'Wizard', 'ali2woo'),
+                'no' => esc_html_x('Skip for now', 'Wizard', 'ali2woo'),
+                'low-ticket-fixed-3000' => esc_html_x('Fixed markup 300%', 'Wizard', 'ali2woo'),
+            ],
+            'shippingModes' => [
+                'no' => esc_html_x('No need', 'Wizard', 'ali2woo'),
+                'cart_page' => esc_html_x('Use only in cart', 'Wizard', 'ali2woo'),
+                'product_page' => esc_html_x('Use in cart and product page  ', 'Wizard', 'ali2woo'),
             ],
             'languages' => $language_model->get_languages(),
+            'wizardLogo' => $this->AssetService->getLogoUrl('logo-120.png')
         ];
     }
 }

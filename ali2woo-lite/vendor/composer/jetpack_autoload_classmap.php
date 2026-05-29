@@ -26,6 +26,10 @@ return array(
 		'version' => 'dev-main',
 		'path'    => $baseDir . '/includes/classes/AbstractController.php'
 	),
+	'AliNext_Lite\\AbstractModernAdminPage' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/AbstractModernAdminPage.php'
+	),
 	'AliNext_Lite\\Account' => array(
 		'version' => 'dev-main',
 		'path'    => $baseDir . '/includes/classes/model/Account.php'
@@ -41,6 +45,10 @@ return array(
 	'AliNext_Lite\\AddonsController' => array(
 		'version' => 'dev-main',
 		'path'    => $baseDir . '/includes/classes/controller/AddonsController.php'
+	),
+	'AliNext_Lite\\AdminMenuService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/AdminMenuService.php'
 	),
 	'AliNext_Lite\\AdmitadAccount' => array(
 		'version' => 'dev-main',
@@ -106,6 +114,10 @@ return array(
 		'version' => 'dev-main',
 		'path'    => $baseDir . '/includes/classes/service/token/AliexpressTokenValidationService.php'
 	),
+	'AliNext_Lite\\ApiClient' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/ApiClient.php'
+	),
 	'AliNext_Lite\\ApiException' => array(
 		'version' => 'dev-main',
 		'path'    => $baseDir . '/includes/classes/exception/ApiException.php'
@@ -129,6 +141,10 @@ return array(
 	'AliNext_Lite\\ApplyShippingMethodBulkProcess' => array(
 		'version' => 'dev-main',
 		'path'    => $baseDir . '/includes/classes/job/ApplyShippingMethodBulkProcess.php'
+	),
+	'AliNext_Lite\\AssetService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/AssetService.php'
 	),
 	'AliNext_Lite\\Attachment' => array(
 		'version' => 'dev-main',
@@ -193,6 +209,14 @@ return array(
 	'AliNext_Lite\\EpnAccount' => array(
 		'version' => 'dev-main',
 		'path'    => $baseDir . '/includes/classes/model/EpnAccount.php'
+	),
+	'AliNext_Lite\\ExitSurveyDTO' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/dto/ExitSurveyDTO.php'
+	),
+	'AliNext_Lite\\ExitSurveyService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/ExitSurveyService.php'
 	),
 	'AliNext_Lite\\ExternalOrder' => array(
 		'version' => 'dev-main',
@@ -645,6 +669,10 @@ return array(
 	'AliNext_Lite\\SplitProductService' => array(
 		'version' => 'dev-main',
 		'path'    => $baseDir . '/includes/classes/service/SplitProductService.php'
+	),
+	'AliNext_Lite\\SurveyModalController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/SurveyModalController.php'
 	),
 	'AliNext_Lite\\SynchProductController' => array(
 		'version' => 'dev-main',

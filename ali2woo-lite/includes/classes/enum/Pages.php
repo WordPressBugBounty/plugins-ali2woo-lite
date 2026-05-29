@@ -23,6 +23,7 @@ final class Pages {
     public const ORDER_MANAGEMENT = 'a2wl_order';
     public const WIZARD = 'a2wl_wizard';
     public const HELP = 'a2wl_help';
+    public const SURVEY = 'a2wl_survey';
 
     public static function getLabels(): array
     {
@@ -41,6 +42,7 @@ final class Pages {
             self::JSON_API => esc_html_x('JSON API', 'page title', 'ali2woo'),
             self::WIZARD => esc_html_x('Wizard', 'page title', 'ali2woo'),
             self::HELP => esc_html_x('Help', 'page title', 'ali2woo'),
+            self::SURVEY => esc_html_x('Survey', 'page title', 'ali2woo'),
         ];
     }
 
