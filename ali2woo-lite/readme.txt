@@ -1,8 +1,8 @@
-=== AliExpress Dropshipping Plugin for WooCommerce & WordPress ===
+=== AliExpress Dropshipping Plugin for WooCommerce Stores ===
 Contributors: ali2woo
 Tags: aliexpress dropshipping plugin, dropshipping plugin, aliexpress dropshipping, woocommerce dropshipping​, dropshipping
 Requires at least: 5.9
-Tested up to: 6.9
+Tested up to: 7.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Stable tag: trunk
@@ -266,6 +266,11 @@ Discover how AliNext automates order fulfillment in WooCommerce dropshipping sto
 [youtube https://youtu.be/S5368Pvo_F0]
  
 == Changelog ==
+= 3.7.0 - 2026-06-09 =
+* Add: Improve plugin stability during activation
+* Add: Support for WordPress 7.0
+* Fix: Wizard page deactivation form
+
 = 3.6.9 - 2026-05-29 =
 * Add: Deactivation survey page, making it easy for you to share feedback and shape future updates
 * Fix: Wizard page is now clearer and faster to configure, saving you time during setup
@@ -298,15 +303,6 @@ Discover how AliNext automates order fulfillment in WooCommerce dropshipping sto
 * Fix: Prevent price update when the calculated sale price exceeds the regular price due to an incorrect formula
 * Fix: Resolved issue where product variations were not loaded on certain WordPress installations during import
 * Fix: Various minor bug fixes
- 
-= 3.6.3 – 2025-09-29 =
-* Premium: Added "delivery time only" option in shipping settings  
-* Premium: Fixed duplicate review import issue  
-* Premium: Added feature to sync assigned shipping option with WooCommerce products  
-* Premium: Added ZA – South Africa region support  
-* Security: Added nonce protection and saved selected sort option in cookie for import list  
-* Refactored legacy modules and functions for better performance  
-* Fixed minor issues and corrected typos in plugin texts
 
 == Upgrade Notice ==
 = 3.6.3 =

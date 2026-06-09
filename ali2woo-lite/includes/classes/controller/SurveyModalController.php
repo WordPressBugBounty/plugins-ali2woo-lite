@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Description of SurveyPageController
+ * Description of SurveyModalController
  *
  * @author Ali2Woo Team
  *

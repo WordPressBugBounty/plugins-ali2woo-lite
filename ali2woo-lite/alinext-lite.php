@@ -1,16 +1,17 @@
 <?php
+
 /*
 Plugin Name: AliNext (Lite version)
 Plugin URI: https://ali2woo.com/pricing/?utm_source=lite&utm_medium=plugin&utm_campaign=alinext-lite
 Description: AliNext (Lite version) is a WordPress plugin created for AliExpress Dropshipping and Affiliate marketing
 Text Domain: ali2woo
 Domain Path: /languages
-Version: 3.6.9
+Version: 3.7.0
 Author: Dropshipping Guru
 Author URI: https://ali2woo.com/dropshipping-plugin/?utm_source=lite&utm_medium=author&utm_campaign=alinext-lite
 License: GPLv3
 Requires at least: 5.9
-Tested up to: 6.9
+Tested up to: 7.0
 WC tested up to: 10.8
 WC requires at least: 5.0
 Requires PHP: 8.0
@@ -23,7 +24,6 @@ use AliNext_Lite\ImportProcess;
 use AliNext_Lite\Json_Api_Configurator;
 use AliNext_Lite\Loader;
 use AliNext_Lite\WizardPageController;
-use AliNext_Lite\SurveyPageController;
 use DI\Container;
 use DI\ContainerBuilder;
 
@@ -59,8 +59,8 @@ if (!class_exists('A2WL_Main')) {
         private function __construct()
         {
             $this->declareCompatibilityWithHPOS();
-	        register_activation_hook(A2WL_PLUGIN_FILE, array($this, 'install'));
-	        register_deactivation_hook(A2WL_PLUGIN_FILE, array($this, 'uninstall'));
+            register_activation_hook(A2WL_PLUGIN_FILE, array($this, 'install'));
+            register_deactivation_hook(A2WL_PLUGIN_FILE, array($this, 'uninstall'));
 
             require_once ABSPATH . 'wp-admin/includes/plugin.php';
             $plugin_data = get_plugin_data(A2WL_PLUGIN_FILE, true, false);
@@ -83,7 +83,27 @@ if (!class_exists('A2WL_Main')) {
                 return;
             };
 
-            $this->initDIContainer();
+            try {
+                $this->initDIContainer();
+            } catch (Throwable $e) {
+                error_log(
+                    sprintf('%s DI init failed: ' . $e->getMessage(), $this->plugin_name)
+                );
+
+                add_action('admin_notices', function () use ($e) {
+
+                    $errorMessage = sprintf(
+                        esc_html__('%s plugin initialization error:', 'ali2woo'),
+                        $this->plugin_name
+                    );
+
+                    echo "<div class='error'><p>" .
+                         $errorMessage . "</p><p>" . esc_html($e->getMessage()) .
+                         "</p></div>";
+                });
+
+                return;
+            }
 
             include_once $this->plugin_path() . '/includes/loader.php';
 
@@ -139,7 +159,7 @@ if (!class_exists('A2WL_Main')) {
 
         public function install(): void
         {
-			if (!$this->checkIsWoocommerceInstalled()) {
+            if (!$this->checkIsWoocommerceInstalled()) {
                 $activationError = $this->getWoocommerceNoInstalledErrorText();
                 wp_die($activationError);
             };
@@ -181,7 +201,8 @@ if (!class_exists('A2WL_Main')) {
             do_action('a2wl_init_admin_menu', Pages::DASHBOARD);
         }
 
-        public function getDI(): ?Container {
+        public function getDI(): ?Container
+        {
             return $this->DI;
         }
 
@@ -204,17 +225,18 @@ if (!class_exists('A2WL_Main')) {
         /**
          * @throws Exception
          */
-        private function initDIContainer(): void {
+        private function initDIContainer(): void
+        {
             require_once $this->plugin_path() . '/vendor/autoload_packages.php';
-            $containerBuilder = new ContainerBuilder;
+            $containerBuilder = new ContainerBuilder();
             $containerBuilder->addDefinitions($this->plugin_path() . '/di-config.php');
             $this->DI = $containerBuilder->build();
         }
 
         private function declareCompatibilityWithHPOS(): void
         {
-            add_action( 'before_woocommerce_init', function() {
-                if (class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class)) {
+            add_action('before_woocommerce_init', function () {
+                if (class_exists(\Automattic\WooCommerce\Utilities\FeaturesUtil::class)) {
                     \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
                         'custom_order_tables',
                         __FILE__,
@@ -273,10 +295,12 @@ $alinext_lite = A2WL();
 do_action('a2wl_init');
 
 if (is_admin()) {
-    add_action('init', function()
-    {
-        do_action('a2wl_admin_init');
-    });
+    add_action(
+        'init',
+        function () {
+            do_action('a2wl_admin_init');
+        }
+    );
 } else {
     do_action('a2wl_frontend_init');
 }

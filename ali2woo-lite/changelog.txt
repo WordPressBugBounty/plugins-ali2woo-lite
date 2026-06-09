@@ -436,3 +436,8 @@
 * Fix: Removed PHP warning messages on admin pages for a smoother experience
 * Fix: Various minor bugs resolved to improve overall stability and reliability
 
+3.7.0
+* Add: Improve plugin stability during activation
+* Add: Support for WordPress 7.0
+* Fix: Wizard page deactivation form
+

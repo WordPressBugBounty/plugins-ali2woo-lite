@@ -1,5 +1,7 @@
 jQuery(function($) {
-    $('#'+a2wl_data.deactivateLinkId).on('click', function(e) {
+    const deactSelector = '#'+a2wl_data.deactivateLinkId+
+        ', #deactivate-ali2' + 'woo-lite,' + '#deactivate-ali2' + 'woo';
+    $(deactSelector).on('click', function(e) {
         e.preventDefault();
 
         let deactivateUrl = $(this).attr('href');
