@@ -10,7 +10,6 @@ namespace AliNext_Lite;;
 
 class PurchaseCodeInfo
 {
-
     public const TARIFF_CODE_FREE = 'free';
 
 
@@ -190,5 +189,4 @@ class PurchaseCodeInfo
             self::FIELD_COUNT => $this->getCount()?->toArray(),
         ];
     }
-
 }

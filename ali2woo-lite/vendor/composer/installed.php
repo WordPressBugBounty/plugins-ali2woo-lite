@@ -5,7 +5,7 @@
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '139f646a9db5d6f52ae872deee788f59ba02aa18',
+        'reference' => '471dd38a4a101816a8b3fc018daa120c7104316a',
         'name' => 'ali2woo/alinext-lite',
         'dev' => false,
     ),
@@ -16,7 +16,7 @@
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '139f646a9db5d6f52ae872deee788f59ba02aa18',
+            'reference' => '471dd38a4a101816a8b3fc018daa120c7104316a',
             'dev_requirement' => false,
         ),
         'automattic/jetpack-autoloader' => array(
@@ -29,12 +29,12 @@
             'dev_requirement' => false,
         ),
         'laravel/serializable-closure' => array(
-            'pretty_version' => 'v2.0.12',
-            'version' => '2.0.12.0',
+            'pretty_version' => 'v1.3.7',
+            'version' => '1.3.7.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../laravel/serializable-closure',
             'aliases' => array(),
-            'reference' => 'a6abb4e54f6fcd3138120b9ad497f0bd146f9919',
+            'reference' => '4f48ade902b94323ca3be7646db16209ec76be3d',
             'dev_requirement' => false,
         ),
         'php-di/invoker' => array(

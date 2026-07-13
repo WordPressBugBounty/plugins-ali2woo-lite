@@ -7,7 +7,7 @@ License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Stable tag: trunk
 Requires PHP: 8.0
-WC tested up to: 10.8
+WC tested up to: 10.9
 WC requires at least: 5.0
 
 Use the WooCommerce Dropshipping Plugin for AliExpress to import products, reviews, set flexible pricing rules, and automate order fulfillment.
@@ -266,6 +266,11 @@ Discover how AliNext automates order fulfillment in WooCommerce dropshipping sto
 [youtube https://youtu.be/S5368Pvo_F0]
  
 == Changelog ==
+= 3.7.1 - 2026-07-13 =
+* Improve: PHP 8+ support
+* Improve: Tip of the Day feature
+* Add: Сompatibility with WooCommerce 10.9
+
 = 3.7.0 - 2026-06-09 =
 * Add: Improve plugin stability during activation
 * Add: Support for WordPress 7.0
@@ -297,11 +302,6 @@ Discover how AliNext automates order fulfillment in WooCommerce dropshipping sto
 * Improve product override feature to account for delivered option from plugin settings
 * Fix attribute columns padding in import list
 * Fix: alinext style is not connected on the cart page
-* Fix: Various minor bug fixes
-
-= 3.6.4 - 2025-11-18 =
-* Fix: Prevent price update when the calculated sale price exceeds the regular price due to an incorrect formula
-* Fix: Resolved issue where product variations were not loaded on certain WordPress installations during import
 * Fix: Various minor bug fixes
 
 == Upgrade Notice ==

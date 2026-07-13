@@ -14,6 +14,7 @@ jQuery(function($) {
             '<p class="a2wl-exit-survey__subtitle">' + a2wl_data.lang.subtitle + '</p>' +
             '</div>' +
             '<form id="a2wl-exit-survey-form">' +
+            '<label><input type="radio" name="reason" value="upgrade"> ' + a2wl_data.lang.reason_upgrade + '</label>' +
             '<label><input type="radio" name="reason" value="complex"> ' + a2wl_data.lang.reason_complex + '</label>' +
             '<label><input type="radio" name="reason" value="conflict"> ' + a2wl_data.lang.reason_conflict + '</label>' +
             '<label><input type="radio" name="reason" value="other" checked> ' + a2wl_data.lang.reason_other + '</label>' +
@@ -36,8 +37,18 @@ jQuery(function($) {
                 $('#a2wl-exit-survey-other').show();
             } else {
                 $('#a2wl-exit-survey-other').hide().val('');
+                clearOtherError();
             }
         });
+
+        $('#a2wl-exit-survey-other').on('input', function() {
+            clearOtherError();
+        });
+
+        function clearOtherError() {
+            $('#a2wl-exit-survey-other').removeClass('a2wl-exit-survey__input-error');
+            $('#a2wl-exit-survey-other-error').remove();
+        }
 
         $('#a2wl-exit-survey-skip').on('click', function() {
             $('#a2wl-exit-survey, #a2wl-exit-survey-overlay').remove();
@@ -51,10 +62,23 @@ jQuery(function($) {
         $('#a2wl-exit-survey-form').on('submit', function(ev) {
             ev.preventDefault();
 
+            let reason = $('input[name="reason"]:checked').val();
+            let otherValue = $('#a2wl-exit-survey-other').val().trim();
+
+            if (reason === 'other' && otherValue === '') {
+                $('#a2wl-exit-survey-other').addClass('a2wl-exit-survey__input-error');
+                if (!$('#a2wl-exit-survey-other-error').length) {
+                    $('#a2wl-exit-survey-other').after(
+                        '<div id="a2wl-exit-survey-other-error" class="a2wl-exit-survey__error-text">' + a2wl_data.lang.other_empty_error + '</div>'
+                    );
+                }
+                return;
+            }
+
             let params = {
                 action: 'a2wl_exit_survey_submit',
                 ali2woo_nonce: a2wl_data.nonce,
-                reason: $('input[name="reason"]:checked').val(),
+                reason: reason,
                 other: $('#a2wl-exit-survey-other').val(),
                 contact_email: $('#a2wl-exit-survey-email').val()
             };

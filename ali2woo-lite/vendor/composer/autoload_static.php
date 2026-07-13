@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit99362e9a45b6bb5a1b57983a3468a406
+class ComposerStaticInit83dd4a8a14c6f285c4e571aec0682afd
 {
     public static $files = array (
         'b33e3d135e5d9e47d845c576147bda89' => __DIR__ . '/..' . '/php-di/php-di/src/functions.php',
@@ -69,6 +69,7 @@ class ComposerStaticInit99362e9a45b6bb5a1b57983a3468a406
         'AliNext_Lite\\AddProductToImportListInterface' => __DIR__ . '/../..' . '/includes/interfaces/job/AddProductToImportListInterface.php',
         'AliNext_Lite\\AddProductToImportListProcess' => __DIR__ . '/../..' . '/includes/classes/job/AddProductToImportListProcess.php',
         'AliNext_Lite\\AddonsController' => __DIR__ . '/../..' . '/includes/classes/controller/AddonsController.php',
+        'AliNext_Lite\\AdminAssetManagerController' => __DIR__ . '/../..' . '/includes/classes/controller/AdminAssetManagerController.php',
         'AliNext_Lite\\AdminMenuService' => __DIR__ . '/../..' . '/includes/classes/service/AdminMenuService.php',
         'AliNext_Lite\\AdmitadAccount' => __DIR__ . '/../..' . '/includes/classes/model/AdmitadAccount.php',
         'AliNext_Lite\\AffiliateCheckProcess' => __DIR__ . '/../..' . '/includes/classes/job/AffiliateCheckProcess.php',
@@ -237,8 +238,11 @@ class ComposerStaticInit99362e9a45b6bb5a1b57983a3468a406
         'AliNext_Lite\\TipOfDay' => __DIR__ . '/../..' . '/includes/classes/model/TipOfDay.php',
         'AliNext_Lite\\TipOfDayAjaxController' => __DIR__ . '/../..' . '/includes/classes/controller/ajax/TipOfDayAjaxController.php',
         'AliNext_Lite\\TipOfDayFactory' => __DIR__ . '/../..' . '/includes/classes/factory/TipOfDayFactory.php',
+        'AliNext_Lite\\TipOfDayProgress' => __DIR__ . '/../..' . '/includes/classes/service/tip-of-day/TipOfDayProgress.php',
         'AliNext_Lite\\TipOfDayRepository' => __DIR__ . '/../..' . '/includes/classes/repository/TipOfDayRepository.php',
-        'AliNext_Lite\\TipOfDayService' => __DIR__ . '/../..' . '/includes/classes/service/TipOfDayService.php',
+        'AliNext_Lite\\TipOfDayService' => __DIR__ . '/../..' . '/includes/classes/service/tip-of-day/TipOfDayService.php',
+        'AliNext_Lite\\TipOfDaySyncController' => __DIR__ . '/../..' . '/includes/classes/controller/TipOfDaySyncController.php',
+        'AliNext_Lite\\TipOfDaySyncService' => __DIR__ . '/../..' . '/includes/classes/service/tip-of-day/TipOfDaySyncService.php',
         'AliNext_Lite\\TokenValidatorController' => __DIR__ . '/../..' . '/includes/classes/controller/TokenValidatorController.php',
         'AliNext_Lite\\TransferPageController' => __DIR__ . '/../..' . '/includes/classes/controller/TransferPageController.php',
         'AliNext_Lite\\Update' => __DIR__ . '/../..' . '/includes/classes/utils/Update.php',
@@ -344,6 +348,7 @@ class ComposerStaticInit99362e9a45b6bb5a1b57983a3468a406
         'Laravel\\SerializableClosure\\Contracts\\Signer' => __DIR__ . '/..' . '/laravel/serializable-closure/src/Contracts/Signer.php',
         'Laravel\\SerializableClosure\\Exceptions\\InvalidSignatureException' => __DIR__ . '/..' . '/laravel/serializable-closure/src/Exceptions/InvalidSignatureException.php',
         'Laravel\\SerializableClosure\\Exceptions\\MissingSecretKeyException' => __DIR__ . '/..' . '/laravel/serializable-closure/src/Exceptions/MissingSecretKeyException.php',
+        'Laravel\\SerializableClosure\\Exceptions\\PhpVersionNotSupportedException' => __DIR__ . '/..' . '/laravel/serializable-closure/src/Exceptions/PhpVersionNotSupportedException.php',
         'Laravel\\SerializableClosure\\SerializableClosure' => __DIR__ . '/..' . '/laravel/serializable-closure/src/SerializableClosure.php',
         'Laravel\\SerializableClosure\\Serializers\\Native' => __DIR__ . '/..' . '/laravel/serializable-closure/src/Serializers/Native.php',
         'Laravel\\SerializableClosure\\Serializers\\Signed' => __DIR__ . '/..' . '/laravel/serializable-closure/src/Serializers/Signed.php',
@@ -363,9 +368,9 @@ class ComposerStaticInit99362e9a45b6bb5a1b57983a3468a406
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit99362e9a45b6bb5a1b57983a3468a406::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit99362e9a45b6bb5a1b57983a3468a406::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit99362e9a45b6bb5a1b57983a3468a406::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit83dd4a8a14c6f285c4e571aec0682afd::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit83dd4a8a14c6f285c4e571aec0682afd::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit83dd4a8a14c6f285c4e571aec0682afd::$classMap;
 
         }, null, ClassLoader::class);
     }

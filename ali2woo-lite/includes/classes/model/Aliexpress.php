@@ -9,13 +9,14 @@
 namespace AliNext_Lite;;
 
 use DOMDocument;
+use Exception;
 use Throwable;
 use wpdb;
+
 use function mb_convert_encoding;
 
 class Aliexpress
 {
-
     protected ProductImport $ProductImportModel;
     protected AbstractConnector $connector;
     protected FulfillmentClientInterface $FulfillmentClient;
@@ -55,7 +56,10 @@ class Aliexpress
                     $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]
                 );
                 $product['post_id'] = $wpdb->get_var($query);
-                $product['import_id'] = in_array($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID], $products_in_import) ? $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID] : 0;
+                $product['import_id'] = in_array(
+                    $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID],
+                    $products_in_import
+                ) ? $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID] : 0;
                 $product['product_type'] = $default_type;
                 $product['product_status'] = $default_status;
 
@@ -87,7 +91,10 @@ class Aliexpress
                     $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID]
                 );
                 $product['post_id'] = $wpdb->get_var($query);
-                $product['import_id'] = in_array($product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID], $products_in_import) ? $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID] : 0;
+                $product['import_id'] = in_array(
+                    $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID],
+                    $products_in_import
+                ) ? $product[ImportedProductService::FIELD_EXTERNAL_PRODUCT_ID] : 0;
                 $product['product_type'] = $default_type;
                 $product['product_status'] = $default_status;
                 $product['is_affiliate'] = true;
@@ -136,7 +143,10 @@ class Aliexpress
                 "SELECT post_id FROM $wpdb->postmeta WHERE meta_key='_a2w_external_id' AND meta_value=%s LIMIT 1",
                 $result['product']['id']
             ));
-            $result['product']['import_id'] = in_array($result['product']['id'], $products_in_import) ? $result['product']['id'] : 0;
+            $result['product']['import_id'] = in_array(
+                $result['product']['id'],
+                $products_in_import
+            ) ? $result['product']['id'] : 0;
             $result['product']['import_lang'] = AliexpressLocalizator::getInstance()->language;
 
             $result['product'] = $this->calculateProductPricesFromVariants($result['product']);
@@ -162,10 +172,14 @@ class Aliexpress
                 $convert_func = false;
                 switch ($convert_attr_casea) {
                     case 'lower':
-                        $convert_func = function ($v) {return strtolower($v);};
+                        $convert_func = function ($v) {
+                            return strtolower($v);
+                        };
                         break;
                     case 'sentence':
-                        $convert_func = function ($v) {return ucfirst(strtolower($v));};
+                        $convert_func = function ($v) {
+                            return ucfirst(strtolower($v));
+                        };
                         break;
                 }
 
@@ -191,7 +205,9 @@ class Aliexpress
             if (get_setting('use_random_stock')) {
                 $result['product']['disable_var_quantity_change'] = true;
                 foreach ($result['product']['sku_products']['variations'] as &$variation) {
-                    $variation[ImportedProductService::FIELD_ORIGINAL_QUANTITY] = intval($variation[ImportedProductService::FIELD_QUANTITY]);
+                    $variation[ImportedProductService::FIELD_ORIGINAL_QUANTITY] = intval(
+                        $variation[ImportedProductService::FIELD_QUANTITY]
+                    );
                     $tmp_quantity = wp_rand(
                         intval(get_setting('use_random_stock_min')),
                         intval(get_setting('use_random_stock_max'))
@@ -211,7 +227,10 @@ class Aliexpress
                     $el = ['name' => $attr['name'], 'value' => []];
                     if (!empty($attr['value'])) {
                         if ($split_attribute_values) {
-                            $el['value'] = array_map('AliNext_Lite\phrase_apply_filter_to_text', array_map('trim', explode($attribute_values_separator, $attr['value'])));
+                            $el['value'] = array_map(
+                                'AliNext_Lite\phrase_apply_filter_to_text',
+                                array_map('trim', explode($attribute_values_separator, $attr['value']))
+                            );
                         } else {
                             $el['value'] = [phrase_apply_filter_to_text(trim($attr['value']))];
                         }
@@ -303,12 +322,12 @@ class Aliexpress
 
     public function calculateProductPricesFromVariants($product){
 
-        $product['regular_price_min'] =  
-        $product['regular_price_max'] =  
-        $product['price_min'] =  
+        $product['regular_price_min'] =
+        $product['regular_price_max'] =
+        $product['price_min'] =
         $product['price_max'] = 0.00;
         $product['discount'] = null;
-        
+
         foreach ($product['sku_products']['variations'] as $var) {
             $product['currency'] = $var['currency'];
             $product['discount'] = $var['discount'];
@@ -331,14 +350,16 @@ class Aliexpress
         return $product;
     }
 
-    private function createNotAvailableProduct($id){
-        return 
+    private function createNotAvailableProduct($id): array
+    {
+        return
             [
                 'id' => $id,
                 'sku_products' => [
-                    'attributes' => [], 
+                    'attributes' => [],
                     'variations' => []
-            ]];
+                ]
+            ];
     }
 
     public function sync_products($product_ids, $params = [])
@@ -365,8 +386,10 @@ class Aliexpress
                 $result['product'] = $this->normalizeLoadedShippingInfo($result['product']);
                 $products[] = $result['product'];
             } else {
-                if (isset($result['error_code']) && in_array($result['error_code'], [1004,1005])){
-                    $notAvailableProducts[] = $this->createNotAvailableProduct($product_id_parts[0]);
+                if (isset($result['error_code'])) {
+                    if (in_array($result['error_code'], [1004,1005])) {
+                        $notAvailableProducts[] = $this->createNotAvailableProduct($product_id_parts[0]);
+                    }
                 }
                 //$result = ResultBuilder::buildError($request->get_error_message());
             }
@@ -433,17 +456,20 @@ class Aliexpress
 
         //we don't want to update description by default
         foreach ($result["products"] as &$product) {
-
-            if (isset($product['description'])){
+            if (isset($product['description'])) {
                 $product['source_description'] = $product['description'];
                 $product['description'] = '';
             }
         }
 
-        if (isset($params['manual_update']) && $params['manual_update'] && a2wl_check_defined('A2WL_FIX_RELOAD_DESCRIPTION') && !get_setting('not_import_description')) {
-
+        if (
+            isset($params['manual_update']) &&
+            $params['manual_update'] &&
+            a2wl_check_defined('A2WL_FIX_RELOAD_DESCRIPTION') &&
+            !get_setting('not_import_description')
+        ) {
             foreach ($result["products"] as &$product) {
-                if (isset($product['description'])){
+                if (isset($product['description'])) {
                     $source_description = $product['source_description'];
                     $product['description'] = $this->clean_description($source_description);
                     $product['description'] = PhraseFilter::apply_filter_to_text($product['description']);
@@ -461,19 +487,30 @@ class Aliexpress
      * @throws ServiceException
      */
     public function loadShippingItems(
-        string $externalProductId, int $quantity, string $countryCodeTo, string $countryCodeFrom = 'CN',
-        ?string $externalSkuId = null, ?string $extraData = null
+        string $externalProductId,
+        int $quantity,
+        string $countryCodeTo,
+        string $countryCodeFrom = 'CN',
+        ?string $externalSkuId = null,
+        ?string $extraData = null
     ): array {
-
         $countryCodeTo = $this->AliexpressHelper->convertToAliexpressCountryCode($countryCodeTo);
         if (!empty($countryCodeFrom)) {
             $countryCodeFrom = $this->AliexpressHelper->convertToAliexpressCountryCode($countryCodeFrom);
         }
 
         try {
-            $result = $this->connector->load_shipping_info($externalProductId, $quantity, $countryCodeTo,
-                $countryCodeFrom, '', '', '', '',
-                $extraData ?? '', $externalSkuId ?? ''
+            $result = $this->connector->load_shipping_info(
+                $externalProductId,
+                $quantity,
+                $countryCodeTo,
+                $countryCodeFrom,
+                '',
+                '',
+                '',
+                '',
+                $extraData ?? '',
+                $externalSkuId ?? ''
             );
         } catch (Exception $e) {
             throw new ServiceException($e->getMessage());
@@ -484,12 +521,10 @@ class Aliexpress
         }
 
         if (empty($result['message']) || str_starts_with($result['message'], '[1004]')) {
-
             return [];
         }
 
         if (empty($result['message']) || str_starts_with($result['message'], '[1005]')) {
-
             return [];
         }
 
@@ -591,7 +626,7 @@ class Aliexpress
     {
         if ($this->account->account_type == 'admitad') {
             return AdmitadAccount::getInstance()->getDeeplink($urls);
-        } else if ($this->account->account_type == 'epn') {
+        } elseif ($this->account->account_type == 'epn') {
             return EpnAccount::getInstance()->getDeeplink($urls);
         } else {
             return AliexpressAccount::getInstance()->getDeeplink($urls);
@@ -608,7 +643,7 @@ class Aliexpress
         try {
             $result = $this->connector->load_order($externalOrderId);
 
-            if($result['state'] !== 'ok') {
+            if ($result['state'] !== 'ok') {
                 return $result;
             }
 
@@ -644,7 +679,6 @@ class Aliexpress
         $previewOrderItems = [];
 
         foreach ($ExternalOrder->getItems() as $ExternalOrderItem) {
-
             $attributes = [];
             foreach ($ExternalOrderItem->getAttributes() as $Attribute) {
                 $attributes[$Attribute->getName()] = $Attribute->getValue();
@@ -720,7 +754,7 @@ class Aliexpress
 
         $categories = $result['categories'];
 
-        return array_map(function($item) {
+        return array_map(function ($item) {
             return new AliexpressCategoryDto(
                 $item['id'],
                 $item['parent_id'],
@@ -762,15 +796,18 @@ class Aliexpress
             }
         }
 
-        if ($userInfo['street_number']){
-            $logisticsAddress['address'] = $logisticsAddress['address'] . ', ' . remove_accents($userInfo['street_number']);
+        if ($userInfo['street_number']) {
+            $logisticsAddress['address'] = $logisticsAddress['address'] . ', ' .
+                                           remove_accents($userInfo['street_number']);
         }
 
-        if ($userInfo['shipping_neighborhood']){
+        if ($userInfo['shipping_neighborhood']) {
             if ($logisticsAddress['address2']) {
-                $logisticsAddress['address2'] = $logisticsAddress['address2'] . ', ' . remove_accents($userInfo['shipping_neighborhood']);
+                $logisticsAddress['address2'] = $logisticsAddress['address2'] . ', ' .
+                                                remove_accents($userInfo['shipping_neighborhood']);
             } else {
-                $logisticsAddress['address'] = $logisticsAddress['address'] . ', ' . remove_accents($userInfo['shipping_neighborhood']);
+                $logisticsAddress['address'] = $logisticsAddress['address'] . ', ' .
+                                               remove_accents($userInfo['shipping_neighborhood']);
             }
         }
 
@@ -807,7 +844,7 @@ class Aliexpress
 
     private function fix_shipping_address($shipping_address)
     {
-        if (a2wl_check_defined('A2WL_DEMO_MODE')){
+        if (a2wl_check_defined('A2WL_DEMO_MODE')) {
             return $shipping_address;
         }
 
@@ -826,7 +863,9 @@ class Aliexpress
             if (intval($request['response']['code']) == 200) {
                 $result = json_decode($request['body'], true);
             } else {
-                $result = ResultBuilder::buildError($request['response']['code'] . ' - ' . $request['response']['message']);
+                $result = ResultBuilder::buildError(
+                    $request['response']['code'] . ' - ' . $request['response']['message']
+                );
             }
         }
 
@@ -858,5 +897,4 @@ class Aliexpress
 
         return $product;
     }
-
 }

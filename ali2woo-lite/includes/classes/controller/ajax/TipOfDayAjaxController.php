@@ -19,34 +19,60 @@ class TipOfDayAjaxController extends AbstractController
 {
     public const PARAM_ID = 'id';
     public const AJAX_METHOD_TIP_OF_DAY = 'a2wl_tip_of_day_hide';
+    public const AJAX_METHOD_DISABLE_TIPS = 'a2wl_tip_of_day_disable_all';
 
     private TipOfDayService $TipOfDayService;
     private TipOfDayRepository $TipOfDayRepository;
 
-
     public function __construct(
         TipOfDayService $TipOfDayService,
-        TipOfDayRepository $TipOfDayRepository,
+        TipOfDayRepository $TipOfDayRepository
     ) {
         parent::__construct();
 
         $this->TipOfDayService = $TipOfDayService;
         $this->TipOfDayRepository = $TipOfDayRepository;
 
-        add_action(sprintf('wp_ajax_%s', self::AJAX_METHOD_TIP_OF_DAY), [$this, 'ajaxHide']);
+        add_action(
+            sprintf('wp_ajax_%s', self::AJAX_METHOD_TIP_OF_DAY),
+            [$this, 'ajaxHide']
+        );
+        add_action(
+            sprintf('wp_ajax_%s', self::AJAX_METHOD_DISABLE_TIPS),
+            [$this, 'ajaxDisable']
+        );
+    }
+
+    public function ajaxDisable(): void
+    {
+        $this->verifyNonceAjax();
+
+        if (!PageGuardHelper::canAccessPage( Pages::SETTINGS)) {
+            $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
+            echo wp_json_encode($result);
+            wp_die();
+        }
+
+        a2wl_init_error_handler();
+
+        $this->TipOfDayService->disableTips();
+
+        $result = ResultBuilder::buildOk();
+        echo wp_json_encode($result);
+        wp_die();
     }
 
     public function ajaxHide(): void
     {
         $this->verifyNonceAjax();
 
-        if (!PageGuardHelper::canAccessPage(Pages::SETTINGS)) {
+        if (!PageGuardHelper::canAccessPage( Pages::SETTINGS)) {
             $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
             echo wp_json_encode($result);
             wp_die();
         }
 
-        $id = intval($_POST[self::PARAM_ID]);
+        $id = sanitize_text_field(wp_unslash($_POST[self::PARAM_ID] ?? ''));
 
         a2wl_init_error_handler();
 
@@ -57,7 +83,11 @@ class TipOfDayAjaxController extends AbstractController
 
             if (!$TipOfDay) {
                 throw new RepositoryException(
-                    _x( "Tip of the day with given ID does`t exist", 'error text', 'ali2woo')
+                    _x(
+                        "Tip of the day with given ID doesn't exist",
+                        'error text',
+                        'ali2woo'
+                    )
                 );
             }
             $this->TipOfDayService->hideTip($TipOfDay);
@@ -65,7 +95,7 @@ class TipOfDayAjaxController extends AbstractController
             restore_error_handler();
         } catch (RepositoryException $RepositoryException) {
             $result = ResultBuilder::buildError($RepositoryException->getMessage());
-        } catch (Exception $Exception)  {
+        } catch (Exception $Exception) {
             a2wl_print_throwable($Exception);
             $result = ResultBuilder::buildError($Exception->getMessage());
         }
@@ -73,5 +103,4 @@ class TipOfDayAjaxController extends AbstractController
         echo wp_json_encode($result);
         wp_die();
     }
-
 }

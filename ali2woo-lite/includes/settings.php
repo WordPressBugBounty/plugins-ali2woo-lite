@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Description of Settings
  *
@@ -15,10 +16,9 @@ class Settings
 
     public const SETTING_API_ENDPOINT_V6 = 'api_endpoint_v6';
     public const SETTING_ALIEXPRESS_REGION = 'aliexpress_region';
+    public const SETTING_PLUGIN_DATA_LAST_UPDATE = 'plugin_data_last_update';
     public const SETTING_SYSTEM_MESSAGE = 'system_message';
     public const SETTING_CRITICAL_MESSAGES = 'critical_messages';
-    public const SETTING_TIP_OF_DAY = 'tip_of_day';
-    public const SETTING_TIP_OF_DAY_LAST_DATE = 'tip_of_day_last_date';
     public const SETTING_IMPORT_VIDEO = 'import_video';
     public const SETTING_SHOW_PRODUCT_VIDEO_TAB = 'show_product_video_tab';
     public const SETTING_VIDEO_TAB_PRIORITY = 'video_tab_priority';
@@ -26,6 +26,15 @@ class Settings
     public const SETTING_ADD_VIDEO_TO_DESCRIPTION = 'add_video_to_description';
     public const SETTING_ALLOW_SHOP_MANAGER = 'allow_shop_manager';
     public const SETTING_HIDDEN_PAGES = 'hidden_pages';
+
+    public const SETTING_TIP_OF_DAY = 'tip_of_day';
+    public const SETTING_TIP_OF_DAY_LAST_DATE = 'tip_of_day_last_date';
+    public const SETTINGS_TIP_OF_DAY_DISABLED = 'tip_of_day_disabled';
+    public const SETTING_TIP_OF_DAY_SEEN_IDS = 'tip_of_day_seen_ids';
+    public const SETTING_TIP_OF_DAY_LAST_SYNC = 'tip_of_day_last_sync';
+    public const SETTING_TIP_OF_DAY_INTERVAL = 'tip_of_day_interval';
+
+    public const SETTING_PLUGIN_ACTIVATION_DATE = 'plugin_activation_date';
 
 
     //shipping settings
@@ -50,6 +59,7 @@ class Settings
         self::SETTING_DELIVERY_TIME_TEXT_FORMAT => 'Estimated delivery: {delivery_time}',
         self::SETTING_DELIVERY_TIME_FALLBACK_MIN => 20,
         self::SETTING_DELIVERY_TIME_FALLBACK_MAX => 30,
+        self::SETTINGS_TIP_OF_DAY_DISABLED => false,
         self::SETTING_SHIPPING_ON_PRODUCT_PAGE => false,
     ];
 
@@ -210,6 +220,9 @@ class Settings
         self::SETTING_CRITICAL_MESSAGES => [],
         self::SETTING_TIP_OF_DAY => [],
         self::SETTING_TIP_OF_DAY_LAST_DATE => null,
+        self::SETTINGS_TIP_OF_DAY_DISABLED => self::DEFAULTS[self::SETTINGS_TIP_OF_DAY_DISABLED],
+        self::SETTING_TIP_OF_DAY_SEEN_IDS => [],
+        self::SETTING_TIP_OF_DAY_INTERVAL => 86400,
 
         self::SETTING_ALLOW_SHOP_MANAGER => false,
         self::SETTING_HIDDEN_PAGES => [Pages::SETTINGS, Pages::ADDONS, Pages::WIZARD, Pages::JSON_API, Pages::DEBUG],
@@ -225,8 +238,7 @@ class Settings
 
     protected function __construct()
     {
-        //todo: refactor this later
-        $this->default_settings[self::SETTING_TIP_OF_DAY] = $this->getDefaultTipOfDayData();
+        $this->default_settings[self::SETTING_TIP_OF_DAY] = TipOfDay::getDefaultData();
 
         $this->load();
     }
@@ -304,36 +316,6 @@ class Settings
                 $this->commit();
             }
         }
-    }
-
-    //todo: refactor this method later
-    private function getDefaultTipOfDayData(): array
-    {
-        $htmlContent =
-            <<<HTML
-            <p>
-            Transform your AliExpress account into a Business Account using our exclusive invitation code. 
-            This linkage ensures AliExpress recognizes you as a dropshipping partner, opening the door to new earning potentials.
-            </p>
-            <p>
-            <strong>Instant Reward:</strong> Secure your Business Account status with our code and receive a special bonus $100 off over $500. 
-            This bonus is valid for 90 days, so start maximizing your benefits now.
-            </p>
-            <p><strong>Additional Earnings:</strong>  Enjoy increased dropshipper commissions based on your Partnership Account's purchase volumes. 
-            Seize this chance to boost your business and income!</p>
-            <p>
-            <strong><a target="_blank" href="https://inbusiness.aliexpress.com/web/newCertification?bizScene=STANDARD_SCENE&channel=STANDARD_CHANNEL&invitationCode=2qkht5">CLICK OUR INVITATION LINK</a></strong> and begin your journey toward enhanced dropshipping success today!
-            </p>
-HTML;
-
-        return [
-            [
-                TipOfDay::FIELD_ID => 1,
-                TipOfDay::FIELD_NAME => 'Tip of the Day: Boost Your AliExpress Earnings!',
-                TipOfDay::FIELD_HTML_CONTENT => $htmlContent,
-                TipOfDay::FIELD_IS_HIDDEN => false,
-            ],
-        ];
     }
 }
 

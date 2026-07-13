@@ -3,12 +3,14 @@
 use AliNext_Lite\AbstractController;
 use AliNext_Lite\ImportProcess;
 use function AliNext_Lite\get_setting;
+use AliNext_Lite\Settings;
 
 /**
  * @var int $processorCores
  * @var string $systemLoadAverage
  * @var bool $systemAverageLoadStatus
  * @var string $memoryUsage
+ * @var string $server_ip
  */
 
 // phpcs:ignoreFile WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -296,6 +298,17 @@ $pc_info = AliNext_Lite\SystemInfo::server_ping();
                     </div>
                 </div>
                 <?php  if (!a2wl_check_defined('A2WL_DEMO_MODE')): ?>
+                <div class="field field_inline">
+                    <div class="field__label">
+                        <label for="a2wl_tip_of_day_disabled">
+                            <strong><?php echo esc_html_x('Show daily tips', 'setting', 'ali2woo'); ?></strong>
+                        </label>
+                        <div class="info-box" data-toggle="tooltip" data-title="<?php echo esc_html_x('Uncheck to disable daily Tip of Day notifications', 'setting description', 'ali2woo'); ?>"></div>
+                    </div>
+                    <div class="field__input-wrap">
+                        <input type="checkbox" class="form-control" id="a2wl_tip_of_day_disabled" name="a2wl_tip_of_day_disabled" value="yes" <?php if (!get_setting(Settings::SETTINGS_TIP_OF_DAY_DISABLED)): ?>checked<?php endif; ?>/>
+                    </div>
+                </div>
                 <div class="field field_inline">
                     <div class="field__label">
                         <label>

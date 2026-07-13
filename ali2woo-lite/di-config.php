@@ -86,8 +86,11 @@ use AliNext_Lite\SynchronizePurchaseCodeInfoProcess;
 use AliNext_Lite\SynchronizePurchaseCodeInfoService;
 use AliNext_Lite\TipOfDayAjaxController;
 use AliNext_Lite\TipOfDayFactory;
+use AliNext_Lite\TipOfDayProgress;
 use AliNext_Lite\TipOfDayRepository;
 use AliNext_Lite\TipOfDayService;
+use AliNext_Lite\TipOfDaySyncService;
+use AliNext_Lite\TipOfDaySyncController;
 use AliNext_Lite\TokenValidatorController;
 use AliNext_Lite\VideoShortcodeService;
 use AliNext_Lite\WizardPageController;
@@ -109,7 +112,7 @@ use function DI\get;
 return [
     /* helpers */
     'AliNext_Lite\AliexpressHelper' => create(AliexpressHelper::class),
-    'AliNext_Lite\Helper' => create(Helper::class),
+    'AliNext_Lite\Helper'           => create(Helper::class),
 
     /* apis */
     'AliNext_Lite\FulfillmentClient' => create(FulfillmentClient::class),
@@ -274,11 +277,21 @@ return [
         ),
     'AliNext_Lite\VideoShortcodeService' => create(VideoShortcodeService::class),
     'AliNext_Lite\GlobalSystemMessageService' => create(GlobalSystemMessageService::class),
-    'AliNext_Lite\TipOfDayService' => create(TipOfDayService::class)
+    'TipOfDayService'          => create(TipOfDayService::class)
+        ->constructor(
+            get(TipOfDayRepository::class),
+            get(Settings::class),
+            get(TipOfDayProgress::class),
+        ),
+    'TipOfDayProgress'         => create(TipOfDayProgress::class)
+        ->constructor(
+            get(Settings::class)
+        ),
+    'TipOfDaySyncService'      => create(TipOfDaySyncService::class)
         ->constructor(
             get(TipOfDayFactory::class),
             get(TipOfDayRepository::class),
-            get(Settings::class),
+            get(TipOfDayProgress::class),
         ),
     'AliNext_Lite\ProductShippingDataService' => create(ProductShippingDataService::class)
         ->constructor(
@@ -287,6 +300,7 @@ return [
     'AliNext_Lite\MigrateService' => create(MigrateService::class)
         ->constructor(
             get(ProductShippingDataRepository::class),
+            get(Settings::class),
         ),
     'AliNext_Lite\ProductService' => create(ProductService::class)
         ->constructor(
@@ -395,9 +409,12 @@ return [
         ),
     'AliNext_Lite\SynchronizePluginDataController' => create(SynchronizePluginDataController::class)
         ->constructor(
-            get(TipOfDayRepository::class),
             get(Synchronize::class),
             get(GlobalSystemMessageService::class),
+        ),
+    'AliNext_Lite\TipOfDaySyncController' => create(TipOfDaySyncController::class)
+        ->constructor(
+            get(TipOfDaySyncService::class),
         ),
     'AliNext_Lite\ProductInfoWidgetController' => create(ProductInfoWidgetController::class)
         ->constructor(

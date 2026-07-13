@@ -69,21 +69,27 @@ class SurveyModalController extends AbstractController
                             'ali2woo'
                         ),
                         'reason_complex' => _x(
-                            'The plugin was too complicated to set up or use',
+                            'Hard to set up / use',
                             'survey modal',
                             'ali2woo'
                         ),
                         'reason_conflict' => _x(
-                            'Conflicts with other plugins or my theme',
+                            'Conflict with other plugins',
                             'survey modal',
                             'ali2woo'
                         ),
-                        'reason_other' => _x('Other', 'survey modal', 'ali2woo'),
+                        'reason_upgrade' => _x(
+                            'Upgraded to paid version',
+                            'survey modal',
+                            'ali2woo'
+                        ),
+                        'reason_other' => _x('Other (please provide details)', 'survey modal', 'ali2woo'),
                         'other_placeholder' => _x(
                             'Please provide details...',
                             'survey modal',
                             'ali2woo'
                         ),
+                        'other_empty_error' => _x('Please specify a reason', 'survey modal', 'ali2woo'),
                         'contact_title' => _x('May we contact you?', 'survey modal', 'ali2woo'),
                         'contact_text' => _x(
                             'We’re improving AliNext (Lite version) and sometimes ask users for extra feedback. ' .

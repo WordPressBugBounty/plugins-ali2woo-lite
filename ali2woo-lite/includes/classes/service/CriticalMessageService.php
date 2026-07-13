@@ -23,14 +23,35 @@ class CriticalMessageService
     }
 
     /**
-     * Get all active (not-resolved) critical messages
+     * Get all active (not-resolved) critical messages.
+     * Info-type messages are auto-resolved after being retrieved (shown once).
      *
      * @return array<int,array{code:string,text:string,type:string,link:?string,resolved:bool}>
      */
     public function getActiveMessages(): array
     {
         $messages = $this->getMessagesData();
-        return array_filter($messages, fn($m) => !$m['resolved']);
+
+        $activeMessages = [];
+        $needsSave = false;
+
+        foreach ($messages as $key => $message) {
+            if (!$message['resolved']) {
+                $activeMessages[] = $message;
+
+                if (($message['type'] ?? '') === 'info') {
+                    $messages[$key]['resolved'] = true;
+                    $needsSave = true;
+                }
+            }
+        }
+
+        if ($needsSave) {
+            $this->SettingsService->set(Settings::SETTING_CRITICAL_MESSAGES, $messages);
+            $this->SettingsService->commit();
+        }
+
+        return array_filter($activeMessages, fn($m) => !$m['resolved']);
     }
 
     /**
@@ -38,10 +59,8 @@ class CriticalMessageService
      */
     public function getFirstActiveMessage(): ?array
     {
-        foreach ($this->getMessagesData() as $message) {
-            if (!$message['resolved']) {
-                return $message;
-            }
+        foreach ($this->getActiveMessages() as $message) {
+            return $message;
         }
         return null;
     }

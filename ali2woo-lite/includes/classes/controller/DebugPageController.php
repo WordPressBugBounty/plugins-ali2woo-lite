@@ -14,7 +14,6 @@ use Pages;
 
 class DebugPageController extends AbstractAdminPage
 {
-
     public function __construct()
     {
         if (a2wl_check_defined('A2WL_DEBUG_PAGE')) {
@@ -33,8 +32,5 @@ class DebugPageController extends AbstractAdminPage
         if (!PageGuardHelper::canAccessPage(Pages::DEBUG)) {
             wp_die($this->getErrorTextNoPermissions());
         }
-
-        echo "<br/><b>" .  Pages::getLabel(Pages::DEBUG) . "</b><br/>";
     }
-
 }

@@ -46,6 +46,10 @@ return array(
 		'version' => 'dev-main',
 		'path'    => $baseDir . '/includes/classes/controller/AddonsController.php'
 	),
+	'AliNext_Lite\\AdminAssetManagerController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/AdminAssetManagerController.php'
+	),
 	'AliNext_Lite\\AdminMenuService' => array(
 		'version' => 'dev-main',
 		'path'    => $baseDir . '/includes/classes/service/AdminMenuService.php'
@@ -718,13 +722,25 @@ return array(
 		'version' => 'dev-main',
 		'path'    => $baseDir . '/includes/classes/factory/TipOfDayFactory.php'
 	),
+	'AliNext_Lite\\TipOfDayProgress' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/tip-of-day/TipOfDayProgress.php'
+	),
 	'AliNext_Lite\\TipOfDayRepository' => array(
 		'version' => 'dev-main',
 		'path'    => $baseDir . '/includes/classes/repository/TipOfDayRepository.php'
 	),
 	'AliNext_Lite\\TipOfDayService' => array(
 		'version' => 'dev-main',
-		'path'    => $baseDir . '/includes/classes/service/TipOfDayService.php'
+		'path'    => $baseDir . '/includes/classes/service/tip-of-day/TipOfDayService.php'
+	),
+	'AliNext_Lite\\TipOfDaySyncController' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/controller/TipOfDaySyncController.php'
+	),
+	'AliNext_Lite\\TipOfDaySyncService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/tip-of-day/TipOfDaySyncService.php'
 	),
 	'AliNext_Lite\\TokenValidatorController' => array(
 		'version' => 'dev-main',
@@ -1127,55 +1143,59 @@ return array(
 		'path'    => $baseDir . '/includes/libs/ae-php-sdk/iop/IopRequest.php'
 	),
 	'Laravel\\SerializableClosure\\Contracts\\Serializable' => array(
-		'version' => '2.0.12.0',
+		'version' => '1.3.7.0',
 		'path'    => $vendorDir . '/laravel/serializable-closure/src/Contracts/Serializable.php'
 	),
 	'Laravel\\SerializableClosure\\Contracts\\Signer' => array(
-		'version' => '2.0.12.0',
+		'version' => '1.3.7.0',
 		'path'    => $vendorDir . '/laravel/serializable-closure/src/Contracts/Signer.php'
 	),
 	'Laravel\\SerializableClosure\\Exceptions\\InvalidSignatureException' => array(
-		'version' => '2.0.12.0',
+		'version' => '1.3.7.0',
 		'path'    => $vendorDir . '/laravel/serializable-closure/src/Exceptions/InvalidSignatureException.php'
 	),
 	'Laravel\\SerializableClosure\\Exceptions\\MissingSecretKeyException' => array(
-		'version' => '2.0.12.0',
+		'version' => '1.3.7.0',
 		'path'    => $vendorDir . '/laravel/serializable-closure/src/Exceptions/MissingSecretKeyException.php'
 	),
+	'Laravel\\SerializableClosure\\Exceptions\\PhpVersionNotSupportedException' => array(
+		'version' => '1.3.7.0',
+		'path'    => $vendorDir . '/laravel/serializable-closure/src/Exceptions/PhpVersionNotSupportedException.php'
+	),
 	'Laravel\\SerializableClosure\\SerializableClosure' => array(
-		'version' => '2.0.12.0',
+		'version' => '1.3.7.0',
 		'path'    => $vendorDir . '/laravel/serializable-closure/src/SerializableClosure.php'
 	),
 	'Laravel\\SerializableClosure\\Serializers\\Native' => array(
-		'version' => '2.0.12.0',
+		'version' => '1.3.7.0',
 		'path'    => $vendorDir . '/laravel/serializable-closure/src/Serializers/Native.php'
 	),
 	'Laravel\\SerializableClosure\\Serializers\\Signed' => array(
-		'version' => '2.0.12.0',
+		'version' => '1.3.7.0',
 		'path'    => $vendorDir . '/laravel/serializable-closure/src/Serializers/Signed.php'
 	),
 	'Laravel\\SerializableClosure\\Signers\\Hmac' => array(
-		'version' => '2.0.12.0',
+		'version' => '1.3.7.0',
 		'path'    => $vendorDir . '/laravel/serializable-closure/src/Signers/Hmac.php'
 	),
 	'Laravel\\SerializableClosure\\Support\\ClosureScope' => array(
-		'version' => '2.0.12.0',
+		'version' => '1.3.7.0',
 		'path'    => $vendorDir . '/laravel/serializable-closure/src/Support/ClosureScope.php'
 	),
 	'Laravel\\SerializableClosure\\Support\\ClosureStream' => array(
-		'version' => '2.0.12.0',
+		'version' => '1.3.7.0',
 		'path'    => $vendorDir . '/laravel/serializable-closure/src/Support/ClosureStream.php'
 	),
 	'Laravel\\SerializableClosure\\Support\\ReflectionClosure' => array(
-		'version' => '2.0.12.0',
+		'version' => '1.3.7.0',
 		'path'    => $vendorDir . '/laravel/serializable-closure/src/Support/ReflectionClosure.php'
 	),
 	'Laravel\\SerializableClosure\\Support\\SelfReference' => array(
-		'version' => '2.0.12.0',
+		'version' => '1.3.7.0',
 		'path'    => $vendorDir . '/laravel/serializable-closure/src/Support/SelfReference.php'
 	),
 	'Laravel\\SerializableClosure\\UnsignedSerializableClosure' => array(
-		'version' => '2.0.12.0',
+		'version' => '1.3.7.0',
 		'path'    => $vendorDir . '/laravel/serializable-closure/src/UnsignedSerializableClosure.php'
 	),
 	'Pages' => array(

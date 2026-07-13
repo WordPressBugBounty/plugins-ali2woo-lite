@@ -6,13 +6,13 @@ Plugin URI: https://ali2woo.com/pricing/?utm_source=lite&utm_medium=plugin&utm_c
 Description: AliNext (Lite version) is a WordPress plugin created for AliExpress Dropshipping and Affiliate marketing
 Text Domain: ali2woo
 Domain Path: /languages
-Version: 3.7.0
+Version: 3.7.1
 Author: Dropshipping Guru
 Author URI: https://ali2woo.com/dropshipping-plugin/?utm_source=lite&utm_medium=author&utm_campaign=alinext-lite
 License: GPLv3
 Requires at least: 5.9
 Tested up to: 7.0
-WC tested up to: 10.8
+WC tested up to: 10.9
 WC requires at least: 5.0
 Requires PHP: 8.0
 Requires Plugins: woocommerce
@@ -24,6 +24,7 @@ use AliNext_Lite\ImportProcess;
 use AliNext_Lite\Json_Api_Configurator;
 use AliNext_Lite\Loader;
 use AliNext_Lite\WizardPageController;
+use AliNext_Lite\Settings;
 use DI\Container;
 use DI\ContainerBuilder;
 
@@ -168,6 +169,7 @@ if (!class_exists('A2WL_Main')) {
             do_action('a2wl_install');
 
             add_option(WizardPageController::WIZARD_ACTIVATION_KEY, true);
+            update_option(Settings::SETTING_PLUGIN_ACTIVATION_DATE, time());
         }
 
         public function uninstall(): void
@@ -182,7 +184,7 @@ if (!class_exists('A2WL_Main')) {
 
         public function admin_assets($page): void
         {
-            do_action('a2wl_admin_assets', $page);
+                do_action('a2wl_admin_assets', $page);
         }
 
         public function admin_menu(): void

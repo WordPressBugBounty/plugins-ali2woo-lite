@@ -441,3 +441,8 @@
 * Add: Support for WordPress 7.0
 * Fix: Wizard page deactivation form
 
+3.7.1
+* Improve: PHP 8+ support
+* Improve: Tip of the Day feature
+* Add: Сompatibility with WooCommerce 10.9
+

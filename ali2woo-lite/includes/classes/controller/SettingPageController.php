@@ -537,6 +537,10 @@ class SettingPageController extends AbstractAdminPage
 
         if (isset($_POST['setting_form'])) {
             set_setting('write_info_log', isset($_POST['a2wl_write_info_log']));
+            set_setting(
+                Settings::SETTINGS_TIP_OF_DAY_DISABLED,
+                !isset($_POST['a2wl_tip_of_day_disabled'])
+            );
         }
 
         $server_ip = '-';

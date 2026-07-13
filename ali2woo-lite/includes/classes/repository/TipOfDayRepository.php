@@ -1,11 +1,5 @@
 <?php
 
-/**
- * Description of TipOfDayRepository
- *
- * @author Ali2Woo Team
- */
-
 namespace AliNext_Lite;;
 
 class TipOfDayRepository
@@ -17,12 +11,12 @@ class TipOfDayRepository
         $this->TipOfDayFactory = $TipOfDayFactory;
     }
 
-    public function getOne(int $id): ?TipOfDay
+    public function getOne(int|string $id): ?TipOfDay
     {
         $tipOfDayData = $this->getAllsAsArray();
 
         foreach ($tipOfDayData as $tipOfDayItemData) {
-            if ($tipOfDayItemData[TipOfDay::FIELD_ID] === $id) {
+            if ((string) $tipOfDayItemData[TipOfDay::FIELD_ID] === (string) $id) {
                 return $this->TipOfDayFactory->createFromData($tipOfDayItemData);
             }
         }
@@ -44,16 +38,25 @@ class TipOfDayRepository
         return null;
     }
 
+    public function findAll(): array
+    {
+        $tipOfDayData = $this->getAllsAsArray();
+        $tips = [];
+
+        foreach ($tipOfDayData as $tipOfDayItemData) {
+            $tips[] = $this->TipOfDayFactory->createFromData($tipOfDayItemData);
+        }
+
+        return $tips;
+    }
+
     public function save(TipOfDay $TipOfDay): void
     {
         $tipOfDayDataList = $this->getAllsAsArray();
         $newTipOfDayData = $TipOfDay->toArray();
         $tipOfDayId = $TipOfDay->getId();
 
-        $index = array_search(
-            $tipOfDayId,
-            array_column($tipOfDayDataList, TipOfDay::FIELD_ID)
-        );
+        $index = $this->findIndexById($tipOfDayDataList, $tipOfDayId);
 
         if ($index !== false) {
             $tipOfDayDataList[$index] = $newTipOfDayData;
@@ -61,19 +64,46 @@ class TipOfDayRepository
             $tipOfDayDataList[] = $newTipOfDayData;
         }
 
-
         $this->commitChanges($tipOfDayDataList);
+    }
+
+    public function replaceAll(array $tips): void
+    {
+        if (empty($tips)) {
+            return;
+        }
+
+        $data = [];
+        foreach ($tips as $tip) {
+            if ($tip instanceof TipOfDay) {
+                $data[] = $tip->toArray();
+            } elseif (is_array($tip)) {
+                $data[] = $tip;
+            }
+        }
+
+        if (empty($data)) {
+            return;
+        }
+
+        $this->commitChanges($data);
+    }
+
+    public function deleteAll(): void
+    {
+        set_setting(Settings::SETTING_TIP_OF_DAY, []);
+        settings()->commit();
     }
 
     public function saveManyOnlyNew(array $data): void
     {
         $tipOfDayDataList = $this->getAllsAsArray();
-        $existedTipIdList = array_column($tipOfDayDataList, TipOfDay::FIELD_ID);
+        $existedTipIdList = array_map('strval', array_column($tipOfDayDataList, TipOfDay::FIELD_ID));
 
         foreach ($data as $dataItem) {
             $TipOfDay = $this->TipOfDayFactory->createFromData($dataItem);
 
-            if (!in_array($TipOfDay->getId(), $existedTipIdList)) {
+            if (!in_array((string) $TipOfDay->getId(), $existedTipIdList, true)) {
                 $this->save($TipOfDay);
             }
         }
@@ -92,4 +122,13 @@ class TipOfDayRepository
         settings()->commit();
     }
 
+    private function findIndexById(array $list, int|string $id): int|false
+    {
+        foreach ($list as $index => $item) {
+            if ((string) ($item[TipOfDay::FIELD_ID] ?? '') === (string) $id) {
+                return $index;
+            }
+        }
+        return false;
+    }
 }

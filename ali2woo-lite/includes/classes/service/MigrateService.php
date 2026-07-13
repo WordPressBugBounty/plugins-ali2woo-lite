@@ -15,7 +15,7 @@ class MigrateService
     private ProductShippingDataRepository $ProductShippingDataRepository;
 
     public function __construct(
-        ProductShippingDataRepository $ProductShippingDataRepository
+        ProductShippingDataRepository $ProductShippingDataRepository,
     ) {
         $this->ProductShippingDataRepository = $ProductShippingDataRepository;
 
@@ -45,6 +45,10 @@ class MigrateService
             $this->migrate_to_363();
         }
 
+        if (version_compare($cur_version, "3.7.1", '<')) {
+            $this->migrate_to_371();
+        }
+
         if (version_compare($cur_version, A2WL()->version, '<')) {
             update_option('a2wl_db_version', A2WL()->version, 'no');
         }
@@ -54,7 +58,7 @@ class MigrateService
     {
         a2wl_error_log('migrate to 3.0.8');
         if (class_exists('AliNext_Lite\ProductShippingMeta')) {
-            ProductShippingMeta::clear_in_all_product();;
+            ProductShippingMeta::clear_in_all_product();
         }
     }
 
@@ -98,5 +102,18 @@ class MigrateService
     {
         a2wl_error_log('migrate 3.6.3');
         set_setting(Settings::SETTING_DELIVERY_INFO_DISPLAY_MODE, 'default');
+    }
+
+    private function migrate_to_371(): void
+    {
+        a2wl_error_log('migrate to 3.7.1');
+
+        $activationDate = get_option(Settings::SETTING_PLUGIN_ACTIVATION_DATE);
+        if (!$activationDate) {
+            update_option(Settings::SETTING_PLUGIN_ACTIVATION_DATE, time());
+        }
+
+        set_setting(Settings::SETTING_TIP_OF_DAY, TipOfDay::getDefaultData());
+        settings()->commit();
     }
 }

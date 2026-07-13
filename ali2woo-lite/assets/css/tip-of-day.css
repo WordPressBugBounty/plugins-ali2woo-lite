@@ -1,0 +1,174 @@
+.a2wl-tip-of-day-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9998;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.a2wl-tip-of-day-overlay.opened {
+    display: flex;
+}
+
+.a2wl-tip-of-day {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 6px;
+    width: 480px;
+    max-width: 90%;
+    max-height: calc(100% - 64px);
+    z-index: 9999;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #1a1a1a;
+    display: flex;
+    flex-direction: column;
+}
+
+.a2wl-tip-of-day__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.a2wl-tip-of-day__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.a2wl-tip-of-day__close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 0;
+    transition: color .15s;
+    flex-shrink: 0;
+    margin-left: 12px;
+}
+
+.a2wl-tip-of-day__close:hover {
+    color: #111827;
+}
+
+.a2wl-tip-of-day__body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #374151;
+}
+
+.a2wl-tip-of-day__body p {
+    margin: 0 0 12px;
+}
+
+.a2wl-tip-of-day__body p:last-child {
+    margin-bottom: 0;
+}
+
+.a2wl-tip-of-day__body strong {
+    color: #111827;
+    font-weight: 600;
+}
+
+.a2wl-tip-of-day__body a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.a2wl-tip-of-day__body a:hover {
+    text-decoration: underline;
+}
+
+.a2wl-tip-of-day__body ul,
+.a2wl-tip-of-day__body ol {
+    margin: 8px 0;
+    padding-left: 20px;
+}
+
+.a2wl-tip-of-day__body li {
+    margin-bottom: 4px;
+}
+
+.a2wl-tip-of-day__footer {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 16px 24px 20px;
+    border-top: 1px solid #f3f4f6;
+}
+
+.a2wl-tip-of-day__cta {
+    text-decoration: none;
+}
+
+.a2wl-tip-of-day__cta:hover {
+    text-decoration: none;
+    color: #fff;
+}
+
+.a2wl-btn {
+    padding: 8px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+    transition: background .15s, color .15s, opacity .15s;
+    font-weight: 500;
+    display: inline-block;
+    line-height: 1.4;
+}
+
+.a2wl-btn--primary {
+    background: #10b981;
+    color: #fff;
+}
+
+.a2wl-btn--primary:hover {
+    background: #059669;
+}
+
+.a2wl-btn--secondary {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+.a2wl-btn--secondary:hover {
+    background: #d1d5db;
+}
+
+.a2wl-tip-of-day__dismiss {
+    min-width: 80px;
+}
+
+.a2wl-tip-of-day__disable-wrap {
+    margin-left: auto;
+}
+
+.a2wl-tip-of-day__disable {
+    font-size: 12px;
+    color: #9ca3af;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color .15s;
+}
+
+.a2wl-tip-of-day__disable:hover {
+    color: #ef4444;
+    text-decoration: underline;
+}

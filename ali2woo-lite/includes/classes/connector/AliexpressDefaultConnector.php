@@ -116,7 +116,7 @@ class AliexpressDefaultConnector extends AbstractConnector
 
         return $result;
     }
-    
+
     public function load_reviews($product_id, $page, $page_size = 20, $params = [])
     {
         $request_url = RequestHelper::build_request('get_reviews',
@@ -137,7 +137,7 @@ class AliexpressDefaultConnector extends AbstractConnector
 
         return $result;
     }
-    
+
     public function check_affiliate($product_id): array
     {
         $request_url = RequestHelper::build_request('check_affiliate', ['product_id' => $product_id]);
@@ -186,7 +186,7 @@ class AliexpressDefaultConnector extends AbstractConnector
                     }
                 } else {
                     $result = ResultBuilder::buildError(
-                        $request['response']['code'] . ' - ' . $request['response']['message']
+                        $request['response']['code'] . ' - ' . ($request['response']['message'] ?? '')
                     );
                 }
             }
