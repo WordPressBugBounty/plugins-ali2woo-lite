@@ -137,9 +137,11 @@ class Helper {
             return;
         }
 
-        // log empty values of attribute (possible bug)
+        // Empty attribute values are expected for sold-out/disabled products (the attribute
+        // itself is still registered in advance). Not a bug; keep as a case to verify with
+        // a dedicated test in the future.
         if (empty($value) || (is_array($value) && count(array_filter($value)) === 0)) {
-            a2wl_error_log(sprintf(
+            a2wl_info_log(sprintf(
                 '[add_attribute] Empty value detected for product_id=%d, key=%s',
                 $post_id,
                 $key

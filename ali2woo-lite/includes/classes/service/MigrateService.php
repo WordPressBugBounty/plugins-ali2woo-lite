@@ -10,20 +10,26 @@
 
 namespace AliNext_Lite;;
 
+use Throwable;
+
 class MigrateService
 {
     private ProductShippingDataRepository $ProductShippingDataRepository;
+    private BackgroundProcessFactory $BackgroundProcessFactory;
 
     public function __construct(
         ProductShippingDataRepository $ProductShippingDataRepository,
+        BackgroundProcessFactory $BackgroundProcessFactory,
     ) {
         $this->ProductShippingDataRepository = $ProductShippingDataRepository;
+        $this->BackgroundProcessFactory = $BackgroundProcessFactory;
 
         $this->migrate();
     }
 
     public function migrate(): void
     {
+       // delete_option('a2wl_db_version');
         $cur_version = get_option('a2wl_db_version', '');
         if (version_compare($cur_version, "3.0.8", '<')) {
             $this->migrate_to_308();
@@ -47,6 +53,10 @@ class MigrateService
 
         if (version_compare($cur_version, "3.7.1", '<')) {
             $this->migrate_to_371();
+        }
+
+        if (version_compare($cur_version, "3.7.3", '<')) {
+            $this->migrate_to_373();
         }
 
         if (version_compare($cur_version, A2WL()->version, '<')) {
@@ -115,5 +125,20 @@ class MigrateService
 
         set_setting(Settings::SETTING_TIP_OF_DAY, TipOfDay::getDefaultData());
         settings()->commit();
+    }
+
+    public function migrate_to_373(): void
+    {
+        a2wl_error_log('migrate to 3.7.3: dispatch AliExpress image URL domain migration');
+
+        try {
+            /** @var MigrateAlicdnUrlProcess $process */
+            $process = $this->BackgroundProcessFactory->createProcessByCode(
+                MigrateAlicdnUrlProcess::ACTION_CODE
+            );
+            $process->pushToQueue()->save()->dispatch();
+        } catch (Throwable $e) {
+            a2wl_error_log('[AlicdnUrlMigrate] Failed to dispatch migration job: ' . $e->getMessage());
+        }
     }
 }

@@ -108,7 +108,13 @@ class ExternalOrderFactory
         $taxNumber = $WC_Order->get_meta('_shipping_tax_number');
         $foreignerPassportNumber = $WC_Order->get_meta('_shipping_foreigner_passport_no');
 
-        $isForeigner = ($WC_Order->get_meta('_shipping_is_foreigner') === 'yes');
+        // compatibility: new orders store '1', legacy orders may store 'yes'
+        $isForeigner = in_array(
+            $WC_Order->get_meta('_shipping_is_foreigner'),
+            ['1', 'yes'],
+            true
+        );
+
         $vatTaxNumber = $WC_Order->get_meta('_shipping_vat_no');
         $taxCompany = $WC_Order->get_meta('_shipping_tax_company');
 
@@ -158,7 +164,7 @@ class ExternalOrderFactory
             ->setPassportIssuingAgency($passportIssuingAgency ?? null)
             ->setTaxNumber($taxNumber ?? null)
             ->setForeignerPassportNumber($foreignerPassportNumber ?? null)
-            ->setIsForeigner($isForeigner ?? null)
+            ->setIsForeigner($isForeigner)
             ->setVatTaxNumber($vatTaxNumber ?? null)
             ->setTaxCompany($taxCompany ?? null)
             ->setLocationTreeAddressId($locationTreeAddressId ?? null)

@@ -19,6 +19,16 @@ class Attachment
 
     public const KEY_ATTACHED_FILE = '_wp_a2w_attached_file';
 
+    /**
+     * External image host patterns detected by the "load external images locally" feature.
+     *
+     * @var string[]
+     */
+    public const EXTERNAL_IMAGE_DOMAINS = [
+        '.alicdn.com',
+        '.aliexpress-media.com',
+    ];
+
     private $utils;
     private $use_external_image_urls = false;
 
@@ -30,6 +40,27 @@ class Attachment
         } else {
             $this->use_external_image_urls = get_setting('use_external_image_urls');
         }
+    }
+
+    /**
+     * @return string[]
+     */
+    private static function externalImageLikePatterns(): array
+    {
+        return array_map(static function (string $domain): string {
+            return '%' . $domain . '%';
+        }, self::EXTERNAL_IMAGE_DOMAINS);
+    }
+
+    private static function isExternalImageUrl(string $url): bool
+    {
+        foreach (self::EXTERNAL_IMAGE_DOMAINS as $domain) {
+            if (str_contains($url, $domain)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function create_attachment($post_id, $image_path, $params = [])
@@ -429,8 +460,10 @@ class Attachment
 
         $cnt = $wpdb->get_var($wpdb->prepare($query, self::KEY_ATTACHED_FILE));
 
-        $query = "SELECT count(ID) FROM $wpdb->posts WHERE post_type = 'product' AND post_content LIKE '%.alicdn.com%'";
-        $cnt += $wpdb->get_var($query);
+        $patterns = self::externalImageLikePatterns();
+        $likeConditions = implode(' OR ', array_fill(0, count($patterns), 'post_content LIKE %s'));
+        $query = "SELECT count(ID) FROM $wpdb->posts WHERE post_type = 'product' AND (" . $likeConditions . ")";
+        $cnt += $wpdb->get_var($wpdb->prepare($query, ...$patterns));
 
         return $cnt;
     }
@@ -465,15 +498,16 @@ class Attachment
         if ($posts_limit > 0) {
             //2. find products with external images in the product description
             $post_filter = $post_id && intval($post_id) > 0 ? " AND ID=" . intval($post_id) . " " : "";
+            $patterns = self::externalImageLikePatterns();
+            $likeConditions = implode(' OR ', array_fill(0, count($patterns), 'post_content LIKE %s'));
             $sql = "SELECT ID FROM $wpdb->posts " .
-            "WHERE post_type = 'product' AND post_content LIKE %s $post_filter" . " " .
+            "WHERE post_type = 'product' AND ($likeConditions) $post_filter" . " " .
             "LIMIT %d";
             $tmp_product_ids = $wpdb->get_results(
                 $wpdb->prepare(
                     // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
                     $sql,
-                    '%' . 'alicdn.com' . '%',
-                    $posts_limit
+                    ...array_merge($patterns, [$posts_limit])
                 ),
                 ARRAY_N
             );
@@ -588,7 +622,7 @@ class Attachment
                     $e = $elements->item($i);
                     $old_url = $e->getAttribute('src');
 
-                    if (str_contains($old_url, '.alicdn.com')) {
+                    if (self::isExternalImageUrl($old_url)) {
                         $attachment_id = $this->create_attachment(
                             $post_id,
                             $e->getAttribute('src'),

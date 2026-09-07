@@ -6,13 +6,13 @@ Plugin URI: https://ali2woo.com/pricing/?utm_source=lite&utm_medium=plugin&utm_c
 Description: AliNext (Lite version) is a WordPress plugin created for AliExpress Dropshipping and Affiliate marketing
 Text Domain: ali2woo
 Domain Path: /languages
-Version: 3.7.1
+Version: 3.7.3
 Author: Dropshipping Guru
 Author URI: https://ali2woo.com/dropshipping-plugin/?utm_source=lite&utm_medium=author&utm_campaign=alinext-lite
 License: GPLv3
 Requires at least: 5.9
-Tested up to: 7.0
-WC tested up to: 10.9
+Tested up to: 7.1
+WC tested up to: 11.1
 WC requires at least: 5.0
 Requires PHP: 8.0
 Requires Plugins: woocommerce

@@ -389,9 +389,48 @@ class Aliexpress
                 if (isset($result['error_code'])) {
                     if (in_array($result['error_code'], [1004,1005])) {
                         $notAvailableProducts[] = $this->createNotAvailableProduct($product_id_parts[0]);
+                    } elseif ($result['error_code'] == 1008) {
+                        // Temporary error from the remote service (backend asks to try again later).
+                        // Skip this update and let the next sync cycle retry it; do not touch stock/type.
+                        a2wl_info_log(sprintf(
+                            "Product sync skipped for external_id=%s: temporary remote service error [1008], will retry on the next update cycle",
+                            $product_id_parts[0]
+                        ));
+                    } elseif ($result['error_code'] == 1002) {
+                        // AliExpress request error; retry on the next update cycle and
+                        // notify support if it keeps happening.
+                        a2wl_info_log(sprintf(
+                            "Product sync skipped for external_id=%s: AliExpress request error [1002], will retry on the next update cycle. If this keeps recurring, please contact support",
+                            $product_id_parts[0]
+                        ));
+                    } elseif ($result['error_code'] == 1010) {
+                        // Product is not allowed for dropshipping. Retry on the next update cycle,
+                        // but recommend replacing the product.
+                        a2wl_info_log(sprintf(
+                            "Product sync skipped for external_id=%s: product not allowed for dropshipping [1010], will retry on the next update cycle. Recommended: replace this product",
+                            $product_id_parts[0]
+                        ));
+                    } elseif ($result['error_code'] == 1006) {
+                        // Access token is outdated; the product will be retried on the next update cycle,
+                        // but the access token should be refreshed.
+                        a2wl_info_log(sprintf(
+                            "Product sync skipped for external_id=%s: your access token is outdated [1006], please update it. Will try to update the product later",
+                            $product_id_parts[0]
+                        ));
+                    } elseif ($result['error_code'] == 1007) {
+                        // Error in the response from AliExpress; retry on the next update cycle.
+                        a2wl_info_log(sprintf(
+                            "Product sync skipped for external_id=%s: error in response from AliExpress [1007], will try to update the product later",
+                            $product_id_parts[0]
+                        ));
+                    } elseif ($result['error_code'] == 1012) {
+                        // Delivery of this product to the selected region is not allowed.
+                        a2wl_info_log(sprintf(
+                            "Product sync skipped for external_id=%s: delivery of this product to the selected region is not allowed [1012]. Please change the region and try to update again",
+                            $product_id_parts[0]
+                        ));
                     }
                 }
-                //$result = ResultBuilder::buildError($request->get_error_message());
             }
         }
 

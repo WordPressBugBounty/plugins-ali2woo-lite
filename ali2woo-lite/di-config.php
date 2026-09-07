@@ -14,6 +14,7 @@ use AliNext_Lite\AliexpressTokenService;
 use AliNext_Lite\AliexpressTokenValidationService;
 use AliNext_Lite\ApiClient;
 use AliNext_Lite\ApplyShippingMethodBulkProcess;
+use AliNext_Lite\MigrateAlicdnUrlProcess;
 use AliNext_Lite\AssetService;
 use AliNext_Lite\Attachment;
 use AliNext_Lite\BackgroundProcessFactory;
@@ -39,6 +40,7 @@ use AliNext_Lite\LocalService;
 use AliNext_Lite\MigrateService;
 use AliNext_Lite\OrderFulfillmentController;
 use AliNext_Lite\OrderFulfillmentService;
+use AliNext_Lite\OrderShippingDataService;
 use AliNext_Lite\Override;
 use AliNext_Lite\PermanentAlertService;
 use AliNext_Lite\PlatformClient;
@@ -259,6 +261,7 @@ return [
             get(Woocommerce::class),
             get(ProductService::class),
         ),
+    'AliNext_Lite\OrderShippingDataService' => create(OrderShippingDataService::class),
     'AliNext_Lite\PriceFormulaService' => create(PriceFormulaService::class)
         ->constructor(
             get(PriceFormulaRepository::class),
@@ -300,7 +303,7 @@ return [
     'AliNext_Lite\MigrateService' => create(MigrateService::class)
         ->constructor(
             get(ProductShippingDataRepository::class),
-            get(Settings::class),
+            get(BackgroundProcessFactory::class),
         ),
     'AliNext_Lite\ProductService' => create(ProductService::class)
         ->constructor(
@@ -451,6 +454,7 @@ return [
             get(OrderFulfillmentService::class),
             get(ProductService::class),
             get(ImportedProductServiceFactory::class),
+            get(OrderShippingDataService::class),
         ),
 
     'AliNext_Lite\GlobalMessageAjaxController' => create(GlobalMessageAjaxController::class)
@@ -547,11 +551,16 @@ return [
             get(Aliexpress::class),
             get(ProductImport::class),
         ),
+    'AliNext_Lite\MigrateAlicdnUrlProcess' => create(MigrateAlicdnUrlProcess::class)
+        ->constructor(
+            get(ProductImport::class),
+        ),
     
     'register_jobs' => [
         get(SynchronizePurchaseCodeInfoProcess::class),
         get(AddProductToImportListProcess::class),
         get(AffiliateCheckProcess::class),
+        get(MigrateAlicdnUrlProcess::class),
         
     ]
 ];

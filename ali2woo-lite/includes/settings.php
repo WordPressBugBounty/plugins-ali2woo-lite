@@ -26,6 +26,9 @@ class Settings
     public const SETTING_ADD_VIDEO_TO_DESCRIPTION = 'add_video_to_description';
     public const SETTING_ALLOW_SHOP_MANAGER = 'allow_shop_manager';
     public const SETTING_HIDDEN_PAGES = 'hidden_pages';
+    public const SETTING_FULFILLMENT_IS_FOREIGNER = 'fulfillment_is_foreigner';
+    public const SETTING_FULFILLMENT_FOREIGN_TAX_ID = 'fulfillment_foreign_tax_id';
+    public const SETTING_FULFILLMENT_PASSPORT_NUMBER = 'fulfillment_passport_number';
 
     public const SETTING_TIP_OF_DAY = 'tip_of_day';
     public const SETTING_TIP_OF_DAY_LAST_DATE = 'tip_of_day_last_date';
@@ -61,6 +64,7 @@ class Settings
         self::SETTING_DELIVERY_TIME_FALLBACK_MAX => 30,
         self::SETTINGS_TIP_OF_DAY_DISABLED => false,
         self::SETTING_SHIPPING_ON_PRODUCT_PAGE => false,
+        self::SETTING_FULFILLMENT_IS_FOREIGNER => false,
     ];
 
 
@@ -155,6 +159,9 @@ class Settings
         'fulfillment_custom_note' => '',
         'fulfillment_cpf_meta_key' => '',
         'fulfillment_rut_meta_key' => '',
+        self::SETTING_FULFILLMENT_IS_FOREIGNER => self::DEFAULTS[self::SETTING_FULFILLMENT_IS_FOREIGNER],
+        self::SETTING_FULFILLMENT_FOREIGN_TAX_ID => '',
+        self::SETTING_FULFILLMENT_PASSPORT_NUMBER => '',
         'order_translitirate' => false,
         'order_third_name' => false,
         'pricing_rules_type' => PriceFormulaService::SALE_PRICE_AS_BASE,

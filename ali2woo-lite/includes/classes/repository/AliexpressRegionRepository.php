@@ -47,6 +47,7 @@ class AliexpressRegionRepository
             'FI' => 'Finland',
             'GR' => 'Greece',
             'RU' => 'Russia',
+            'SRB' => 'Serbia',
             'NL' => 'Netherlands',
             'IE' => 'Ireland',
             'ES' => 'Spain',

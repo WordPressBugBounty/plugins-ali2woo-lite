@@ -41,6 +41,10 @@ class BackgroundProcessFactory
             return $this->Container->get(AffiliateCheckProcess::class);
         }
 
+        if ($actionCode == MigrateAlicdnUrlProcess::ACTION_CODE) {
+            return $this->Container->get(MigrateAlicdnUrlProcess::class);
+        }
+
         
 
         throw new Exception('Unknown process given: ' . $actionCode);

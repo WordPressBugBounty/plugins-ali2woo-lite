@@ -358,6 +358,10 @@ return array(
 		'version' => 'dev-main',
 		'path'    => $baseDir . '/includes/classes/utils/Logs.php'
 	),
+	'AliNext_Lite\\MigrateAlicdnUrlProcess' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/job/MigrateAlicdnUrlProcess.php'
+	),
 	'AliNext_Lite\\MigrateService' => array(
 		'version' => 'dev-main',
 		'path'    => $baseDir . '/includes/classes/service/MigrateService.php'
@@ -393,6 +397,10 @@ return array(
 	'AliNext_Lite\\OrderPreviewResultItemDto' => array(
 		'version' => 'dev-main',
 		'path'    => $baseDir . '/includes/classes/dto/api/OrderPreviewResultItemDto.php'
+	),
+	'AliNext_Lite\\OrderShippingDataService' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/service/OrderShippingDataService.php'
 	),
 	'AliNext_Lite\\Override' => array(
 		'version' => 'dev-main',

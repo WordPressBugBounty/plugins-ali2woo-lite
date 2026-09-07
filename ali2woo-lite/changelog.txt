@@ -446,3 +446,13 @@
 * Improve: Tip of the Day feature
 * Add: Сompatibility with WooCommerce 10.9
 
+3.7.3
+* Add: redesign order edit form with compact layout and collapsible additional fields (premium)
+* Fix: match placed AliExpress order to WC item by sku_id (premium)
+* Add: srb (serbia) region to the plugin settings (premium)
+* Improve: reorganize fulfillment settings into collapsible 'Address overrides' section (premium)
+* Add: migrate alicdn.com image URLs to aliexpress-media.com
+* Add: Сompatibility with WooCommerce 11.1
+* Add: Сompatibility with Wordpress 7.1
+* Fix: Various minor bugs resolved to improve overall stability and reliability
+

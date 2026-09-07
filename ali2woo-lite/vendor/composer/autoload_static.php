@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit83dd4a8a14c6f285c4e571aec0682afd
+class ComposerStaticInitd69655eadec99a4d6e5dcf14c9bd1772
 {
     public static $files = array (
         'b33e3d135e5d9e47d845c576147bda89' => __DIR__ . '/..' . '/php-di/php-di/src/functions.php',
@@ -147,6 +147,7 @@ class ComposerStaticInit83dd4a8a14c6f285c4e571aec0682afd
         'AliNext_Lite\\Loader' => __DIR__ . '/../..' . '/includes/loader.php',
         'AliNext_Lite\\LocalService' => __DIR__ . '/../..' . '/includes/classes/service/LocalService.php',
         'AliNext_Lite\\Logs' => __DIR__ . '/../..' . '/includes/classes/utils/Logs.php',
+        'AliNext_Lite\\MigrateAlicdnUrlProcess' => __DIR__ . '/../..' . '/includes/classes/job/MigrateAlicdnUrlProcess.php',
         'AliNext_Lite\\MigrateService' => __DIR__ . '/../..' . '/includes/classes/service/MigrateService.php',
         'AliNext_Lite\\OrderDataTabController' => __DIR__ . '/../..' . '/includes/classes/controller/OrderDataTabController.php',
         'AliNext_Lite\\OrderFulfillmentController' => __DIR__ . '/../..' . '/includes/classes/controller/OrderFulfillmentController.php',
@@ -156,6 +157,7 @@ class ComposerStaticInit83dd4a8a14c6f285c4e571aec0682afd
         'AliNext_Lite\\OrderPreviewItemDto' => __DIR__ . '/../..' . '/includes/classes/dto/api/OrderPreviewItemDto.php',
         'AliNext_Lite\\OrderPreviewResultDto' => __DIR__ . '/../..' . '/includes/classes/dto/api/OrderPreviewResultDto.php',
         'AliNext_Lite\\OrderPreviewResultItemDto' => __DIR__ . '/../..' . '/includes/classes/dto/api/OrderPreviewResultItemDto.php',
+        'AliNext_Lite\\OrderShippingDataService' => __DIR__ . '/../..' . '/includes/classes/service/OrderShippingDataService.php',
         'AliNext_Lite\\Override' => __DIR__ . '/../..' . '/includes/classes/model/Override.php',
         'AliNext_Lite\\PageGuardHelper' => __DIR__ . '/../..' . '/includes/classes/utils/PageGuardHelper.php',
         'AliNext_Lite\\Paginator' => __DIR__ . '/../..' . '/includes/classes/utils/Paginator.php',
@@ -368,9 +370,9 @@ class ComposerStaticInit83dd4a8a14c6f285c4e571aec0682afd
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit83dd4a8a14c6f285c4e571aec0682afd::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit83dd4a8a14c6f285c4e571aec0682afd::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit83dd4a8a14c6f285c4e571aec0682afd::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitd69655eadec99a4d6e5dcf14c9bd1772::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitd69655eadec99a4d6e5dcf14c9bd1772::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitd69655eadec99a4d6e5dcf14c9bd1772::$classMap;
 
         }, null, ClassLoader::class);
     }

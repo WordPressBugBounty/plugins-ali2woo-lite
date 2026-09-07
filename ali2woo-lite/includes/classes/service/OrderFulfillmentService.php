@@ -44,7 +44,7 @@ class OrderFulfillmentService
         try {
             $ExternalOrder = $this->ExternalOrderFactory
                 ->createOrderFromWooOrder($WC_Order, $OrderItems);
-            $currencyCode = get_setting('local_currency', ' USD');
+            $currencyCode = get_setting('local_currency', 'USD');
             $apiResult = $this->AliexpressModel->placeOrder($ExternalOrder, $currencyCode);
 
             if ($apiResult['state'] !== 'ok') {
@@ -55,17 +55,49 @@ class OrderFulfillmentService
 
             foreach ($aliexpressOrders as $aliexpressOrder) {
                 if (!isset($aliexpressOrder['child_order_list']['ae_child_order_info'])) {
-                    $errorText = _x('Bad API format in OrderFulfillmentService. Contact support.','api error', 'ali2woo');
+                    $errorText = _x(
+                        'Bad API format in OrderFulfillmentService. Contact support.',
+                        'api error',
+                        'ali2woo'
+                    );
                     error_log($errorText);
                     continue;
                 }
+
                 foreach ($aliexpressOrder['child_order_list']['ae_child_order_info'] as $ae_product_info) {
                     foreach ($OrderItems as $order_item) {
                         $a2wl_order_item = new WooCommerceOrderItem($order_item);
-                        if ($a2wl_order_item->get_external_product_id() == $ae_product_info['product_id']) {
+
+                        $externalSkuId = $a2wl_order_item->get_external_sku_id();
+                        $matchedBySku = $externalSkuId !== null
+                            && isset($ae_product_info['sku_id'])
+                            && (string)$externalSkuId === (string)$ae_product_info['sku_id'];
+
+                        $matchedByProduct = ($a2wl_order_item->get_external_product_id() == $ae_product_info['product_id']);
+
+                        if ($matchedBySku || $matchedByProduct) {
                             $a2wl_order_item->update_external_order($aliexpressOrder['order_id'], true);
                         }
                     }
+                }
+            }
+
+            foreach ($OrderItems as $order_item) {
+                $a2wl_order_item = new WooCommerceOrderItem($order_item);
+                $externalOrderId = $a2wl_order_item->get_external_order_id();
+                if ($externalOrderId) {
+                    a2wl_error_log(sprintf(
+                        'A2WL fulfillment: external order id [%s] received for WC order #%d (item %d).',
+                        $externalOrderId,
+                        $WC_Order->get_id(),
+                        $order_item->get_id()
+                    ));
+                } else {
+                    a2wl_error_log(sprintf(
+                        'A2WL fulfillment: external order id NOT received for WC order #%d (item %d).',
+                        $WC_Order->get_id(),
+                        $order_item->get_id()
+                    ));
                 }
             }
 
@@ -76,16 +108,14 @@ class OrderFulfillmentService
                 $WC_Order->update_status($placed_order_status);
             }
             restore_error_handler();
-        }
-        catch (FactoryException $FactoryException) {
+        } catch (FactoryException $FactoryException) {
             $extraData = $FactoryException->getExtraData();
 
             $result = ResultBuilder::buildError(
                 $FactoryException->getMessage(),
                 $extraData ?? false
             );
-        }
-        catch (Throwable $Exception) {
+        } catch (Throwable $Exception) {
             a2wl_print_throwable($Exception);
             $result = ResultBuilder::buildError($Exception->getMessage());
         }
@@ -100,104 +130,102 @@ class OrderFulfillmentService
      */
     public function getFulfillmentOrderServiceData(WC_Order $WC_Order, bool $isWpml = false): ?array
     {
-            $WC_OrderItems = $WC_Order->get_items();
+        $WC_OrderItems = $WC_Order->get_items();
 
-            a2wl_init_error_handler();
-            try {
-                $ExternalOrder = $this->ExternalOrderFactory
-                    ->createOrderFromWooOrder($WC_Order, $WC_OrderItems);
+        a2wl_init_error_handler();
+        try {
+            $ExternalOrder = $this->ExternalOrderFactory
+                ->createOrderFromWooOrder($WC_Order, $WC_OrderItems);
 
-                $OrderPreviewResultDto = $this->AliexpressModel->getOrderPreview($ExternalOrder);
-                restore_error_handler();
-            } catch (Throwable $Exception) {
-                a2wl_print_throwable($Exception);
+            $OrderPreviewResultDto = $this->AliexpressModel->getOrderPreview($ExternalOrder);
+            restore_error_handler();
+        } catch (Throwable $Exception) {
+            a2wl_print_throwable($Exception);
 
-                return null;
-            }
+            return null;
+        }
 
-            $shipping_address = $WC_Order->get_address('shipping');
-            if (empty($shipping_address['country'])) {
+        $shipping_address = $WC_Order->get_address('shipping');
+        if (empty($shipping_address['country'])) {
                 $shipping_address = $WC_Order->get_address();
-            }
-            $formatted_address = WC()->countries->get_formatted_address($shipping_address, ', ');
+        }
+        $formatted_address = WC()->countries->get_formatted_address($shipping_address, ', ');
 
-            $buyerName = $ExternalOrder->getBuyerName();
+        $buyerName = $ExternalOrder->getBuyerName();
 
-            $order_data = [
-                'order_id' => $WC_Order->get_id(),
-                'order_number' => $WC_Order->get_order_number(),
-                'order' => $WC_Order,
-                'buyer' => $buyerName,
-                'currency' => $WC_Order->get_currency(),
-                'shipping_to_country' => $ExternalOrder->getShippingAddress()->getCountryCode(),
-                'shipping_address' => $shipping_address,
-                'formatted_address' => $formatted_address,
-                'total_cost' => 0,
-                'items' => [],
-            ];
+        $order_data = [
+            'order_id' => $WC_Order->get_id(),
+            'order_number' => $WC_Order->get_order_number(),
+            'order' => $WC_Order,
+            'buyer' => $buyerName,
+            'currency' => $WC_Order->get_currency(),
+            'shipping_to_country' => $ExternalOrder->getShippingAddress()->getCountryCode(),
+            'shipping_address' => $shipping_address,
+            'formatted_address' => $formatted_address,
+            'total_cost' => 0,
+            'items' => [],
+        ];
 
-            $deliveryTime = $OrderPreviewResultDto->getShippingTime();
+        $deliveryTime = $OrderPreviewResultDto->getShippingTime();
 
-            $testK = 0;
-            foreach ($ExternalOrder->getItems() as $ExternalOrderItem) {
+        $testK = 0;
+        foreach ($ExternalOrder->getItems() as $ExternalOrderItem) {
+            $externalProductPrice = 0;
 
-                $externalProductPrice = 0;
+            $testJ = 0;
+            foreach ($OrderPreviewResultDto->getItems() as $OrderPreviewResultItemDto) {
+               /* $searchItem = ($OrderPreviewResultItemDto->getExternalSkuId() ===
+                    $ExternalOrderItem->getExternalSkuId()) && ($OrderPreviewResultItemDto->getExternalProductId() ===
+                        $ExternalOrderItem->getExternalProductId());*/
 
-                $testJ = 0;
-                foreach ($OrderPreviewResultDto->getItems() as $OrderPreviewResultItemDto)
-                {
-                   /* $searchItem = ($OrderPreviewResultItemDto->getExternalSkuId() ===
-                        $ExternalOrderItem->getExternalSkuId()) && ($OrderPreviewResultItemDto->getExternalProductId() ===
-                            $ExternalOrderItem->getExternalProductId());*/
+                $searchItem = ($testK === $testJ);
 
-                    $searchItem = ($testK === $testJ);
-
-                    if ($searchItem)  {
-                        $externalProductPrice = $OrderPreviewResultItemDto->getPrice();
-                        $itemsCount = count($OrderPreviewResultDto->getItems());
-                        $shippingCost = $OrderPreviewResultDto->getTotalShippingPrice() / $itemsCount;
-                        $current_shipping_company = $OrderPreviewResultDto->getShippingName();
-                    }
-
-                    $testJ++;
+                if ($searchItem) {
+                    $externalProductPrice = $OrderPreviewResultItemDto->getPrice();
+                    $itemsCount = count($OrderPreviewResultDto->getItems());
+                    $shippingCost = $OrderPreviewResultDto->getTotalShippingPrice() / $itemsCount;
+                    $current_shipping_company = $OrderPreviewResultDto->getShippingName();
                 }
 
-                $WC_Order_Item_Product = new WC_Order_Item_Product($ExternalOrderItem->getOrderItemId());
-                $WC_Product = $WC_Order_Item_Product->get_product();
-
-                $wpmlProductData = $this->getWpmlProductData($WC_Order_Item_Product->get_product_id(), $isWpml);
-
-                $item_original_url = $wpmlProductData['item_original_url'];
-
-                $attributes = $this->getFormattedOrderItemAttributes($ExternalOrderItem);
-
-                $shipping_info = [
-                    'items' => []
-                ];
-
-                $totalCost = $shippingCost + $externalProductPrice;
-
-                $order_data['items'][] = [
-                    'order_item_id' => $WC_Order_Item_Product->get_id(),
-                    'product_id' => $WC_Order_Item_Product->get_product_id(),
-                    'image' => $WC_Product->get_image(),
-                    'name' => $WC_Order_Item_Product->get_name(),
-                    'url' => $item_original_url,
-                    'sku' => $WC_Product->get_sku(),
-                    'attributes' => implode(' / ', $attributes),
-                    'cost' => $externalProductPrice,
-                    'quantity' => $WC_Order_Item_Product->get_quantity(),
-                    'shipping_items' => $shipping_info['items'],
-                    'current_shipping' => $current_shipping_company,
-                    'delivery_time' => $deliveryTime,
-                    'shipping_cost' => $shippingCost,
-                    'total_cost' => $totalCost,
-                ];
-
-                $order_data['total_cost'] += $totalCost;
-
-                $testK++;
+                $testJ++;
             }
+
+            $WC_Order_Item_Product = new WC_Order_Item_Product($ExternalOrderItem->getOrderItemId());
+            $WC_Product = $WC_Order_Item_Product->get_product();
+
+            $wpmlProductData = $this->getWpmlProductData($WC_Order_Item_Product->get_product_id(), $isWpml);
+
+            $item_original_url = $wpmlProductData['item_original_url'];
+
+            $attributes = $this->getFormattedOrderItemAttributes($ExternalOrderItem);
+
+            $shipping_info = [
+                'items' => []
+            ];
+
+            $totalCost = $shippingCost + $externalProductPrice;
+
+            $order_data['items'][] = [
+                'order_item_id' => $WC_Order_Item_Product->get_id(),
+                'product_id' => $WC_Order_Item_Product->get_product_id(),
+                'image' => $WC_Product->get_image(),
+                'name' => $WC_Order_Item_Product->get_name(),
+                'url' => $item_original_url,
+                'sku' => $WC_Product->get_sku(),
+                'attributes' => implode(' / ', $attributes),
+                'cost' => $externalProductPrice,
+                'quantity' => $WC_Order_Item_Product->get_quantity(),
+                'shipping_items' => $shipping_info['items'],
+                'current_shipping' => $current_shipping_company,
+                'delivery_time' => $deliveryTime,
+                'shipping_cost' => $shippingCost,
+                'total_cost' => $totalCost,
+            ];
+
+            $order_data['total_cost'] += $totalCost;
+
+            $testK++;
+        }
 
         return $order_data;
     }
@@ -285,21 +313,25 @@ class OrderFulfillmentService
                 try {
                     $importedProduct = $this->WoocommerceService
                         ->updateProductShippingItems($WC_Product, $shipping_to_country, $countryFromCode, $quantity);
-                } catch (RepositoryException|ServiceException $Exception) {
+                } catch (RepositoryException | ServiceException $Exception) {
                     $errorMessage = sprintf(
                         'OrderFulfillmentService::getFulfillmentOrderData: %s order id: %d',
                         $Exception->getMessage(),
-                        $order->get_id());
+                        $order->get_id()
+                    );
                     a2wl_error_log($errorMessage);
                     $importedProduct = $this->WoocommerceService->getProductWithVariations($product_id);
                 }
 
                 $shippingItems = $this->ProductService->getShippingItems(
-                    $importedProduct, $shipping_to_country, $countryFromCode
+                    $importedProduct,
+                    $shipping_to_country,
+                    $countryFromCode
                 );
 
                 $ShippingItemDto = $this->ProductService->findDefaultFromShippingItems(
-                    $shippingItems, $importedProduct
+                    $shippingItems,
+                    $importedProduct
                 );
 
                 $current_shipping_company = '';
@@ -325,7 +357,11 @@ class OrderFulfillmentService
                 $wpml_product_id = $wpml_variation_id = '';
                 if ($is_wpml) {
                     $wpml_object_id = apply_filters(
-                        'wpml_object_id', $product_id, 'product', false, $sitepress->get_default_language()
+                        'wpml_object_id',
+                        $product_id,
+                        'product',
+                        false,
+                        $sitepress->get_default_language()
                     );
                     if ($wpml_object_id != $product_id) {
                         $wpml_product = wc_get_product($wpml_object_id);
@@ -335,7 +371,11 @@ class OrderFulfillmentService
                     }
                     if ($product_id) {
                         $wpml_object_id = apply_filters(
-                            'wpml_object_id', $product_id, 'product', false, $sitepress->get_default_language()
+                            'wpml_object_id',
+                            $product_id,
+                            'product',
+                            false,
+                            $sitepress->get_default_language()
                         );
                         if ($wpml_object_id != $product_id) {
                             $wpml_variation = wc_get_product($wpml_object_id);
@@ -417,7 +457,10 @@ class OrderFulfillmentService
      * @return UpdateFulfillmentShippingResult
      */
     public function updateFulfillmentShipping(
-        WC_Order $order, array $order_items, string $shipping_to_country, bool $is_wpml = false
+        WC_Order $order,
+        array $order_items,
+        string $shipping_to_country,
+        bool $is_wpml = false
     ): UpdateFulfillmentShippingResult {
         $result_items = [];
         $total_order_price = 0;
@@ -431,15 +474,17 @@ class OrderFulfillmentService
                 $product_id = $item->get_product_id();
                 $quantity = $item->get_quantity();
 
-                $countryFromCode = 'CN';
+                $countryFromCode = $this->WoocommerceService->getShippingFromByProduct($WC_Product);
                 try {
                     $importedProduct = $this->WoocommerceService
                         ->updateProductShippingItems($WC_Product, $shipping_to_country, $countryFromCode, $quantity);
 
                     $shippingItems = $this->ProductService->getShippingItems(
-                        $importedProduct, $shipping_to_country, $countryFromCode
+                        $importedProduct,
+                        $shipping_to_country,
+                        $countryFromCode
                     );
-                } catch (RepositoryException|ServiceException $Exception) {
+                } catch (RepositoryException | ServiceException $Exception) {
                     a2wl_error_log($Exception->getMessage());
                     $shippingItems = [];
                 }
@@ -465,7 +510,8 @@ class OrderFulfillmentService
                             'order_item_id' => $item->get_id(),
                             'shiping_time' => $shippingItem['time'] . ' days',
                             'shiping_price' => wc_price(
-                                $shippingItem['freightAmount']['value'], ['currency' => $order->get_currency()]
+                                $shippingItem['freightAmount']['value'],
+                                ['currency' => $order->get_currency()]
                             ),
                             'total_item_price' => wc_price(
                                 $aliexpress_price * $item->get_quantity() + $shippingItem['freightAmount']['value'],
@@ -496,7 +542,13 @@ class OrderFulfillmentService
         $wpml_product_id = $wpml_variation_id = '';
         if ($is_wpml) {
             global $sitepress;
-            $wpml_object_id = apply_filters('wpml_object_id', $product_id, 'product', false, $sitepress->get_default_language());
+            $wpml_object_id = apply_filters(
+                'wpml_object_id',
+                $product_id,
+                'product',
+                false,
+                $sitepress->get_default_language()
+            );
             if ($wpml_object_id != $product_id) {
                 $wpml_product = wc_get_product($wpml_object_id);
                 if ($wpml_product) {
@@ -504,7 +556,13 @@ class OrderFulfillmentService
                 }
             }
             if ($product_id) {
-                $wpml_object_id = apply_filters('wpml_object_id', $product_id, 'product', false, $sitepress->get_default_language());
+                $wpml_object_id = apply_filters(
+                    'wpml_object_id',
+                    $product_id,
+                    'product',
+                    false,
+                    $sitepress->get_default_language()
+                );
                 if ($wpml_object_id != $product_id) {
                     $wpml_variation = wc_get_product($wpml_object_id);
                     if ($wpml_variation) {
@@ -515,9 +573,9 @@ class OrderFulfillmentService
         }
         if ($wpml_variation_id) {
             $aliexpress_price = get_post_meta($wpml_product_id, '_aliexpress_price', true);
-        } else if ($variation_id) {
+        } elseif ($variation_id) {
             $aliexpress_price = get_post_meta($variation_id, '_aliexpress_price', true);
-        } else if ($wpml_product_id) {
+        } elseif ($wpml_product_id) {
             $aliexpress_price = get_post_meta($wpml_product_id, '_aliexpress_price', true);
         } else {
             $aliexpress_price = get_post_meta($product_id, '_aliexpress_price', true);
@@ -528,7 +586,7 @@ class OrderFulfillmentService
 
     private function get_sign_urls($urls): array
     {
-        if (a2wl_check_defined('A2WL_DEMO_MODE')){
+        if (a2wl_check_defined('A2WL_DEMO_MODE')) {
             return [];
         }
 

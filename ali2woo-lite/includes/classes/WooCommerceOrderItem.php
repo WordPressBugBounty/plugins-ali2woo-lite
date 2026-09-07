@@ -9,6 +9,7 @@
 namespace AliNext_Lite;;
 
 use WC_Order_Item_Product;
+use WC_Product_Variable;
 
 class WooCommerceOrderItem
 {
@@ -130,6 +131,27 @@ class WooCommerceOrderItem
         $external_order_id = $this->orderItem->get_meta(Constants::order_item_external_order_meta());
 
         return is_array($external_order_id) ? $external_order_id[0] : '';
+    }
+
+    public function get_external_sku_id(): ?string
+    {
+        $productId = $this->get_product_id();
+        $variationId = $this->get_variation_id();
+
+        if (!$variationId && $productId) {
+            $WC_Product_Variable = new WC_Product_Variable($productId);
+            $variations = $WC_Product_Variable->get_available_variations();
+            if (!empty($variations)) {
+                $variationId = $variations[0]['variation_id'];
+            }
+        }
+
+        if (!$variationId) {
+            return null;
+        }
+
+        $skuId = get_post_meta($variationId, ImportedProductService::KEY_EXTERNAL_SKU_ID, true);
+        return $skuId !== '' ? $skuId : null;
     }
 
     private function get_tracking_data()

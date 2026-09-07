@@ -1,21 +1,21 @@
-=== AliExpress Dropshipping Plugin for WooCommerce Stores ===
+=== AliNext - WooCommerce Dropshipping Plugin for AliExpress ===
 Contributors: ali2woo
 Tags: aliexpress dropshipping plugin, dropshipping plugin, aliexpress dropshipping, woocommerce dropshipping​, dropshipping
 Requires at least: 5.9
-Tested up to: 7.0
+Tested up to: 7.1
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Stable tag: trunk
 Requires PHP: 8.0
-WC tested up to: 10.9
+WC tested up to: 11.1
 WC requires at least: 5.0
 
-Use the WooCommerce Dropshipping Plugin for AliExpress to import products, reviews, set flexible pricing rules, and automate order fulfillment.
+The WooCommerce Dropshipping Plugin for AliExpress trusted by 200,000+ stores. Fast import, reviews, pricing rules & automated order fulfillment.
 
 == Description ==
-Use the WooCommerce Dropshipping Plugin for AliExpress to import products, reviews, set flexible pricing rules, and automate order fulfillment.
+The WooCommerce Dropshipping Plugin for AliExpress trusted by 200,000+ stores. Fast import, reviews, pricing rules & automated order fulfillment.
 
-Whether you're launching your first dropshipping store or scaling an established business, our reliable WordPress plugin (called AliNext) helps you save time, protect margins, and boost conversions.
+AliNext is the evolved version of the popular Ali2Woo plugin. Import products from AliExpress with reviews, set smart pricing rules, automate order fulfillment and unlock 60+ features designed specifically for AliExpress dropshipping.
 
 **Advantages of the aliexpress dropshipping plugin WooCommerce store owners love:**
 
@@ -266,6 +266,16 @@ Discover how AliNext automates order fulfillment in WooCommerce dropshipping sto
 [youtube https://youtu.be/S5368Pvo_F0]
  
 == Changelog ==
+= 3.7.3 - 2026-09-07 =
+* Add: redesign order edit form with compact layout and collapsible additional fields (premium)
+* Fix: match placed AliExpress order to WC item by sku_id (premium)
+* Add: srb (serbia) region to the plugin settings (premium)
+* Improve: reorganize fulfillment settings into collapsible 'Address overrides' section (premium)
+* Add: migrate alicdn.com image URLs to aliexpress-media.com
+* Add: Сompatibility with WooCommerce 11.1
+* Add: Сompatibility with Wordpress 7.1
+* Fix: Various minor bugs resolved to improve overall stability and reliability
+
 = 3.7.1 - 2026-07-13 =
 * Improve: PHP 8+ support
 * Improve: Tip of the Day feature
@@ -293,18 +303,9 @@ Discover how AliNext automates order fulfillment in WooCommerce dropshipping sto
 * Added compatibility AliNext with WooCommerce 10.4
 * Fix: Various minor bug fixes
 
-= 3.6.5 - 2026-01-25 =
-* Premium: fixed js get shipping method bug in A2W data tab on product editing page
-* Premium: fixed stop syncing product shipping if no available variation exists
-* Add: automatically renew AliExpress access token when the current token is close to expiring
-* Show setup wizard on plugin activation
-* Add Cloudflare protection error handling to ping check
-* Improve product override feature to account for delivered option from plugin settings
-* Fix attribute columns padding in import list
-* Fix: alinext style is not connected on the cart page
-* Fix: Various minor bug fixes
-
 == Upgrade Notice ==
+= 3.7.3 =
+Image Path Migration: Migrated all external image paths from .alicdn.com to the new .aliexpress-media.com root domain, following official AliExpress team recommendations.
 = 3.6.3 =
 This release of AliNext adds new premium shipping features, fixes duplicate review imports, and improves overall stability. Highlights include delivery‑time‑only shipping settings, syncing assigned shipping options, support for South Africa (ZA), nonce protection, and performance refactoring. We recommend updating to benefit from the latest improvements and security fixes.
 

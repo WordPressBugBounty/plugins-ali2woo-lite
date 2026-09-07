@@ -38,6 +38,12 @@ class SettingPageController extends AbstractAdminPage
 
         add_filter('a2wl_setting_view', [$this, 'setting_view']);
         add_filter('a2wl_configure_lang_data', array($this, 'configure_lang_data'));
+
+        $this->add_style(
+            'a2wl-settings-common',
+            '/assets/css/pages/settings-common.css',
+            ['a2wl-admin-style']
+        );
     }
 
     public function configure_lang_data($lang_data)

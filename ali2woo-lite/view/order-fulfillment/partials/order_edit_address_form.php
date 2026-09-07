@@ -48,7 +48,12 @@
     }
     $thepostid = $old_thepostid;
     ?>
-    <h4><?php _ex("Additional fields", 'popup title', 'ali2woo'); ?></h4>
+    <div class="additional-fields-toggle">
+        <span class="dashicons dashicons-arrow-right"></span>
+        <span class="toggle-label-collapsed"><?php _ex("Show additional fields", 'popup title', 'ali2woo'); ?></span>
+        <span class="toggle-label-expanded"><?php _ex("Hide additional fields", 'popup title', 'ali2woo'); ?></span>
+    </div>
+    <div class="additional-fields-body">
     <?php
     $additional_shipping_fields = apply_filters('a2wl_fill_additional_shipping_fields', $additional_shipping_fields, $order_data['order']);
 
@@ -83,5 +88,9 @@
         }
     }
     ?>
-    <button id="save-order-address" class="btn btn-success" type="button"><?php echo esc_html__('Save'); ?></button>
+    </div>
+    <div class="button-row">
+        <button id="cancel-order-address" class="a2wl-btn a2wl-btn--secondary" type="button"><?php echo esc_html__('Cancel'); ?></button>
+        <button id="save-order-address" class="a2wl-btn a2wl-btn--primary" type="button"><?php echo esc_html__('Save'); ?></button>
+    </div>
 </div>

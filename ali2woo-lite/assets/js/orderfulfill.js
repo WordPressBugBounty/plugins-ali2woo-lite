@@ -1,4 +1,4 @@
-jQuery(function($) {    
+jQuery(function($) {
     $('body').append('<div id="fulfillment_model_container" class="a2wl-content"></div>')
     $( "#fulfillment_model_container" ).load(a2wl_ali_orderfulfill_js.ajaxurl, {
         'action': 'a2wl_load_fulfillment_model',
@@ -10,7 +10,7 @@ jQuery(function($) {
         return false;
     });
 
-    $(document).on("click", ".a2wl_aliexpress_order_fulfillment", function () {        
+    $(document).on("click", ".a2wl_aliexpress_order_fulfillment", function () {
         const ids = (typeof $(this).attr('id') == "undefined" && $(this).attr('href').substr(0, 1) == "#")? [$(this).attr('href').substr(1)]: [$(this).attr('id').split('-')[1]];
         prepare_order_fulfillment_dialog(ids);
         return false;
@@ -32,7 +32,7 @@ jQuery(function($) {
         $("#fulfillment-auto").removeAttr('disabled', 'disabled');
         $("#fulfillment-auto").removeClass('loading')
         $("#fulfillment-auto").show()
-  
+
         $("#fulfillment-chrome").removeAttr('disabled', 'disabled');
         $("#fulfillment-chrome").removeClass('loading')
         $("#fulfillment-chrome").show()
@@ -60,7 +60,7 @@ jQuery(function($) {
         });
     }
 
-    function update_order_items(order_id) { 
+    function update_order_items(order_id) {
         const order = $('.single-order-wrap[data-order_id="' + order_id + '"]');
         const shiping_to_country = $(order).attr('data-shiping_to_country');
 
@@ -72,35 +72,52 @@ jQuery(function($) {
             'ali2woo_nonce': a2wl_ali_orderfulfill_js.nonce_action,
         }
 
-        $(order).find('[data-order_item_id]').each(function () { 
+        $(order).find('[data-order_item_id]').each(function () {
             const order_item = $(this)
-            const order_item_id = $(order_item).attr('data-order_item_id')        
+            const order_item_id = $(order_item).attr('data-order_item_id')
             const shipping = $(order_item).find('.current-shipping-company').val()
             data.items.push({order_item_id, shipping})
-        })    
+        })
 
         $.post(a2wl_ali_orderfulfill_js.ajaxurl, data, function(response) {
             let json = JSON.parse(response);
             if (json.state == 'error') {
                 console.log(json.message)
-            } else {                
+            } else {
                 $('.modal-fulfillment .order-total .total').html(json.result.total_order_price)
                 $.each(json.result.items, function (_, item) {
                     const order_item = $('[data-order_item_id="' + item.order_item_id + '"]')
                     $(order_item).find('.delivery_time').html(item.shiping_time)
                     $(order_item).find('.shipping_cost').html(item.shiping_price)
                     $(order_item).find('.total_cost').html(item.total_item_price)
-                });                
+                });
             }
         }).fail(function(xhr, status, error) {
-            console.log(error);                        
+            console.log(error);
         });
     }
 
+    $(document.body).on("click", ".modal-fulfillment #cancel-order-address", function () {
+        $(this).parents('.single-order-wrap').find('.order-edit-address-form').removeClass('open');
+        return false;
+    })
+
+    $(document.body).on("click", ".modal-fulfillment .additional-fields-toggle", function () {
+        $(this).toggleClass("open");
+        return false;
+    })
+
     $(document.body).on("click", ".modal-fulfillment .order-ship-to .edit", function () {
         $(this).parents('.single-order-wrap').find('.order-edit-address-form').toggleClass('open');
-        return false;             
+        $($(this).parents('.single-order-wrap').find('#_shipping_is_foreigner')).trigger('change');
+        return false;
     })
+
+    $(document.body).on("change", ".modal-fulfillment #_shipping_is_foreigner", function () {
+        const isForeigner = $(this).is(":checked");
+        $(".modal-fulfillment #_shipping_foreigner_passport_no").prop("disabled", !isForeigner);
+        $(".modal-fulfillment #_shipping_passport_no").prop("disabled", isForeigner);
+    });
 
     $(document.body).on("change", ".modal-fulfillment #_shipping_country", function () {
         const country = $(this).val();
@@ -138,6 +155,14 @@ jQuery(function($) {
             '_shipping_state': $form.find('#_shipping_state').val(),
             '_shipping_phone': $form.find('#_shipping_phone').val(),
             'ali2woo_nonce': a2wl_ali_orderfulfill_js.nonce_action,
+            '_shipping_passport_no': $form.find('#_shipping_passport_no').val(),
+            '_shipping_passport_no_date': $form.find('#_shipping_passport_no_date').val(),
+            '_shipping_passport_organization': $form.find('#_shipping_passport_organization').val(),
+            '_shipping_tax_number': $form.find('#_shipping_tax_number').val(),
+            '_shipping_foreigner_passport_no': $form.find('#_shipping_foreigner_passport_no').val(),
+            '_shipping_is_foreigner': $form.find('#_shipping_is_foreigner').is(':checked') ? '1' : '0',
+            '_shipping_vat_no': $form.find('#_shipping_vat_no').val(),
+            '_shipping_tax_company': $form.find('#_shipping_tax_company').val(),
         }
 
 
@@ -160,7 +185,7 @@ jQuery(function($) {
                 refresh_fulfillment_dialog();
             }
         }).fail(function(xhr, status, error) {
-            console.log(error);                        
+            console.log(error);
         });
     });
 
@@ -256,17 +281,17 @@ jQuery(function($) {
     });*/
 
     $(document).on("click", ".modal-fulfillment .remove-item", function () {
-        const order = $(this).parents('.single-order-wrap[data-order_id]')        
-        $(this).parents('[data-order_item_id]').remove() 
+        const order = $(this).parents('.single-order-wrap[data-order_id]')
+        $(this).parents('[data-order_item_id]').remove()
         if ($(order).find('[data-order_item_id]').length > 0) {
             update_order_items($(order).attr('data-order_id'))
         } else {
             $(order).remove()
-            if ($('.modal-fulfillment .single-order-wrap[data-order_id]').length === 0) { 
+            if ($('.modal-fulfillment .single-order-wrap[data-order_id]').length === 0) {
                 $(".modal-overlay.modal-fulfillment").removeClass('opened');
             }
         }
-        $(this).parents('[data-order_item_id]').remove()                
+        $(this).parents('[data-order_item_id]').remove()
     })
 
     $(document).on("click", "#fulfillment-auto", function () {
@@ -277,7 +302,7 @@ jQuery(function($) {
         $('.single-order-wrap[data-order_id]').each(function () {
             const items = []
             $(this).find('[data-order_item_id]').each(function () {
-                items.push($(this).attr('data-order_item_id'))            
+                items.push($(this).attr('data-order_item_id'))
             })
             orders_to_plase.push({
                 'action': 'a2wl_fulfillment_place_order',
@@ -287,36 +312,36 @@ jQuery(function($) {
             })
         })
 
-        const on_place_order = function (order_id, response_state, response_message, state, json = undefined) { 
+        const on_place_order = function (order_id, response_state, response_message, state, json = undefined) {
             const order = $('.single-order-wrap[data-order_id="' + order_id + '"]')
             $(order).find('.order-message').text('');
             $(order).find('.item-message').text('');
             if (response_state == 'error') {
                 $(order).find('.order-ship-to .edit').show();
-                $(order).find('.order-message').html('State: <span class="error">' + response_message + '</span>')                
+                $(order).find('.order-message').html('State: <span class="error">' + response_message + '</span>')
                 if (json.error_code === "order_error") {
                     $.each(json.errors, function (_, error) {
-                        $(order).find('[data-order_item_id="'+error.order_item_id+'"]').find('.item-message').html('State: <span class="error">' + error.message + '</span>')                                           
-                    }); 
+                        $(order).find('[data-order_item_id="'+error.order_item_id+'"]').find('.item-message').html('State: <span class="error">' + error.message + '</span>')
+                    });
                 }
             } else {
                 $(order).find('.order-ship-to .edit').hide();
                 $(order).find('.order-message').html('State: <span class="ok">We\'ve placed the order successfully.</span>');
             }
 
-            if (state.total == state.ok + state.error) { 
+            if (state.total == state.ok + state.error) {
                 $("#fulfillment-auto").removeAttr('disabled', 'disabled');
                 $("#fulfillment-auto").removeClass('loading')
                 $("#fulfillment-auto").hide()
                 $("#fulfillment-chrome").removeAttr('disabled', 'disabled');
                 $("#fulfillment-chrome").removeClass('loading')
                 $("#fulfillment-chrome").hide()
-                
+
                 $("#pay-for-orders").hide()
                 if(state.ok > 0){
                     $("#pay-for-orders").show()
                 }
-                
+
                 if(state.error > 0) {
                     $("#fulfillment-auto").show()
                     $("#fulfillment-chrome").show()
@@ -330,7 +355,7 @@ jQuery(function($) {
 
             if ( $( order ).data( 'urls' ) )
             {
-                urls = $( order ).data( 'urls' ).split(';');  
+                urls = $( order ).data( 'urls' ).split(';');
             }
 
             try
@@ -377,11 +402,11 @@ jQuery(function($) {
     {
         if (orders_to_plase.length > 0) {
             let data = orders_to_plase.shift();
-            
+
             if ( before_load_callback ) {
-                await before_load_callback( data.order_id );    
+                await before_load_callback( data.order_id );
             }
-  
+
             $.post(a2wl_ali_orderfulfill_js.ajaxurl, data).done(function (response) {
                 let json = JSON.parse(response);
                 if (json.state !== 'ok') {
@@ -410,42 +435,6 @@ jQuery(function($) {
             });
         }
     }
-
-    
-    /*
-    $.a2wl_ali_fulfill_order = function(id) {
-        let data = {
-            'action': 'a2wl_get_aliexpress_order_data',
-            'id': id,
-            'ali2woo_nonce': a2wl_ali_orderfulfill_js.nonce_action,
-        };
-
-        $.post(a2wl_ali_orderfulfill_js.ajaxurl, data, function(response) {
-            let json = JSON.parse(response);
-            if (json.state === 'error') {
-                console.log(json);
-                $('.wrap > h1').after('<div class="error notice is-dismissible"><p>' + json.error_message + '</p><button id="a2wl-fulfill-dismiss-admin-message" class="notice-dismiss" type="button"><span class="screen-reader-text">Dismiss this notice.</span></button></div>');
-
-                $("#a2wl-fulfill-dismiss-admin-message").click(function(event) {
-                    event.preventDefault();
-                    $('.' + 'error').fadeTo(100, 0, function() {
-                        $('.' + 'error').slideUp(100, function() {
-                            $('.' + 'error').remove();
-                        });
-                    });
-                });
-            } else {
-                //console.log(json);
-                if (json.action == 'upd_ord_status') {
-
-                }
-                a2w_get_order_fulfillment(json.data.content, function(data) {
-                    console.log(data);
-                });
-            }
-        });
-    }
-    */
 
     function app_rsp_timer_run(t) {
         return setTimeout(function() {

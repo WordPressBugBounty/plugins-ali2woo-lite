@@ -744,9 +744,25 @@ class Woocommerce
             } elseif (a2wl_check_defined('A2WL_FORCE_VARIABLE_PRODUCT')) {
                 // always force product type to "variable"
                 $new_product_type = 'variable';
+            } elseif ($variations_active_cnt > 1) {
+                // more than one active variation -> keep/make it a variable product
+                $new_product_type = 'variable';
+            } elseif ($variations_active_cnt === 1) {
+                // exactly one active variation -> downgrade to "simple" so the front-end
+                // does not render a pointless single-option dropdown
+                $new_product_type = 'simple';
             } else {
-                // default smart behavior: "variable" if more than one active variation, otherwise "simple"
-                $new_product_type = $variations_active_cnt > 1 ? 'variable' : 'simple';
+                // Zero active variations: do not change the product type.
+                // This happens either when the backend returns no variation data at all
+                // (e.g. a transient "[1004] Product not found" error) or when every
+                // variation is sold out. Downgrading variable -> simple here destroys the
+                // variable product structure and can permanently poison the product's
+                // _a2wl_skip_meta (all its variations get added to skip_vars), so the
+                // product can never recover - it stays "simple" and out of stock even
+                // after valid variation data comes back. Keeping the current type lets
+                // the product restore to "variable" + "in-stock" automatically on the
+                // next successful sync.
+                $new_product_type = $product_type;
             }
 
             if ($new_product_type != $product_type) {
@@ -1128,8 +1144,9 @@ class Woocommerce
             // Check: if the sale price is greater than the regular price
             if ($price > $regular_price) {
                 a2wl_info_log(sprintf(
-                    "ERROR: Skip updating product_id=%s, variation_external_id=%s because sale price (%s) > regular price (%s)",
+                    "ERROR: Skip updating product_id=%s, parent_product_id=%s, variation_external_id=%s because sale price (%s) > regular price (%s)",
                     $wc_product->get_id(),
+                    $wc_product->get_parent_id() ?: $wc_product->get_id(),
                     $variation['sku_id'] ?? $variation['id'] ?? 'n/a',
                     $price,
                     $regular_price
@@ -1145,6 +1162,16 @@ class Woocommerce
                 $wc_product->set_price($price);
                 $wc_product->set_sale_price($price);
             }
+
+            a2wl_info_log(sprintf(
+                "Update price: product_id=%s, parent_product_id=%s, variation_external_id=%s, regular_price=%s, price=%s, sale_price=%s",
+                $wc_product->get_id(),
+                $wc_product->get_parent_id() ?: $wc_product->get_id(),
+                $variation['sku_id'] ?? $variation['id'] ?? 'n/a',
+                $wc_product->get_regular_price(),
+                $wc_product->get_price(),
+                $wc_product->get_sale_price()
+            ));
         } else if ($rest_price) {
             $wc_product->set_regular_price(0);
             $wc_product->set_price(0);
@@ -1152,16 +1179,12 @@ class Woocommerce
 
             $wc_product->delete_meta_data('_aliexpress_regular_price');
             $wc_product->delete_meta_data('_aliexpress_price');
+        } else {
+            a2wl_info_log(sprintf(
+                "Update price: product_id=%s - no available variations (sold out or disabled), price left unchanged",
+                $wc_product->get_id()
+            ));
         }
-
-        a2wl_info_log(sprintf(
-            "Update price: product_id=%s, variation_external_id=%s, regular_price=%s, price=%s, sale_price=%s",
-            $wc_product->get_id(),
-            $variation['sku_id'] ?? $variation['id'] ?? 'n/a',
-            $wc_product->get_regular_price(),
-            $wc_product->get_price(),
-            $wc_product->get_sale_price()
-        ));
 
         $wc_product->save();
     }

@@ -1,0 +1,49 @@
+.a2wl-settings-collapsible {
+    margin: 0 0 4px;
+}
+
+.a2wl-settings-collapsible__toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+    padding: 7px 0;
+    font-weight: 600;
+    font-size: 14px;
+    color: #000000;
+    margin-bottom: 8px;
+    transition: color .15s;
+}
+
+.a2wl-settings-collapsible__toggle:hover {
+    color: #1a81c5;
+}
+
+.a2wl-settings-collapsible__toggle .dashicons {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+    color: #818d9a;
+    transition: transform .2s;
+    margin-top: 1px;
+}
+
+.a2wl-settings-collapsible__toggle.open .dashicons {
+    transform: rotate(90deg);
+}
+
+.a2wl-settings-collapsible__body {
+    display: none;
+}
+
+.a2wl-settings-collapsible__toggle.open + .a2wl-settings-collapsible__body {
+    display: block;
+    border-left: 3px solid #e1e8f0;
+    padding-left: 12px;
+}
+
+.a2wl-field-disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}

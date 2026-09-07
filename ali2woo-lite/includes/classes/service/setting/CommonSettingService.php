@@ -99,6 +99,17 @@ class CommonSettingService
         set_setting('order_translitirate', isset($_POST['a2wl_order_translitirate']));
         set_setting('order_third_name', isset($_POST['a2wl_order_third_name']));
 
+        set_setting(
+            Settings::SETTING_FULFILLMENT_IS_FOREIGNER,
+            isset($_POST['a2wl_fulfillment_is_foreigner'])
+        );
+        set_setting(Settings::SETTING_FULFILLMENT_FOREIGN_TAX_ID,
+            isset($_POST['a2wl_fulfillment_foreign_tax_id']) ? wp_unslash($_POST['a2wl_fulfillment_foreign_tax_id']) : ''
+        );
+        set_setting(Settings::SETTING_FULFILLMENT_PASSPORT_NUMBER,
+            isset($_POST['a2wl_fulfillment_passport_number']) ? wp_unslash($_POST['a2wl_fulfillment_passport_number']) : ''
+        );
+
         
 
         settings()->commit();

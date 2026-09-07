@@ -454,7 +454,7 @@ class AliexpressDefaultConnector extends AbstractConnector
 
             $instructionLink = sprintf(
                 '<a target="_blank" href="%s">%s</a>',
-                esc_url('https://help.ali2woo.com/codex/how-to-get-access-token-from-aliexpress/'),
+                esc_url('https://help.ali2woo.com/codex/how-to-get-access-token-from-aliexpress/?utm_source=alinext-lite&utm_medium=search&utm_campaign=generate_new_access_token'),
                 _x('using our instruction.', 'settings', 'ali2woo')
             );
 

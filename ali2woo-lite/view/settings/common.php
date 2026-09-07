@@ -300,6 +300,116 @@ use function AliNext_Lite\get_setting;
     </div>
     <div class="_a2wfo a2wl-info"><div>This feature is available in full version of the plugin.</div><a href="https://ali2woo.com/pricing/?utm_source=lite&utm_medium=lite_banner&utm_campaign=alinext-lite" target="_blank" class="btn">GET FULL VERSION</a></div>
     <div class="panel-body _a2wfv">
+        <div class="a2wl-settings-collapsible">
+            <div class="a2wl-settings-collapsible__toggle">
+                <span class="dashicons dashicons-arrow-right-alt2"></span>
+                <?php _ex('Order address', 'Setting title', 'ali2woo'); ?>
+            </div>
+            <div class="a2wl-settings-collapsible__body">
+
+                <div class="field field_inline">
+                    <div class="field__label">
+                        <label>
+                            <strong><?php _ex('Override phone number', 'Setting title', 'ali2woo'); ?></strong>
+                        </label>
+                        <div class="info-box" data-toggle="tooltip" data-title="<?php _ex('This will be used instead of a customer phone number.', 'setting description', 'ali2woo'); ?>"></div>
+                    </div>
+                    <div class="field__input-wrap">
+                        <div class="field__input form-group input-block no-margin">
+                            <input type="text" placeholder="code" style="max-width: 60px;" class="field__input form-control" id="a2wl_fulfillment_phone_code" maxlength="5" name="a2wl_fulfillment_phone_code" value="<?php echo esc_attr(get_setting('fulfillment_phone_code')); ?>" />
+                            <input type="text" placeholder="phone" class="field__input form-control small-input" id="a2wl_fulfillment_phone_number" maxlength="16" name="a2wl_fulfillment_phone_number" value="<?php echo esc_attr(get_setting('fulfillment_phone_number')); ?>" />
+                        </div>
+                    </div>
+                </div>
+
+                <?php $a2wl_fulfillment_is_foreigner = get_setting('fulfillment_is_foreigner');?>
+                <div class="field field_inline">
+                    <div class="field__label">
+                        <label>
+                            <strong><?php _ex('Foreign Customer', 'Setting title', 'ali2woo'); ?></strong>
+                        </label>
+                        <div class="info-box" data-toggle="tooltip" data-title="<?php _ex('When enabled, the order is treated as a foreign customer and the Foreign Tax ID field is available. When disabled, only the Passport Number field is available.', 'setting description', 'ali2woo'); ?>"></div>
+                    </div>
+                    <div class="field__input-wrap">
+                        <input type="checkbox" class="field__input form-control" id="a2wl_fulfillment_is_foreigner" name="a2wl_fulfillment_is_foreigner" value="yes" <?php if ($a2wl_fulfillment_is_foreigner): ?>checked<?php endif;?>/>
+                    </div>
+                </div>
+
+                <div class="field field_inline a2wl-foreign-tax-id-field">
+                    <div class="field__label">
+                        <label>
+                            <strong><?php _ex('Override Foreign Tax ID', 'Setting title', 'ali2woo'); ?></strong>
+                        </label>
+                        <div class="info-box" data-toggle="tooltip" data-title="<?php _ex('Tax identification number for foreign customers. Used during AliExpress order fulfillment.', 'setting description', 'ali2woo'); ?>"></div>
+                    </div>
+                    <div class="field__input-wrap">
+                        <input type="text" placeholder="" class="field__input form-control small-input" id="a2wl_fulfillment_foreign_tax_id" name="a2wl_fulfillment_foreign_tax_id" value="<?php echo esc_attr(get_setting('fulfillment_foreign_tax_id')); ?>" />
+                    </div>
+                </div>
+
+                <div class="field field_inline a2wl-passport-number-field">
+                    <div class="field__label">
+                        <label>
+                            <strong><?php _ex('Override Passport Number', 'Setting title', 'ali2woo'); ?></strong>
+                        </label>
+                        <div class="info-box" data-toggle="tooltip" data-title="<?php _ex('Passport number for local customers. Used during AliExpress order fulfillment.', 'setting description', 'ali2woo'); ?>"></div>
+                    </div>
+                    <div class="field__input-wrap">
+                        <input type="text" placeholder="" class="field__input form-control small-input" id="a2wl_fulfillment_passport_number" name="a2wl_fulfillment_passport_number" value="<?php echo esc_attr(get_setting('fulfillment_passport_number')); ?>" />
+                    </div>
+                </div>
+
+                <div class="field field_inline">
+                    <div class="field__label">
+                        <label>
+                            <strong><?php _ex('CPF meta key', 'Setting title', 'ali2woo'); ?></strong>
+                        </label>
+                        <div class="info-box" data-toggle="tooltip" data-title="<?php _ex("The order meta field that a 3rd party plugin uses to store customer's CPF field.This is used only for Customers from Brazil. If empty, billing company will be used as CPF when fulfilling AliExpress orders.", 'setting description', 'ali2woo'); ?>"></div>
+                    </div>
+                    <div class="field__input-wrap">
+                        <input type="text" placeholder="" class="field__input form-control small-input" id="a2wl_fulfillment_cpf_meta_key" name="a2wl_fulfillment_cpf_meta_key" value="<?php echo esc_attr(get_setting('fulfillment_cpf_meta_key')); ?>" />
+                    </div>
+                </div>
+
+                <div class="field field_inline">
+                    <div class="field__label">
+                        <label>
+                            <strong><?php _ex('RUT meta key', 'Setting title', 'ali2woo'); ?></strong>
+                        </label>
+                        <div class="info-box" data-toggle="tooltip" data-title="<?php _ex("The order meta field that a 3rd party plugin uses to store customer's RUT number. RUT number is required when you fulfill orders of Customers from Chile.", 'setting description', 'ali2woo'); ?>"></div>
+                    </div>
+                    <div class="field__input-wrap">
+                        <input type="text" placeholder="" class="field__input form-control small-input" id="a2wl_fulfillment_rut_meta_key" name="a2wl_fulfillment_rut_meta_key" value="<?php echo esc_attr(get_setting('fulfillment_rut_meta_key')); ?>" />
+                    </div>
+                </div>
+
+                <?php $a2wl_order_translitirate = get_setting('order_translitirate');?>
+                <div class="field field_inline">
+                    <div class="field__label">
+                        <label>
+                            <strong><?php _ex('Transliteration', 'Setting title', 'ali2woo'); ?></strong>
+                        </label>
+                        <div class="info-box" data-toggle="tooltip" data-title="<?php _ex('Enable the auto-transliteration for AliExpress order details.', 'setting description', 'ali2woo'); ?>"></div>
+                    </div>
+                    <div class="field__input-wrap">
+                        <input type="checkbox" class="field__input form-control" id="a2wl_order_translitirate" name="a2wl_order_translitirate" value="yes" <?php if ($a2wl_order_translitirate): ?>checked<?php endif;?>/>
+                    </div>
+                </div>
+                <?php $a2wl_order_third_name = get_setting('order_third_name');?>
+                <div class="field field_inline">
+                    <div class="field__label">
+                        <label>
+                            <strong><?php _ex('Middle name field', 'Setting title', 'ali2woo'); ?></strong>
+                        </label>
+                        <div class="info-box" data-toggle="tooltip" data-title="<?php _ex('Adds the Middle name field to WooCommerce checkout page and then uses it during an order-fulfillment process on AliExpress.', 'setting description', 'ali2woo'); ?>"></div>
+                    </div>
+                    <div class="field__input-wrap">
+                        <input type="checkbox" class="field__input form-control" id="a2wl_order_third_name" name="a2wl_order_third_name" value="yes" <?php if ($a2wl_order_third_name): ?>checked<?php endif;?>/>
+                    </div>
+                </div>
+
+            </div>
+        </div>
         <div class="field field_inline">
             <div class="field__label">
                 <label for="a2wl_delivered_order_status">
@@ -318,7 +428,7 @@ use function AliNext_Lite\get_setting;
             </div>
         </div>
 
-          <div class="field field_inline">
+        <div class="field field_inline">
             <div class="field__label">
                 <label for="a2wl_tracking_code_order_status">
                     <strong><?php _ex('Shipped Order Status', 'Setting title', 'ali2woo'); ?></strong>
@@ -377,45 +487,6 @@ use function AliNext_Lite\get_setting;
         <div class="field field_inline">
             <div class="field__label">
                 <label>
-                    <strong><?php _ex('Override phone number', 'Setting title', 'ali2woo'); ?></strong>
-                </label>
-                <div class="info-box" data-toggle="tooltip" data-title="<?php _ex('This will be used instead of a customer phone number.', 'setting description', 'ali2woo'); ?>"></div>
-            </div>
-            <div class="field__input-wrap">
-                <div class="field__input form-group input-block no-margin">
-                    <input type="text" placeholder="code" style="max-width: 60px;" class="field__input form-control" id="a2wl_fulfillment_phone_code" maxlength="5" name="a2wl_fulfillment_phone_code" value="<?php echo esc_attr(get_setting('fulfillment_phone_code')); ?>" />
-                    <input type="text" placeholder="phone" class="field__input form-control small-input" id="a2wl_fulfillment_phone_number" maxlength="16" name="a2wl_fulfillment_phone_number" value="<?php echo esc_attr(get_setting('fulfillment_phone_number')); ?>" />
-                </div>
-            </div>
-        </div>
-
-        <div class="field field_inline">
-            <div class="field__label">
-                <label>
-                    <strong><?php _ex('CPF meta field', 'Setting title', 'ali2woo'); ?></strong>
-                </label>
-                <div class="info-box" data-toggle="tooltip" data-title="<?php _ex("The order meta field that a 3rd party plugin uses to store customer's CPF field.This is used only for Customers from Brazil. If empty, billing company will be used as CPF when fulfilling AliExpress orders.", 'setting description', 'ali2woo'); ?>"></div>
-            </div>
-            <div class="field__input-wrap">
-                    <input type="text" placeholder="" class="field__input form-control small-input" id="a2wl_fulfillment_cpf_meta_key" name="a2wl_fulfillment_cpf_meta_key" value="<?php echo esc_attr(get_setting('fulfillment_cpf_meta_key')); ?>" />
-            </div>
-        </div>
-
-        <div class="field field_inline">
-            <div class="field__label">
-                <label>
-                    <strong><?php _ex('RUT meta field', 'Setting title', 'ali2woo'); ?></strong>
-                </label>
-                <div class="info-box" data-toggle="tooltip" data-title="<?php _ex("The order meta field that a 3rd party plugin uses to store customer's RUT number. RUT number is required when you fulfill orders of Customers from Chile.", 'setting description', 'ali2woo'); ?>"></div>
-            </div>
-            <div class="field__input-wrap">
-                    <input type="text" placeholder="" class="field__input form-control small-input" id="a2wl_fulfillment_rut_meta_key" name="a2wl_fulfillment_rut_meta_key" value="<?php echo esc_attr(get_setting('fulfillment_rut_meta_key')); ?>" />
-            </div>
-        </div>
-
-        <div class="field field_inline">
-            <div class="field__label">
-                <label>
                     <strong><?php _ex('Custom note', 'Setting title', 'ali2woo'); ?></strong>
                 </label>
                 <div class="info-box" data-toggle="tooltip" data-title="<?php _ex('A note to the supplier on the Aliexpress checkout page.', 'setting description', 'ali2woo'); ?>"></div>
@@ -425,32 +496,7 @@ use function AliNext_Lite\get_setting;
             </div>
         </div>
 
-        <?php $a2wl_order_translitirate = get_setting('order_translitirate');?>
-        <div class="field field_inline">
-            <div class="field__label">
-                <label>
-                    <strong><?php _ex('Transliteration', 'Setting title', 'ali2woo'); ?></strong>
-                </label>
-                <div class="info-box" data-toggle="tooltip" data-title="<?php _ex('Enable the auto-transliteration for AliExpress order details.', 'setting description', 'ali2woo'); ?>"></div>
-            </div>
-            <div class="field__input-wrap">
-                    <input type="checkbox" class="field__input form-control" id="a2wl_order_translitirate" name="a2wl_order_translitirate" value="yes" <?php if ($a2wl_order_translitirate): ?>checked<?php endif;?>/>
-            </div>
-        </div>
-        <?php $a2wl_order_third_name = get_setting('order_third_name');?>
-        <div class="field field_inline">
-            <div class="field__label">
-                <label>
-                    <strong><?php _ex('Middle name field', 'Setting title', 'ali2woo'); ?></strong>
-                </label>
-                <div class="info-box" data-toggle="tooltip" data-title="<?php _ex('Adds the Middle name field to WooCommerce checkout page and then uses it during an order-fulfillment process on AliExpress.', 'setting description', 'ali2woo'); ?>"></div>
-            </div>
-            <div class="field__input-wrap">
-                <input type="checkbox" class="field__input form-control" id="a2wl_order_third_name" name="a2wl_order_third_name" value="yes" <?php if ($a2wl_order_third_name): ?>checked<?php endif;?>/>
-            </div>
-        </div>
     </div>
-</div>
 
 <div class="panel panel-primary">
     <div class="panel-heading">
@@ -574,7 +620,7 @@ use function AliNext_Lite\get_setting;
         </div>
 
         <div class="field field_inline">
-            <div class="field__label"> 
+            <div class="field__label">
                 <label for="a2wl_on_stock_changes">
                     <strong><?php esc_html_e('When inventory changes', 'ali2woo');?></strong>
                 </label>
@@ -776,6 +822,20 @@ function handleAllowShopManagerLogic() {
     $("#a2w_fulfillment_prefship").select2();
 
     if($.fn.tooltip) { $('[data-toggle="tooltip"]').tooltip({"placement": "top"}); }
+
+    $('.a2wl-settings-collapsible__toggle').on('click', function () {
+        $(this).toggleClass('open');
+    });
+
+    function a2wl_toggle_foreigner_fields() {
+        var isForeigner = $('#a2wl_fulfillment_is_foreigner').is(':checked');
+        $('.a2wl-foreign-tax-id-field').toggleClass('a2wl-field-disabled', !isForeigner);
+        $('.a2wl-foreign-tax-id-field input').prop('disabled', !isForeigner);
+        $('.a2wl-passport-number-field').toggleClass('a2wl-field-disabled', isForeigner);
+        $('.a2wl-passport-number-field input').prop('disabled', isForeigner);
+    }
+    $('#a2wl_fulfillment_is_foreigner').on('change', a2wl_toggle_foreigner_fields);
+    a2wl_toggle_foreigner_fields();
 
     jQuery("#a2wl_auto_update").on('change', function () {
         <?php if (A2WL()->isAnPlugin()): ?>
