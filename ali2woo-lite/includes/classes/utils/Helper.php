@@ -253,11 +253,28 @@ class Helper {
                     if ($term_taxonomy_id) {
                         $checkSql = "SELECT * FROM {$wpdb->term_relationships} WHERE object_id = {$post_id} AND term_taxonomy_id = {$term_taxonomy_id}";
                         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-                        if (!$wpdb->get_var($checkSql)) {
-                            $wpdb->insert(
-                                $wpdb->term_relationships,
-                                array('object_id' => $post_id, 'term_taxonomy_id' => $term_taxonomy_id)
+                        $exists = $wpdb->get_var($checkSql);
+                        if (!$exists) {
+                            // INSERT IGNORE is race-safe: if another (concurrent)
+                            // worker committed the same row between the check above
+                            // and this insert, MySQL silently ignores it instead of
+                            // raising "Duplicate entry ... for key
+                            // 'wp_term_relationships.PRIMARY'".
+                            $inserted = $wpdb->query(
+                                $wpdb->prepare(
+                                    "INSERT IGNORE INTO {$wpdb->term_relationships} (object_id, term_taxonomy_id) VALUES (%d, %d)",
+                                    $post_id,
+                                    $term_taxonomy_id
+                                )
                             );
+                            if (!empty($wpdb->last_error)) {
+                                a2wl_error_log(
+                                    '[add_attribute] tr_insert_failed post=' . $post_id .
+                                    ' tt_id=' . $term_taxonomy_id .
+                                    ' last_error=' . $wpdb->last_error .
+                                    ' sql=' . $wpdb->last_query
+                                );
+                            }
                         }
                     }
                 }
@@ -399,13 +416,13 @@ class Helper {
             $term_taxonomy_id[] = $v->term_taxonomy_id;
             $taxonomy = $v->taxonomy;
         }
-        // var_dump('<pre>',$first_term, $term_id, $term_taxonomy_id, $taxonomy,'</pre>');  
+        // var_dump('<pre>',$first_term, $term_id, $term_taxonomy_id, $taxonomy,'</pre>');
 
         $ret = array();
         $ret['term_relationships'] = $this->attrclean_remove_term_relationships($first_term, $term_taxonomy_id, $debug);
         $ret['terms'] = $this->attrclean_remove_terms($term_id, $debug);
         $ret['term_taxonomy'] = $this->attrclean_remove_term_taxonomy($term_taxonomy_id, $taxonomy, $debug);
-        // var_dump('<pre>',$ret,'</pre>');  
+        // var_dump('<pre>',$ret,'</pre>');
         return $ret;
     }
 
@@ -629,7 +646,7 @@ class Helper {
                 $ret = substr($ret, 0, $limit_max);
             }
         }
-        
+
         // IMPORTANT, if not sure do not need sanitize_title!
         return $ret;
     }

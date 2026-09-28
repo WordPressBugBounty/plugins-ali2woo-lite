@@ -21,6 +21,7 @@ class OrderFulfillmentService
     protected WoocommerceService $WoocommerceService;
     protected Woocommerce $WoocommerceModel;
     protected ProductService $ProductService;
+    protected OrderShippingDataService $OrderShippingDataService;
 
     public function __construct(
         Aliexpress $AliexpressModel,
@@ -28,7 +29,8 @@ class OrderFulfillmentService
         AliexpressHelper $AliexpressHelper,
         WoocommerceService $WoocommerceService,
         Woocommerce $WoocommerceModel,
-        ProductService $ProductService
+        ProductService $ProductService,
+        OrderShippingDataService $OrderShippingDataService
     ) {
         $this->AliexpressModel = $AliexpressModel;
         $this->ExternalOrderFactory = $ExternalOrderFactory;
@@ -36,6 +38,7 @@ class OrderFulfillmentService
         $this->WoocommerceService = $WoocommerceService;
         $this->WoocommerceModel = $WoocommerceModel;
         $this->ProductService = $ProductService;
+        $this->OrderShippingDataService = $OrderShippingDataService;
     }
 
     public function placeOrder(WC_Order $WC_Order, array $OrderItems): array
@@ -124,113 +127,6 @@ class OrderFulfillmentService
     }
 
     /**
-     * @param WC_Order $WC_Order
-     * @param bool $isWpml
-     * @return array|null
-     */
-    public function getFulfillmentOrderServiceData(WC_Order $WC_Order, bool $isWpml = false): ?array
-    {
-        $WC_OrderItems = $WC_Order->get_items();
-
-        a2wl_init_error_handler();
-        try {
-            $ExternalOrder = $this->ExternalOrderFactory
-                ->createOrderFromWooOrder($WC_Order, $WC_OrderItems);
-
-            $OrderPreviewResultDto = $this->AliexpressModel->getOrderPreview($ExternalOrder);
-            restore_error_handler();
-        } catch (Throwable $Exception) {
-            a2wl_print_throwable($Exception);
-
-            return null;
-        }
-
-        $shipping_address = $WC_Order->get_address('shipping');
-        if (empty($shipping_address['country'])) {
-                $shipping_address = $WC_Order->get_address();
-        }
-        $formatted_address = WC()->countries->get_formatted_address($shipping_address, ', ');
-
-        $buyerName = $ExternalOrder->getBuyerName();
-
-        $order_data = [
-            'order_id' => $WC_Order->get_id(),
-            'order_number' => $WC_Order->get_order_number(),
-            'order' => $WC_Order,
-            'buyer' => $buyerName,
-            'currency' => $WC_Order->get_currency(),
-            'shipping_to_country' => $ExternalOrder->getShippingAddress()->getCountryCode(),
-            'shipping_address' => $shipping_address,
-            'formatted_address' => $formatted_address,
-            'total_cost' => 0,
-            'items' => [],
-        ];
-
-        $deliveryTime = $OrderPreviewResultDto->getShippingTime();
-
-        $testK = 0;
-        foreach ($ExternalOrder->getItems() as $ExternalOrderItem) {
-            $externalProductPrice = 0;
-
-            $testJ = 0;
-            foreach ($OrderPreviewResultDto->getItems() as $OrderPreviewResultItemDto) {
-               /* $searchItem = ($OrderPreviewResultItemDto->getExternalSkuId() ===
-                    $ExternalOrderItem->getExternalSkuId()) && ($OrderPreviewResultItemDto->getExternalProductId() ===
-                        $ExternalOrderItem->getExternalProductId());*/
-
-                $searchItem = ($testK === $testJ);
-
-                if ($searchItem) {
-                    $externalProductPrice = $OrderPreviewResultItemDto->getPrice();
-                    $itemsCount = count($OrderPreviewResultDto->getItems());
-                    $shippingCost = $OrderPreviewResultDto->getTotalShippingPrice() / $itemsCount;
-                    $current_shipping_company = $OrderPreviewResultDto->getShippingName();
-                }
-
-                $testJ++;
-            }
-
-            $WC_Order_Item_Product = new WC_Order_Item_Product($ExternalOrderItem->getOrderItemId());
-            $WC_Product = $WC_Order_Item_Product->get_product();
-
-            $wpmlProductData = $this->getWpmlProductData($WC_Order_Item_Product->get_product_id(), $isWpml);
-
-            $item_original_url = $wpmlProductData['item_original_url'];
-
-            $attributes = $this->getFormattedOrderItemAttributes($ExternalOrderItem);
-
-            $shipping_info = [
-                'items' => []
-            ];
-
-            $totalCost = $shippingCost + $externalProductPrice;
-
-            $order_data['items'][] = [
-                'order_item_id' => $WC_Order_Item_Product->get_id(),
-                'product_id' => $WC_Order_Item_Product->get_product_id(),
-                'image' => $WC_Product->get_image(),
-                'name' => $WC_Order_Item_Product->get_name(),
-                'url' => $item_original_url,
-                'sku' => $WC_Product->get_sku(),
-                'attributes' => implode(' / ', $attributes),
-                'cost' => $externalProductPrice,
-                'quantity' => $WC_Order_Item_Product->get_quantity(),
-                'shipping_items' => $shipping_info['items'],
-                'current_shipping' => $current_shipping_company,
-                'delivery_time' => $deliveryTime,
-                'shipping_cost' => $shippingCost,
-                'total_cost' => $totalCost,
-            ];
-
-            $order_data['total_cost'] += $totalCost;
-
-            $testK++;
-        }
-
-        return $order_data;
-    }
-
-    /**
      * @param array $orders
      * @param bool $is_wpml
      * @return array
@@ -274,7 +170,9 @@ class OrderFulfillmentService
             }
             $formatted_address = WC()->countries->get_formatted_address($shipping_address, ', ');
             $shipping_to_country = $this->AliexpressHelper
-                ->convertToAliexpressCountryCode($shipping_address['country']);
+                ->convertToAliexpressCountryCode(
+                    $this->OrderShippingDataService->resolveShippingCountry($order)
+                );
 
             $order_data = [
                 'order_id' => $order->get_id(),

@@ -61,7 +61,6 @@ class OrderFulfillmentController extends AbstractController
 
         add_action('wp_ajax_a2wl_load_fulfillment_model', [$this, 'ajaxLoadFulfillmentPopup']);
         add_action('wp_ajax_a2wl_load_fulfillment_orders', [$this, 'ajax_load_fulfillment_orders_html']);
-        add_action('wp_ajax_a2wl_load_fulfillment_orders_service', [$this, 'ajax_load_fulfillment_orders_service_html']);
         add_action('wp_ajax_a2wl_save_order_shipping_info', [$this, 'ajax_save_order_shipping_info']);
 
         add_action('wp_ajax_a2wl_fulfillment_place_order', [$this, 'ajax_load_fulfillment_place_order']);
@@ -507,6 +506,7 @@ class OrderFulfillmentController extends AbstractController
             $this->model_put("countries", WC()->countries->get_countries());
             $this->model_put('ProductShippingDataRepository', $this->ProductShippingDataRepository);
             $this->model_put("ProductShippingDataService", $this->ProductShippingDataService);
+            $this->model_put("OrderShippingDataService", $this->OrderShippingDataService);
             $this->model_put("ImportedProductServiceFactory", $this->ImportedProductServiceFactory);
 
             foreach ($orders_data as $order_data) {
@@ -520,78 +520,6 @@ class OrderFulfillmentController extends AbstractController
                 $this->include_view("order-fulfillment/single_order_container.php");
             }
         }
-
-        wp_die();
-    }
-
-    public function ajax_load_fulfillment_orders_service_html(): void
-    {
-        check_admin_referer(self::AJAX_NONCE_ACTION, self::NONCE);
-
-        if (!PageGuardHelper::canAccessPage(Pages::ORDER_MANAGEMENT)) {
-            $result = ResultBuilder::buildError($this->getErrorTextNoPermissions());
-            echo wp_json_encode($result);
-            wp_die();
-        }
-
-        //todo: should support single id only!
-        $ids = array_map(
-            'intval',
-            isset($_POST['ids']) ? (is_array($_POST['ids']) ? $_POST['ids'] : [$_POST['ids']]) : []
-        );
-
-     //  $orders = [];
-        if (!empty($ids)) {
-            foreach ($ids as $order_id) {
-               // $orders[] = new WC_Order($order_id);
-                $WC_Order = new WC_Order($order_id);
-            }
-        }
-
-        $is_wpml = $this->isWpml();
-
-        $orderData = $this->OrderFulfillmentService->getFulfillmentOrderServiceData($WC_Order, $is_wpml);
-
-        if (!($orderData)) {
-            wp_die();
-        }
-
-        $columns = [
-            [
-                'title' => esc_html__('Item', 'ali2woo'),
-                'class' => 'name',
-                'colspan' => 2,
-            ],
-            [
-                'title' => esc_html__('Shipping Company', 'ali2woo'),
-                'class' => 'shipping_company',
-            ],
-            [
-                'title' => esc_html__('Delivery Time', 'ali2woo'),
-                'class' => 'delivery_time',
-            ],
-            [
-                'title' => esc_html__('Shipping Cost', 'ali2woo'),
-                'class' => 'shipping_cost',
-            ],
-            [
-                'title' => esc_html__('Cost', 'ali2woo'),
-                'class' => 'cost',
-            ],
-            [
-                'title' => esc_html__('Total', 'ali2woo'),
-                'class' => 'total',
-            ],
-            [
-                'title' => '',
-                'class' => 'actions',
-            ]
-        ];
-
-        $this->model_put("table_class", 'service-fulfillment-order-items');
-        $this->model_put("columns", $columns);
-        $this->model_put("order_data", $orderData);
-        $this->include_view("order-fulfillment/partials/table_order_items.php");
 
         wp_die();
     }
@@ -638,6 +566,14 @@ class OrderFulfillmentController extends AbstractController
                     continue;
                 }
 
+                // The phone number and code are stored in the plugin's own
+                // order meta fields (_shipping_phone_number, _shipping_phone_code)
+                // and never overwrite the phone number the customer entered
+                // in the original order.
+                if ($key === 'phone') {
+                    continue;
+                }
+
                 if (!empty($field['custom'])) {
                     do_action('a2wl_update_custom_shipping_field', $key, $field, $order);
                 } else {
@@ -651,6 +587,15 @@ class OrderFulfillmentController extends AbstractController
         }
 
         // Save order data.
+        if (!$this->OrderShippingDataService->isShippingPhoneOverridden()) {
+            if (isset($_POST['_shipping_phone'])) {
+                $order->update_meta_data('_shipping_phone_number', wc_clean(wp_unslash($_POST['_shipping_phone'])));
+            }
+            if (isset($_POST['_shipping_phone_code'])) {
+                $order->update_meta_data('_shipping_phone_code', wc_clean(wp_unslash($_POST['_shipping_phone_code'])));
+            }
+        }
+
         $order->set_props($props);
         $order->save();
 

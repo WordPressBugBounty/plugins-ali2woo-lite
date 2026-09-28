@@ -150,6 +150,8 @@ class SettingPageController extends AbstractAdminPage
             $this->model_put($key, $value);
         }
 
+        $this->model_put('fulfillmentPhoneError', $this->CommonSettingService->getLastError());
+
         return "settings/common.php";
     }
 
@@ -252,6 +254,13 @@ class SettingPageController extends AbstractAdminPage
 
                     $cashback_url = $this->isNoWhiteSpace($cashback_url) ? $cashback_url : '';
                     $account->save_epn_account($cashback_url);
+                }
+            }
+
+            if (!empty($_POST['a2wl_default_token']) && is_array($_POST['a2wl_default_token'])) {
+                $defaultIds = array_map('sanitize_text_field', array_keys($_POST['a2wl_default_token']));
+                if (!empty($defaultIds)) {
+                    $token->setDefault(reset($defaultIds));
                 }
             }
         }

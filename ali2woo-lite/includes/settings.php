@@ -77,7 +77,7 @@ class Settings
     private $auto_commit = true;
 
     private $static_settings = [
-        'api_endpoint' => 'https://api.ali2woo.com/v4/',
+        'api_endpoint' => 'https://api.ali2woo.com/v7/',
         self::SETTING_API_ENDPOINT_V6 => 'https://api.ali2woo.com/v6/api/',
         'client_id' => 33446317,
         'image_editor_srickers' => [
@@ -129,6 +129,7 @@ class Settings
         'split_attribute_values' => true,
         'attribute_values_separator' => ',',
         'currency_conversion_factor' => 1,
+        // TODO: remove this setting later — background import is now always enabled.
         'background_import' => true,
         'convert_attr_case' => 'original',
         'allow_product_duplication' => true,

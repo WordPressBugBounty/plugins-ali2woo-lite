@@ -174,6 +174,10 @@ return array(
 		'version' => 'dev-main',
 		'path'    => $baseDir . '/includes/interfaces/job/BaseJobInterface.php'
 	),
+	'AliNext_Lite\\BaseJobWithWorkers' => array(
+		'version' => 'dev-main',
+		'path'    => $baseDir . '/includes/classes/job/BaseJobWithWorkers.php'
+	),
 	'AliNext_Lite\\BlankConverter' => array(
 		'version' => 'dev-main',
 		'path'    => $baseDir . '/includes/classes/controller/BlankConverter.php'
@@ -253,14 +257,6 @@ return array(
 	'AliNext_Lite\\FrontendShippingController' => array(
 		'version' => 'dev-main',
 		'path'    => $baseDir . '/includes/classes/shipping/FrontendShippingController.php'
-	),
-	'AliNext_Lite\\FulfillmentClient' => array(
-		'version' => 'dev-main',
-		'path'    => $baseDir . '/includes/classes/api/FulfillmentClient.php'
-	),
-	'AliNext_Lite\\FulfillmentClientInterface' => array(
-		'version' => 'dev-main',
-		'path'    => $baseDir . '/includes/interfaces/api/FulfillmentClientInterface.php'
 	),
 	'AliNext_Lite\\GetExtendedFormulasGroupedResult' => array(
 		'version' => 'dev-main',

@@ -968,6 +968,23 @@ class Utils
         return preg_replace('/[^\d]/', '', $phone);
     }
 
+    public static function stripLeadingPhoneCode(string $phone, string $phoneCode): string
+    {
+        $code = ltrim($phoneCode, '+');
+
+        if ($code === '') {
+            return $phone;
+        }
+
+        $normalizedPhone = (string) preg_replace('/^\+/', '', $phone);
+
+        if (str_starts_with($normalizedPhone, $code)) {
+            return ltrim((string) substr($normalizedPhone, strlen($code)));
+        }
+
+        return $phone;
+    }
+
     public static function wp_kses_post($content)
     {
         $allowed_html = wp_kses_allowed_html('post');

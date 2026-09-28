@@ -13,7 +13,7 @@ class RequestHelper {
     {
         $aliexpressToken = AliexpressToken::getInstance()->defaultToken();
 
-        $request_url = get_setting('api_endpoint') . $function . '.php?' .
+        $request_url = get_setting('api_endpoint') . $function . '?' .
             Account::getInstance()->build_params() .
             AliexpressLocalizator::getInstance()->build_params(isset($params['lang'])) .
             "&su=" . urlencode(site_url()) .

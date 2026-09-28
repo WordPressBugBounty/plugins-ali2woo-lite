@@ -154,6 +154,7 @@ jQuery(function($) {
             '_shipping_country': $form.find('#_shipping_country').val(),
             '_shipping_state': $form.find('#_shipping_state').val(),
             '_shipping_phone': $form.find('#_shipping_phone').val(),
+            '_shipping_phone_code': $form.find('#_shipping_phone_code').val(),
             'ali2woo_nonce': a2wl_ali_orderfulfill_js.nonce_action,
             '_shipping_passport_no': $form.find('#_shipping_passport_no').val(),
             '_shipping_passport_no_date': $form.find('#_shipping_passport_no_date').val(),

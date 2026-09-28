@@ -5,7 +5,7 @@
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '882b852f56f03e3fbefb4b35363092533ca91548',
+        'reference' => 'e43baa98c64b26e72afb8de72402d9ac96406a6f',
         'name' => 'ali2woo/alinext-lite',
         'dev' => false,
     ),
@@ -16,7 +16,7 @@
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '882b852f56f03e3fbefb4b35363092533ca91548',
+            'reference' => 'e43baa98c64b26e72afb8de72402d9ac96406a6f',
             'dev_requirement' => false,
         ),
         'automattic/jetpack-autoloader' => array(

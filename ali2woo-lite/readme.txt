@@ -266,6 +266,13 @@ Discover how AliNext automates order fulfillment in WooCommerce dropshipping sto
 [youtube https://youtu.be/S5368Pvo_F0]
  
 == Changelog ==
+= 3.7.4 - 2026-09-28 =
+* Fix: Corrected the order country fallback to use billing/default settings in the fulfillment popup (premium).
+* Fix: Phone override is now applied only when both the country code and phone number are set in the settings (premium).
+* Add: Added the Israel (IL) region to the plugin settings (premium).
+* Fix: Improved Access Token management to seamlessly switch between different AliExpress accounts using their respective tokens.
+* Tweak: Removed the "Import in the background" option. The import process now always runs in the background by default, so you no longer need to keep the website open while products are loading
+
 = 3.7.3 - 2026-09-07 =
 * Add: redesign order edit form with compact layout and collapsible additional fields (premium)
 * Fix: match placed AliExpress order to WC item by sku_id (premium)

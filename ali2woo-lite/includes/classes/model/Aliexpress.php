@@ -19,13 +19,11 @@ class Aliexpress
 {
     protected ProductImport $ProductImportModel;
     protected AbstractConnector $connector;
-    protected FulfillmentClientInterface $FulfillmentClient;
     protected Account $account;
     protected AliexpressHelper $AliexpressHelper;
 
     public function __construct(
         ProductImport $ProductImportModel,
-        FulfillmentClient $FulfillmentClient,
         AliexpressHelper $AliexpressHelper
     ) {
         //todo: refactor this to DI
@@ -33,7 +31,6 @@ class Aliexpress
         $this->account = Account::getInstance();
 
         $this->ProductImportModel = $ProductImportModel;
-        $this->FulfillmentClient = $FulfillmentClient;
         $this->AliexpressHelper = $AliexpressHelper;
     }
 
@@ -706,70 +703,6 @@ class Aliexpress
             a2wl_print_throwable($e);
             $result = ResultBuilder::buildError($e->getMessage());
         }
-
-        return $result;
-    }
-
-    /**
-     * @throws ApiException
-     */
-    public function getOrderPreview(ExternalOrder $ExternalOrder): OrderPreviewResultDto
-    {
-        $previewOrderItems = [];
-
-        foreach ($ExternalOrder->getItems() as $ExternalOrderItem) {
-            $attributes = [];
-            foreach ($ExternalOrderItem->getAttributes() as $Attribute) {
-                $attributes[$Attribute->getName()] = $Attribute->getValue();
-            }
-
-            $OrderPreviewItem = new OrderPreviewItemDto(
-                $ExternalOrderItem->getExternalProductId(),
-                $ExternalOrderItem->getExternalSkuId(),
-                $ExternalOrderItem->getImageUrl(),
-                $ExternalOrderItem->getProductCount(),
-                $attributes,
-            );
-            $previewOrderItems[] = $OrderPreviewItem;
-        }
-
-        $OrderPreviewData = new OrderPreviewDataDto(
-            $previewOrderItems,
-            $ExternalOrder->getShippingAddress()->getCountryCode(),
-            'United States',
-            'New York',
-            'New York'
-        );
-
-        $result = $this->FulfillmentClient->getOrderPreview($OrderPreviewData);
-
-        if (empty($result['data']['items'])) {
-            throw new ApiException('Wrong Fulfillment Client response format', 500);
-        }
-
-        $responseData = $result['data'];
-
-        $orderItems = [];
-
-        foreach ($responseData['items'] as $item) {
-            $orderItems[] = new OrderPreviewResultItemDto(
-                $item['checkMapping']['offerSalePrice'],
-                $item['checkMapping']['spuId'],
-                $item['checkMapping']['id'],
-                $item['quantity'],
-            );
-        }
-
-        $result = new OrderPreviewResultDto(
-            $responseData['id'],
-            $responseData['status'],
-            $responseData['sobuySubtotalPrice'],
-            $responseData['sobuyTotalPrice'],
-            $responseData['sobuyTotalShippingPrice'],
-            'Premium shipping',
-            '7-12',
-            $orderItems
-        );
 
         return $result;
     }

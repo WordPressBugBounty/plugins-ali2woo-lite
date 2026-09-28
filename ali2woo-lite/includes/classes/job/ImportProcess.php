@@ -11,14 +11,17 @@ namespace AliNext_Lite;;
 
 use Exception;
 use Throwable;
+use wpdb;
 
-class ImportProcess extends BaseJob implements ImportJobInterface
+class ImportProcess extends BaseJobWithWorkers implements ImportJobInterface
 {
 
     public const ACTION_CODE = 'a2wl_import_process';
-    
+
     protected $action = self::ACTION_CODE;
     protected string $title = 'Import Product';
+
+    public const MAX_WORKERS = 6;
 
     /**
      * Task
@@ -73,11 +76,11 @@ class ImportProcess extends BaseJob implements ImportJobInterface
                     }
                 } else {
                     throw new Exception('product not found in import list');
-                }    
+                }
             }
 
             a2wl_info_log("DONE_STEP[time: ".(microtime(true)-$ts).", id:".$item['product_id'].", extId: ".$item['id'].", step: ".$item['step']."]");
-            
+
         } catch (Throwable $e) {
             a2wl_print_throwable($e);
         }

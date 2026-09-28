@@ -18,8 +18,40 @@ class CommonSettingService
 
     protected AliexpressRegionRepository $AliexpressRegionRepository;
 
+    private string $lastError = '';
+
     public function __construct(AliexpressRegionRepository $AliexpressRegionRepository) {
         $this->AliexpressRegionRepository = $AliexpressRegionRepository;
+    }
+
+    public function getLastError(): string
+    {
+        return $this->lastError;
+    }
+
+    /**
+     * Validate the fulfillment phone override fields from the settings form.
+     *
+     * The override works only when both the phone code and the phone number
+     * are filled in. Returns an error message when exactly one of them is set.
+     *
+     * @param array $post
+     * @return string|null
+     */
+    public function validateFulfillmentPhoneOverride(array $post): ?string
+    {
+        $code = trim((string) ($post['a2wl_fulfillment_phone_code'] ?? ''));
+        $number = trim((string) ($post['a2wl_fulfillment_phone_number'] ?? ''));
+
+        if (($code !== '') !== ($number !== '')) {
+            return _x(
+                'The "phone code" and "phone number" override fields must both be filled in, or both left empty.',
+                'setting validation error',
+                'ali2woo'
+            );
+        }
+
+        return null;
     }
 
     public function handle(): void
@@ -52,7 +84,7 @@ class CommonSettingService
         set_setting('import_product_images_limit', isset($_POST['a2wl_import_product_images_limit']) && intval($_POST['a2wl_import_product_images_limit']) ? intval($_POST['a2wl_import_product_images_limit']) : '');
         set_setting('import_extended_attribute', isset($_POST['a2wl_import_extended_attribute']) ? 1 : 0);
 
-        set_setting('background_import', isset($_POST['a2wl_background_import']) ? 1 : 0);
+        set_setting('background_import', 1);
         set_setting('allow_product_duplication', isset($_POST['a2wl_allow_product_duplication']) ? 1 : 0);
         set_setting('convert_attr_case', isset($_POST['a2wl_convert_attr_case']) ? wp_unslash($_POST['a2wl_convert_attr_case']) : 'original');
 
@@ -90,8 +122,15 @@ class CommonSettingService
         set_setting('email_alerts_email', isset($_POST['a2wl_email_alerts_email']) ? wp_unslash($_POST['a2wl_email_alerts_email']) : '');
 
         set_setting('fulfillment_prefship', isset($_POST['a2w_fulfillment_prefship']) ? wp_unslash($_POST['a2w_fulfillment_prefship']) : 'ePacket');
-        set_setting('fulfillment_phone_code', isset($_POST['a2wl_fulfillment_phone_code']) ? wp_unslash($_POST['a2wl_fulfillment_phone_code']) : '');
-        set_setting('fulfillment_phone_number', isset($_POST['a2wl_fulfillment_phone_number']) ? wp_unslash($_POST['a2wl_fulfillment_phone_number']) : '');
+
+        $phoneOverrideError = $this->validateFulfillmentPhoneOverride($_POST);
+        if ($phoneOverrideError !== null) {
+            $this->lastError = $phoneOverrideError;
+        } else {
+            set_setting('fulfillment_phone_code', isset($_POST['a2wl_fulfillment_phone_code']) ? wp_unslash($_POST['a2wl_fulfillment_phone_code']) : '');
+            set_setting('fulfillment_phone_number', isset($_POST['a2wl_fulfillment_phone_number']) ? wp_unslash($_POST['a2wl_fulfillment_phone_number']) : '');
+        }
+
         set_setting('fulfillment_custom_note', isset($_POST['a2wl_fulfillment_custom_note']) ? wp_unslash($_POST['a2wl_fulfillment_custom_note']) : '');
         set_setting('fulfillment_cpf_meta_key', isset($_POST['a2wl_fulfillment_cpf_meta_key']) ? wp_unslash($_POST['a2wl_fulfillment_cpf_meta_key']) : '');
         set_setting('fulfillment_rut_meta_key', isset($_POST['a2wl_fulfillment_rut_meta_key']) ? wp_unslash($_POST['a2wl_fulfillment_rut_meta_key']) : '');

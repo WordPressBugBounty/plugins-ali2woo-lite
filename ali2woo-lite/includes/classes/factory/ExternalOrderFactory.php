@@ -310,20 +310,32 @@ class ExternalOrderFactory
     private function getPhoneInformation(WC_Order $WC_Order, string $wooShippingCountryCode): array
     {
         $country = $this->AliexpressHelper->convertToAliexpressCountryCode($wooShippingCountryCode);
-        $phone_country = Utils::get_phone_country_code($country);
 
-        $phone = $WC_Order->get_billing_phone();
-        $default_phone_number = get_setting('fulfillment_phone_number', '');
-        $default_phone_code = get_setting('fulfillment_phone_code', '');
-        if ($phone && !$default_phone_number) {
-            $phone = str_replace($phone_country, '', $phone);
+        $default_phone_number = trim((string) get_setting('fulfillment_phone_number', ''));
+        $default_phone_code = trim((string) get_setting('fulfillment_phone_code', ''));
+        $hasOverride = $default_phone_number !== '' && $default_phone_code !== '';
+
+        if ($hasOverride) {
+            return [
+                'phone' => $default_phone_number,
+                'code' => $default_phone_code,
+            ];
+        }
+
+        $phone = trim((string) $WC_Order->get_meta('_shipping_phone_number'));
+        if ($phone === '') {
+            $phone = $WC_Order->get_shipping_phone() ?: $WC_Order->get_billing_phone();
+        }
+
+        $phone_country = trim((string) $WC_Order->get_meta('_shipping_phone_code'));
+        if ($phone_country === '') {
+            $phone_country = Utils::get_phone_country_code($country);
+        }
+
+        if ($phone) {
+            $phone = Utils::stripLeadingPhoneCode($phone, $phone_country);
             if (!$phone_country && function_exists('WC')) {
                 $phone_country = WC()->countries->get_country_calling_code($wooShippingCountryCode);
-            }
-        } else {
-            $phone = $default_phone_number;
-            if ($default_phone_code) {
-                $phone_country = $default_phone_code;
             }
         }
 

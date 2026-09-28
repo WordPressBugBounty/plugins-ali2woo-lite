@@ -39,6 +39,7 @@ class AliexpressRegionRepository
             'CA' => 'Canada',
             'FR' => 'France',
             'BR' => 'Brazil',
+            'IL' => 'Israel',
             'HR' => 'Croatia',
             'PT' => 'Portugal',
             'SE' => 'Sweden',

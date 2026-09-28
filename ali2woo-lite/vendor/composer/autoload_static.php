@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitd69655eadec99a4d6e5dcf14c9bd1772
+class ComposerStaticInit14921f2e2e092055ac9f41545852a15d
 {
     public static $files = array (
         'b33e3d135e5d9e47d845c576147bda89' => __DIR__ . '/..' . '/php-di/php-di/src/functions.php',
@@ -101,6 +101,7 @@ class ComposerStaticInitd69655eadec99a4d6e5dcf14c9bd1772
         'AliNext_Lite\\BackgroundProcessFactory' => __DIR__ . '/../..' . '/includes/classes/factory/BackgroundProcessFactory.php',
         'AliNext_Lite\\BaseJob' => __DIR__ . '/../..' . '/includes/classes/job/BaseJob.php',
         'AliNext_Lite\\BaseJobInterface' => __DIR__ . '/../..' . '/includes/interfaces/job/BaseJobInterface.php',
+        'AliNext_Lite\\BaseJobWithWorkers' => __DIR__ . '/../..' . '/includes/classes/job/BaseJobWithWorkers.php',
         'AliNext_Lite\\BlankConverter' => __DIR__ . '/../..' . '/includes/classes/controller/BlankConverter.php',
         'AliNext_Lite\\Capability' => __DIR__ . '/../..' . '/includes/classes/enum/Capability.php',
         'AliNext_Lite\\CommonSettingService' => __DIR__ . '/../..' . '/includes/classes/service/setting/CommonSettingService.php',
@@ -121,8 +122,6 @@ class ComposerStaticInitd69655eadec99a4d6e5dcf14c9bd1772
         'AliNext_Lite\\FactoryException' => __DIR__ . '/../..' . '/includes/classes/exception/FactoryException.php',
         'AliNext_Lite\\FrontendInitController' => __DIR__ . '/../..' . '/includes/classes/controller/FrontendInitController.php',
         'AliNext_Lite\\FrontendShippingController' => __DIR__ . '/../..' . '/includes/classes/shipping/FrontendShippingController.php',
-        'AliNext_Lite\\FulfillmentClient' => __DIR__ . '/../..' . '/includes/classes/api/FulfillmentClient.php',
-        'AliNext_Lite\\FulfillmentClientInterface' => __DIR__ . '/../..' . '/includes/interfaces/api/FulfillmentClientInterface.php',
         'AliNext_Lite\\GetExtendedFormulasGroupedResult' => __DIR__ . '/../..' . '/includes/classes/dto/repository/GetExtendedFormulasGroupedResult.php',
         'AliNext_Lite\\GlobalMessageAjaxController' => __DIR__ . '/../..' . '/includes/classes/controller/ajax/GlobalMessageAjaxController.php',
         'AliNext_Lite\\GlobalSystemMessageService' => __DIR__ . '/../..' . '/includes/classes/service/GlobalSystemMessageService.php',
@@ -370,9 +369,9 @@ class ComposerStaticInitd69655eadec99a4d6e5dcf14c9bd1772
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitd69655eadec99a4d6e5dcf14c9bd1772::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitd69655eadec99a4d6e5dcf14c9bd1772::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitd69655eadec99a4d6e5dcf14c9bd1772::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit14921f2e2e092055ac9f41545852a15d::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit14921f2e2e092055ac9f41545852a15d::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit14921f2e2e092055ac9f41545852a15d::$classMap;
 
         }, null, ClassLoader::class);
     }

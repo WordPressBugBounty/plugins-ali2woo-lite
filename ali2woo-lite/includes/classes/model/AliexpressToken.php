@@ -115,6 +115,30 @@ class AliexpressToken
     }
 
     /**
+     * Set a single token as the default (unmarks all others).
+     *
+     * If the given user id does not match any stored token, nothing is changed.
+     *
+     * @param string $userId
+     */
+    public function setDefault(string $userId): void
+    {
+        $tokens = $this->tokens();
+        $found = false;
+
+        foreach ($tokens as $t) {
+            $t->default = ($t->userId === $userId);
+            if ($t->userId === $userId) {
+                $found = true;
+            }
+        }
+
+        if ($found) {
+            $this->save($tokens);
+        }
+    }
+
+    /**
      * Update an existing token by user_id.
      *
      * @param string $userId

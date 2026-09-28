@@ -456,3 +456,10 @@
 * Add: Сompatibility with Wordpress 7.1
 * Fix: Various minor bugs resolved to improve overall stability and reliability
 
+3.7.4
+* Fix: Corrected the order country fallback to use billing/default settings in the fulfillment popup (premium).
+* Fix: Phone override is now applied only when both the country code and phone number are set in the settings (premium).
+* Add: Added the Israel (IL) region to the plugin settings (premium).
+* Fix: Improved Access Token management to seamlessly switch between different AliExpress accounts using their respective tokens.
+* Tweak: Removed the "Import in the background" option. The import process now always runs in the background by default, so you no longer need to keep the website open while products are loading
+

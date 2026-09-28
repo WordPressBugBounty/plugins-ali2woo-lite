@@ -17,8 +17,6 @@ class OrderShippingDataService
     {
         $def_prefship = get_setting('fulfillment_prefship');
         $def_customer_note = get_setting('fulfillment_custom_note');
-        $def_phone_number = get_setting('fulfillment_phone_number');
-        $def_phone_code = get_setting('fulfillment_phone_code');
 
         $content = array(
             'id' => $postId,
@@ -31,8 +29,8 @@ class OrderShippingDataService
             'contactName' => $this->get_contactName($order),
             'address1' => $this->get_address1($order),
             'address2' => $this->get_address2($order),
-            'mobile' => $def_phone_number !== "" ? $def_phone_number : $this->get_phone($order),
-            'mobile_code' => $def_phone_code !== "" ? $def_phone_code : '',
+            'mobile' => $this->get_phone($order),
+            'mobile_code' => $this->resolveShippingPhoneCode($order),
             'zip' => $this->get_zip($order),
             'autopay' => false,
             'awaitingpay' => false,
@@ -122,13 +120,7 @@ class OrderShippingDataService
 
     private function get_phone($order)
     {
-        if (WC()->version < '3.0.0') {
-            $result = $order->billing_phone ?: $order->shipping_phone;
-        } else {
-            $result = $order->get_billing_phone();
-        }
-
-        return preg_replace('/[^0-9]+/', '', $result);
+        return preg_replace('/[^0-9]+/', '', $this->resolveShippingPhone($order));
     }
 
     private function get_customer_note($order)
@@ -142,15 +134,138 @@ class OrderShippingDataService
         return $this->translitirate($result);
     }
 
-    private function get_country_region($order)
+    /**
+     * Resolve the destination country for an order.
+     *
+     * Falls back through the order shipping address, then the billing
+     * address, and finally to the "Default Shipping Country" setting.
+     *
+     * @param WC_Order $order
+     * @return string Uppercased WooCommerce country code.
+     */
+    public function resolveShippingCountry(WC_Order $order): string
     {
-        if (WC()->version < '3.0.0') {
-            $result = $order->shipping_country ? $this->format_field_country($order->shipping_country) : $this->format_field_country($order->billing_country);
-        } else {
-            $result = $order->get_shipping_country() ? $this->format_field_country($order->get_shipping_country()) : $this->format_field_country($order->get_billing_country());
+        $country = trim((string) $order->get_shipping_country());
+
+        if ($country === '') {
+            $country = trim((string) $order->get_billing_country());
         }
 
-        return $this->translitirate($result);
+        if ($country === '') {
+            $country = trim((string) get_setting('aliship_shipto'));
+        }
+
+        return strtoupper($country);
+    }
+
+    /**
+     * Is the "fulfillment phone number" setting active?
+     *
+     * Override applies only when both the phone number and the phone code
+     * are set in the settings.
+     *
+     * @return bool
+     */
+    public function isShippingPhoneOverridden(): bool
+    {
+        return trim((string) get_setting('fulfillment_phone_number', '')) !== ''
+            && trim((string) get_setting('fulfillment_phone_code', '')) !== '';
+    }
+
+    /**
+     * Resolve the phone number to use for an order.
+     *
+     * Uses the fulfillment phone number from settings when the override is
+     * active, otherwise the phone number stored on the order by the plugin
+     * (_shipping_phone_number), and finally falls back to the order shipping
+     * phone and then to the billing phone.
+     *
+     * @param WC_Order $order
+     * @return string Raw phone number as stored/configured.
+     */
+    public function resolveShippingPhone(WC_Order $order): string
+    {
+        if ($this->isShippingPhoneOverridden()) {
+            return trim((string) get_setting('fulfillment_phone_number', ''));
+        }
+
+        $phone = trim((string) $order->get_meta('_shipping_phone_number'));
+
+        if ($phone === '') {
+            $phone = trim((string) $order->get_shipping_phone());
+        }
+
+        if ($phone === '') {
+            $phone = trim((string) $order->get_billing_phone());
+        }
+
+        return $phone;
+    }
+
+    /**
+     * Resolve the phone number for display in the fulfillment popup.
+     *
+     * The leading country code is stripped from the number when it matches
+     * the resolved phone code, so the code is not shown twice.
+     *
+     * @param WC_Order $order
+     * @return string
+     */
+    public function resolveShippingPhoneDisplay(WC_Order $order): string
+    {
+        return Utils::stripLeadingPhoneCode(
+            $this->resolveShippingPhone($order),
+            $this->resolveShippingPhoneCode($order)
+        );
+    }
+
+    /**
+     * Resolve the phone country code for an order.
+     *
+     * Falls back through the fulfillment phone code from settings (only when
+     * the override is active), then the code stored on the order
+     * (_shipping_phone_code), and finally derives it from the order country.
+     *
+     * @param WC_Order $order
+     * @return string Phone country code as configured/stored.
+     */
+    public function resolveShippingPhoneCode(WC_Order $order): string
+    {
+        if ($this->isShippingPhoneOverridden()) {
+            return trim((string) get_setting('fulfillment_phone_code', ''));
+        }
+
+        $orderCode = trim((string) $order->get_meta('_shipping_phone_code'));
+
+        if ($orderCode !== '') {
+            return $orderCode;
+        }
+
+        return $this->derivePhoneCodeFromCountry($order);
+    }
+
+    private function derivePhoneCodeFromCountry(WC_Order $order): string
+    {
+        $country = trim($this->resolveShippingCountry($order));
+
+        if ($country === '') {
+            return '';
+        }
+
+        $aliexpressCountry = ProductShippingData::normalize_country($country);
+
+        if ($aliexpressCountry === null || $aliexpressCountry === '') {
+            return '';
+        }
+
+        return trim((string) Utils::get_phone_country_code($aliexpressCountry));
+    }
+
+    private function get_country_region($order)
+    {
+        return $this->translitirate(
+            $this->format_field_country($this->resolveShippingCountry($order))
+        );
     }
 
     private function get_region($order)

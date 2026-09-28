@@ -211,17 +211,6 @@ use function AliNext_Lite\get_setting;
                 </div>
             </div>
         </div>
-        <div class="field field_inline">
-            <div class="field__label">
-                <label for="a2wl_background_import">
-                    <strong><?php _ex('Import in the background', 'Setting title', 'ali2woo'); ?></strong>
-                </label>
-                <div class="info-box" data-toggle="tooltip" data-title="<?php _ex('Products will be imported in the background mode, make sure you CRON is enabled.', 'setting description', 'ali2woo'); ?>"></div>
-            </div>
-            <div class="field__input-wrap">
-                <input type="checkbox" class="field__input form-control" id="a2wl_background_import" name="a2wl_background_import" value="yes" <?php if (get_setting('background_import')): ?>checked<?php endif;?>/>
-            </div>
-        </div>
 
         <div class="field field_inline">
             <div class="field__label">
@@ -319,6 +308,15 @@ use function AliNext_Lite\get_setting;
                             <input type="text" placeholder="code" style="max-width: 60px;" class="field__input form-control" id="a2wl_fulfillment_phone_code" maxlength="5" name="a2wl_fulfillment_phone_code" value="<?php echo esc_attr(get_setting('fulfillment_phone_code')); ?>" />
                             <input type="text" placeholder="phone" class="field__input form-control small-input" id="a2wl_fulfillment_phone_number" maxlength="16" name="a2wl_fulfillment_phone_number" value="<?php echo esc_attr(get_setting('fulfillment_phone_number')); ?>" />
                         </div>
+                        <?php if (!empty($fulfillmentPhoneError)): ?>
+                        <script>
+                            jQuery(function () {
+                                if (typeof show_notification === 'function') {
+                                    show_notification(<?php echo wp_json_encode($fulfillmentPhoneError); ?>, true);
+                                }
+                            });
+                        </script>
+                    <?php endif; ?>
                     </div>
                 </div>
 

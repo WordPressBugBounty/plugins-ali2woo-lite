@@ -196,6 +196,7 @@ use AliNext_Lite\AliexpressTokenDto;
                                     <td><?php echo esc_attr($token->getExpireDateFormatted()); ?></td>
                                     <td>
                                         <input type="checkbox" class="default" value="yes"
+                                               name="a2wl_default_token[<?php echo esc_attr($token->userId); ?>]"
                                                <?php if ($token->default): ?>checked<?php endif; ?>/>
                                     </td>
                                     <td>
@@ -337,6 +338,10 @@ use AliNext_Lite\AliexpressTokenDto;
                 console.log(error);
                 $button.removeAttr('disabled');
             });
+        });
+
+        $('.a2wl-tokens').on('change', 'input.default', function () {
+            $('.a2wl-tokens input.default').not(this).prop('checked', false);
         });
 
         $('.a2wl-tokens').on('click', 'a[data-token-id]', function (event) {

@@ -26,7 +26,6 @@ use AliNext_Lite\ExitSurveyService;
 use AliNext_Lite\ExternalOrderFactory;
 use AliNext_Lite\FrontendInitController;
 use AliNext_Lite\FrontendShippingController;
-use AliNext_Lite\FulfillmentClient;
 use AliNext_Lite\GlobalMessageAjaxController;
 use AliNext_Lite\GlobalSystemMessageService;
 use AliNext_Lite\Helper;
@@ -116,9 +115,6 @@ return [
     'AliNext_Lite\AliexpressHelper' => create(AliexpressHelper::class),
     'AliNext_Lite\Helper'           => create(Helper::class),
 
-    /* apis */
-    'AliNext_Lite\FulfillmentClient' => create(FulfillmentClient::class),
-
     /* factories */
     'AliNext_Lite\ImportedProductServiceFactory' => create(ImportedProductServiceFactory::class),
     'AliNext_Lite\BackgroundProcessFactory' => create(BackgroundProcessFactory::class)
@@ -184,7 +180,6 @@ return [
     'AliNext_Lite\Aliexpress' => create(Aliexpress::class)
         ->constructor(
             get(ProductImport::class),
-            get(FulfillmentClient::class),
             get(AliexpressHelper::class),
         ),
 
@@ -260,6 +255,7 @@ return [
             get(WoocommerceService::class),
             get(Woocommerce::class),
             get(ProductService::class),
+            get(OrderShippingDataService::class),
         ),
     'AliNext_Lite\OrderShippingDataService' => create(OrderShippingDataService::class),
     'AliNext_Lite\PriceFormulaService' => create(PriceFormulaService::class)

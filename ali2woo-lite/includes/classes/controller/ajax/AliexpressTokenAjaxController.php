@@ -187,7 +187,7 @@ class AliexpressTokenAjaxController extends AbstractController
     private function buildAuthEndpointUrl(string $state): string
     {
         $authEndpoint = 'https://api-sg.aliexpress.com/oauth/authorize';
-        $redirectUri = get_setting('api_endpoint').'auth.php&state=' . $state;
+        $redirectUri = get_setting('api_endpoint').'auth&state=' . $state;
         $clientId = get_setting('client_id');
 
         return sprintf(
